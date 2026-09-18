@@ -9,6 +9,7 @@ import {candidateRoutes} from "./candidate-routes.js";
 import {candidateItemsRoutes} from "./candidate-items-routes.js";
 import {companyRoutes} from "./company-routes.js";
 import {paymentRoutes} from "./payment-routes.js";
+import {matchingRoutes} from "./matching-routes.js";
 import {config} from "./config.js";
 import {databaseReady,db} from "./db.js";
 const app=Fastify({logger:true});
@@ -22,6 +23,7 @@ await app.register(candidateRoutes);
 await app.register(candidateItemsRoutes);
 await app.register(companyRoutes);
 await app.register(paymentRoutes);
+await app.register(matchingRoutes);
 app.get("/health",async()=>({status:"ok",service:"empleos-pa-api"}));
 app.get("/ready",async(_request,reply)=>{try{const database=await databaseReady();return {status:"ready",database};}catch{reply.code(503);return {status:"not-ready",database:false};}});
 async function shutdown(){await app.close();await db.end();process.exit(0);}
