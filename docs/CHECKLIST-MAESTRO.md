@@ -30,11 +30,11 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 ## Fase 2 — Base técnica
 - [x] Stack web inicial: Next.js 15 + React 19 + TypeScript + pnpm.
 - [x] Esqueleto app web móvil-first.
-- [ ] API/backend.
-- [ ] PostgreSQL y migraciones.
+- [x] API/backend.
+- [x] PostgreSQL y migraciones.
 - [ ] Ambientes y secretos.
-- [ ] Autenticación real.
-- [ ] Recuperación de contraseña.
+- [x] Autenticación real (correo/contraseña + sesiones; pendiente prueba integrada).
+- [x] Recuperación de contraseña a nivel API/tokens; pendiente canal de correo y prueba integrada.
 - [ ] Google OAuth real e independiente de LeveIA.
 - [ ] Roles CANDIDATO / EMPRESA / ADMIN.
 - [ ] Base funcional del panel ADMIN.
