@@ -1,0 +1,13 @@
+begin;
+create extension if not exists pgcrypto;
+create type user_role as enum ('CANDIDATO','EMPRESA','ADMIN');
+create type user_status as enum ('ACTIVE','DISABLED');
+create type candidate_status as enum ('BORRADOR','ACTIVO','VENCIDO','RETIRADO');
+create table users(user_id uuid primary key default gen_random_uuid(),email text not null,normalized_email text not null unique,password_hash text,google_subject text unique,role user_role not null,status user_status not null default 'ACTIVE',email_verified_at timestamptz,created_at timestamptz not null default now(),updated_at timestamptz not null default now(),constraint users_auth_method check(password_hash is not null or google_subject is not null));
+create table candidate_profiles(candidate_id uuid primary key default gen_random_uuid(),user_id uuid not null unique references users(user_id) on delete cascade,candidate_code text unique,status candidate_status not null default 'BORRADOR',full_name text,phone text,province text,district text,corregimiento text,sector text,work_profile text,primary_job_area text,currently_working boolean,available_from date,availability_notes text,salary_expectation text,valid_until date,submitted_at timestamptz,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+create table companies(company_id uuid primary key default gen_random_uuid(),owner_user_id uuid not null references users(user_id) on delete restrict,name text not null,contact_name text,phone text,email text,province text,district text,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+create index candidate_profiles_status_idx on candidate_profiles(status);
+create index candidate_profiles_location_idx on candidate_profiles(province,district);
+create index candidate_profiles_job_idx on candidate_profiles(primary_job_area);
+create index companies_owner_idx on companies(owner_user_id);
+commit;
