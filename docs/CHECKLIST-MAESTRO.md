@@ -36,8 +36,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Autenticación real (correo/contraseña + sesiones; pendiente prueba integrada).
 - [x] Recuperación de contraseña a nivel API/tokens; pendiente canal de correo y prueba integrada.
 - [ ] Google OAuth real e independiente de LeveIA.
-- [ ] Roles CANDIDATO / EMPRESA / ADMIN.
-- [ ] Base funcional del panel ADMIN.
+- [x] Roles CANDIDATO / EMPRESA / ADMIN con enforcement server-side; pendiente prueba integrada.
+- [x] Base funcional del panel ADMIN a nivel API; pendiente interfaz y prueba integrada.
 - [ ] CI mínimo: typecheck/build.
 - [ ] Configuración de despliegue.
 
