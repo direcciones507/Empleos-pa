@@ -1,0 +1,15 @@
+import crypto from "node:crypto";
+import argon2 from "argon2";
+import {db} from "./db.js";
+export type Role="CANDIDATO"|"EMPRESA"|"ADMIN";
+const SESSION_DAYS=14;
+export function normalizeEmail(v:string){return v.trim().toLowerCase();}
+export async function hashPassword(v:string){return argon2.hash(v,{type:argon2.argon2id});}
+export async function verifyPassword(hash:string,v:string){return argon2.verify(hash,v);}
+function token(){return crypto.randomBytes(32).toString("base64url");}
+function digest(v:string){return crypto.createHash("sha256").update(v).digest("hex");}
+export async function createSession(userId:string){const raw=token();await db.query("insert into auth_sessions(user_id,token_hash,expires_at) values($1,$2,now()+($3||' days')::interval)",[userId,digest(raw),SESSION_DAYS]);return raw;}
+export async function sessionUser(raw?:string){if(!raw)return null;const q=await db.query("select u.user_id,u.email,u.role,u.status from auth_sessions s join users u on u.user_id=s.user_id where s.token_hash=$1 and s.revoked_at is null and s.expires_at>now() and u.status='ACTIVE'",[digest(raw)]);return q.rows[0]??null;}
+export async function revokeSession(raw?:string){if(raw)await db.query("update auth_sessions set revoked_at=now() where token_hash=$1 and revoked_at is null",[digest(raw)]);}
+export async function issueReset(userId:string){const raw=token();await db.query("update password_reset_tokens set used_at=now() where user_id=$1 and used_at is null",[userId]);await db.query("insert into password_reset_tokens(user_id,token_hash,expires_at) values($1,$2,now()+interval '30 minutes')",[userId,digest(raw)]);return raw;}
+export async function consumeReset(raw:string,newHash:string){const client=await db.connect();try{await client.query("begin");const q=await client.query("select reset_id,user_id from password_reset_tokens where token_hash=$1 and used_at is null and expires_at>now() for update",[digest(raw)]);if(!q.rowCount){await client.query("rollback");return false;}const x=q.rows[0];await client.query("update users set password_hash=$1,updated_at=now() where user_id=$2",[newHash,x.user_id]);await client.query("update password_reset_tokens set used_at=now() where reset_id=$1",[x.reset_id]);await client.query("update auth_sessions set revoked_at=now() where user_id=$1 and revoked_at is null",[x.user_id]);await client.query("commit");return true;}catch(e){await client.query("rollback");throw e;}finally{client.release();}}
