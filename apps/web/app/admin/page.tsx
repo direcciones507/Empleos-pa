@@ -1,0 +1,1 @@
+export default function Admin(){return <main className="portal"><header><strong>Empleos.pa</strong><span>Administración</span></header><section><p className="eyebrowDark">PANEL ADMINISTRATIVO</p><h1>Operación de Empleos.pa</h1><p>La interfaz de métricas, candidatos, empresas, vacantes y pagos se conectará a los endpoints administrativos protegidos.</p></section></main>}
