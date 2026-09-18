@@ -35,7 +35,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Ambientes y secretos.
 - [x] Autenticación real (correo/contraseña + sesiones; pendiente prueba integrada).
 - [x] Recuperación de contraseña a nivel API/tokens; pendiente canal de correo y prueba integrada.
-- [ ] Google OAuth real e independiente de LeveIA.
+- [x] Google OAuth implementado de forma independiente; pendiente credenciales Google, dominio y prueba integrada.
 - [x] Roles CANDIDATO / EMPRESA / ADMIN con enforcement server-side; pendiente prueba integrada.
 - [x] Base funcional del panel ADMIN a nivel API; pendiente interfaz y prueba integrada.
 - [ ] CI mínimo: typecheck/build.
