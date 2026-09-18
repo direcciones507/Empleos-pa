@@ -1,0 +1,8 @@
+import type {FastifyInstance} from "fastify";
+import {db} from "./db.js";
+import {requireRoles} from "./rbac.js";
+export async function adminRoutes(app:FastifyInstance){
+app.get("/v1/admin/summary",{preHandler:requireRoles("ADMIN")},async()=>{const [users,candidates,companies]=await Promise.all([db.query("select role,count(*)::int total from users group by role"),db.query("select status,count(*)::int total from candidate_profiles group by status"),db.query("select count(*)::int total from companies")]);return {users:Object.fromEntries(users.rows.map(x=>[x.role,x.total])),candidates:Object.fromEntries(candidates.rows.map(x=>[x.status,x.total])),companies:companies.rows[0]?.total??0};});
+app.get("/v1/admin/candidates",{preHandler:requireRoles("ADMIN")},async(req:any)=>{const status=typeof req.query?.status==="string"?req.query.status:null;const allowed=["BORRADOR","ACTIVO","VENCIDO","RETIRADO"];const q=status&&allowed.includes(status)?await db.query("select candidate_id,candidate_code,status,full_name,province,district,primary_job_area,valid_until,created_at from candidate_profiles where status=$1 order by created_at desc limit 100",[status]):await db.query("select candidate_id,candidate_code,status,full_name,province,district,primary_job_area,valid_until,created_at from candidate_profiles order by created_at desc limit 100");return {items:q.rows};});
+app.get("/v1/admin/companies",{preHandler:requireRoles("ADMIN")},async()=>{const q=await db.query("select company_id,name,contact_name,province,district,created_at from companies order by created_at desc limit 100");return {items:q.rows};});
+}
