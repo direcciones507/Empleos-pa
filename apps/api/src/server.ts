@@ -14,7 +14,7 @@ import {deliveryRoutes} from "./delivery-routes.js";
 import {config} from "./config.js";
 import {databaseReady,db} from "./db.js";
 const app=Fastify({logger:true});
-await app.register(cors,{origin:false});
+await app.register(cors,{origin:config.webUrl,credentials:true});
 await app.register(cookie);
 await app.register(authRoutes);
 await app.register(adminRoutes);
