@@ -70,7 +70,7 @@ La empresa solicita y verifica directamente esa documentación cuando correspond
 - El modelo inicial permite verificación manual del pago por ADMIN.
 - El pago no se considera aprobado únicamente porque el cliente envíe un comprobante.
 - La búsqueda/preselección pagada comienza después de aprobación.
-- Precio, cantidad de candidatos y condiciones del paquete deben quedar configurables y documentados antes de producción.
+- Modelo comercial V1: 5 perfiles por $8.99; 10 por $10.99; 15 por $12.99; o $25 por todos los perfiles activos y compatibles disponibles al momento de la búsqueda. “Disponibles” no significa ilimitados ni garantiza una cantidad mínima.
 
 ## 8. Preselección y matching
 - Primero utilizar filtros estructurados y económicos.
