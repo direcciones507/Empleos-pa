@@ -43,7 +43,7 @@ Cada rol solo accede a la información y funciones que le corresponden.
 - El sistema genera un código EMP-######.
 - El perfil ACTIVO tiene una vigencia operativa de 45 días por defecto; el valor permanece configurable.
 - Debe poder actualizarse y renovarse.
-- Durante los últimos 7 días de vigencia se solicita una confirmación simple de que continúa buscando empleo; al renovar obtiene otros 45 días sin rehacer el formulario.
+- Cuando quedan 7 días se muestra un aviso simple de renovación. Si confirma, obtiene otros 45 días sin rehacer el formulario. Si deja vencer el plazo, el perfil sale automáticamente de las búsquedas. La eliminación definitiva de datos se rige por la política de retención, no por el vencimiento operativo.
 - Los perfiles vencidos no participan en búsquedas activas.
 - No inventar experiencia ni penalizar automáticamente a quien no tenga experiencia.
 
