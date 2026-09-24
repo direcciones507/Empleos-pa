@@ -77,7 +77,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Autorización de contacto registrada con la respuesta.
 - [x] Entrega excluye quien rechace/no autorice.
 - [ ] Preparar reporte descriptivo.
-- [ ] Entregar cantidad contratada.
+- [x] Límite de candidatos del paquete comprado aplicado al seleccionar y antes de preparar la entrega; paquete DISPONIBLES no fija límite numérico.
 - [x] Entrega, fecha y snapshot histórico implementados.
 - [x] Empresa recibe candidatos autorizados y continúa contacto/verificación directamente.
 
