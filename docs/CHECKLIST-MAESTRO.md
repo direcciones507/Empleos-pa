@@ -18,7 +18,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Formulario Vacante v1.
 - [ ] Definir paquete/precio inicial para empresas.
 - [ ] Definir cantidad de perfiles por paquete.
-- [x] Definir principio de autorización/interés antes de compartir contacto.
+- [x] Definir consentimiento operativo: perfil ACTIVO participa en búsquedas compatibles y puede entregarse sin confirmación individual previa; aviso posterior al candidato.
 - [ ] Definir formato final de reporte.
 - [ ] Definir política de retención/eliminación.
 - [x] Panel administrativo v1.
@@ -65,7 +65,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Historial de solicitudes de la empresa implementado.
 
 ## Fase 5 — Preselección
-- [ ] Matching estructurado implementado parcialmente: puesto, ubicación y habilidades; completar experiencia, educación y disponibilidad.
+- [x] Matching estructurado implementado: puesto, ubicación, habilidades, educación, experiencia y disponibilidad.
 - [x] Matching excluye perfiles vencidos/inactivos.
 - [x] Coincidencias descriptivas por solicitud implementadas.
 - [x] Sin ranking general ni puntuación de candidatos.
@@ -116,7 +116,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Pruebas móvil/tablet/laptop/desktop.
 - [ ] Prueba física candidato extremo a extremo.
 - [ ] Prueba física empresa extremo a extremo.
-- [ ] Prueba física pago→matching→autorización→entrega.
+- [ ] Prueba física pago→matching→entrega→aviso.
 - [ ] Accesibilidad y textos/errores.
 - [ ] Rendimiento básico.
 - [ ] Dominio definitivo.
@@ -129,6 +129,6 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
 - Avance funcional estimado: **64%**.
-- Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección básica, autorización, entrega y métricas principales.
-- Pendiente principal: completar matching estructurado, reporte descriptivo final, automatización de vencimiento, correo de recuperación/notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
+- Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
+- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación/notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
