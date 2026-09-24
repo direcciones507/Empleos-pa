@@ -23,13 +23,14 @@ Empleos.pa requiere tres piezas:
 - `DATABASE_URL`: PostgreSQL.
 - `WEB_URL`: origen HTTPS exacto de la web para CORS.
 - `CANDIDATE_VALIDITY_DAYS=45`.
+- `REQUEST_PAYMENT_MODE=FREE` durante la promoción de lanzamiento; cambiar a `MANUAL` para volver a exigir reporte y aprobación de pago.
 - Variables OAuth/correo según `.env.example`.
 
 ## Base de datos
 Aplicar las migraciones de `apps/api/migrations` en orden numérico antes de abrir tráfico. No ejecutar migraciones parcialmente.
 
 ## Apertura inicial
-La plataforma puede operar con revisión manual de pagos mientras la pasarela automática permanece pendiente. El flujo comercial debe conservar el paquete y precio seleccionados en la solicitud y en el registro de pago.
+Durante la promoción de lanzamiento, `REQUEST_PAYMENT_MODE=FREE` permite que una solicitud nueva pase directamente a `APROBADA` sin reportar pago. Los precios regulares permanecen registrados. Al finalizar la promoción, `REQUEST_PAYMENT_MODE=MANUAL` restaura el flujo de reporte y revisión manual sin cambiar el formulario ni los precios.
 
 ## Antes de producción
 - Configurar secretos reales fuera del repositorio.
