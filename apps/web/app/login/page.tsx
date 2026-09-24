@@ -1,0 +1,1 @@
+import {LoginForm} from "../../components/LoginForm";export default function Login(){return <main className="accountPage"><section className="loginPage"><a className="miniBrand" href="/">Empleos<span>.pa</span></a><LoginForm compact/></section></main>}
