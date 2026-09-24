@@ -15,7 +15,7 @@ Empleos.pa conecta candidatos que buscan empleo con empresas que necesitan contr
 - Evaluar correspondencia con requisitos concretos de una vacante.
 - Mantener perfiles vigentes mediante caducidad y renovación.
 - Empresa y candidato se comunican directamente después de la entrega autorizada.
-- Servicios Puntuales queda preparado conceptualmente pero DESACTIVADO.
+- La empresa puede solicitar una VACANTE regular o un TRABAJO EVENTUAL; ambos usan el mismo flujo de búsqueda, autorización y entrega.
 
 ## Usuarios
 Candidato: busca empleo, se registra gratuitamente y mantiene un perfil laboral activo.
@@ -31,7 +31,7 @@ Entrada → Busco empleo → Formulario Candidato → validación → código EM
 Antes del vencimiento se podrá solicitar renovación. Un perfil vencido deja de participar en búsquedas. La política final de retención/eliminación se definirá antes de producción.
 
 ## Flujo empresa
-Entrada → Necesito contratar personal → Formulario Vacante → solicitud → instrucciones de pago → comprobante → notificación administrativa → verificación → APROBADO → búsqueda/preselección → confirmación de interés/autorización → reporte → entrega.
+Entrada → Necesito contratar personal → elegir VACANTE o EVENTUAL → Formulario de solicitud → solicitud → instrucciones de pago → comprobante → notificación administrativa → verificación → APROBADO → búsqueda/preselección → confirmación de interés/autorización → reporte → entrega.
 
 ## Matching
 Primera capa sin IA: ubicación, puesto/área, experiencia, educación, habilidades y disponibilidad.
@@ -43,8 +43,8 @@ Puede incluir código, ubicación relevante, formación, experiencia, habilidade
 ## Datos que NO almacenamos en MVP
 No se solicitarán como archivo récord policivo, cédula escaneada, diplomas, certificados, cartas de trabajo ni documentación equivalente.
 
-## Servicios Puntuales
-**RESERVADO / DESACTIVADO.** Sin flujo ejecutable, solicitudes ni pagos. Su futura activación exige definir verificación, responsabilidad, reputación y reglas operativas.
+## Trabajo eventual
+**ACTIVO dentro del mismo flujo de contratación.** Está destinado a necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios. No constituye un marketplace separado. La solicitud sigue pago → aprobación → búsqueda/preselección → confirmación/autorización → entrega de candidatos → cierre. Puede manejar un paquete comercial menor y una cantidad menor de candidatos, configurables antes de producción.
 
 ## Estados mínimos
 Candidato: BORRADOR / ACTIVO / VENCIDO / RETIRADO.
