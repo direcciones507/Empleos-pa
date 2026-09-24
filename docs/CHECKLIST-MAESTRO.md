@@ -95,8 +95,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 ## Fase 8 — Automatización
 - [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
-- [ ] Mensajes de estado y vencimiento.
-- [ ] Notificaciones administrativas.
+- [ ] Mensajes de vencimiento; aviso posterior a entrega ya implementado en cuenta y correo.
+- [ ] Notificaciones administrativas; notificación al candidato posterior a entrega ya implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
 
@@ -130,5 +130,5 @@ Criterio: porcentaje de construcción funcional del MVP, no porcentaje de prueba
 
 - Avance funcional estimado: **64%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación/notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
+- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
