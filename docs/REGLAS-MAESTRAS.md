@@ -41,9 +41,9 @@ Cada rol solo accede a la información y funciones que le corresponden.
 - Completa un perfil estructurado dentro de Empleos.pa.
 - No se exige CV/PDF.
 - El sistema genera un código EMP-######.
-- El perfil tiene vigencia configurable.
+- El perfil ACTIVO tiene una vigencia operativa de 45 días por defecto; el valor permanece configurable.
 - Debe poder actualizarse y renovarse.
-- Antes del vencimiento se podrá solicitar confirmación de que continúa buscando empleo.
+- Durante los últimos 7 días de vigencia se solicita una confirmación simple de que continúa buscando empleo; al renovar obtiene otros 45 días sin rehacer el formulario.
 - Los perfiles vencidos no participan en búsquedas activas.
 - No inventar experiencia ni penalizar automáticamente a quien no tenga experiencia.
 
