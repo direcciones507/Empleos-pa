@@ -81,11 +81,13 @@ La empresa solicita y verifica directamente esa documentación cuando correspond
 - No producir un ranking general de personas ni declarar automáticamente quién debe ser contratado.
 - El reporte describe alineación: requisitos cumplidos/declarados, experiencia, educación, habilidades, ubicación, disponibilidad y puntos que deben verificarse en entrevista.
 
-## 9. Interés, autorización y contacto
-- Antes de compartir datos de contacto cuando corresponda, registrar el interés/autorización aplicable del candidato.
-- No entregar como disponible a un candidato que haya rechazado la oportunidad.
-- Mantener trazabilidad de la autorización y entrega.
-- La comunicación directa empresa-candidato ocurre después de la entrega autorizada.
+## 9. Perfil activo, entrega y aviso al candidato
+- Un perfil ACTIVO significa que el candidato mantiene su disponibilidad para participar en búsquedas compatibles con lo declarado en su perfil, conforme a los términos y la política de privacidad aceptados.
+- No existe una confirmación individual previa que bloquee cada entrega. Una solicitud pagada y aprobada debe poder resolverse con rapidez usando perfiles activos y compatibles.
+- Empleos.pa registra qué perfiles fueron entregados y conserva snapshot y trazabilidad de la entrega.
+- Después de la entrega, el candidato recibe un aviso informativo: su perfil estuvo incluido en una búsqueda para determinado puesto/oficio y zona, una empresa podría contactarlo y debe mantenerse pendiente de sus medios de contacto.
+- Ese aviso no significa entrevista, contratación ni selección final por la empresa y no revela necesariamente la identidad de la empresa.
+- La empresa decide a quién contactar, entrevistar, verificar y contratar. La gestión posterior entre empresa y candidato no constituye una garantía ni obligación de Empleos.pa.
 
 ## 10. Fuente oficial de datos
 - PostgreSQL es la fuente oficial operativa.
@@ -119,7 +121,7 @@ Debe permitir como mínimo:
 - ACTIVO como tipo de solicitud dentro del flujo de contratación.
 - No es una plataforma separada ni un marketplace abierto de servicios.
 - Cubre necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios.
-- Utiliza el mismo flujo central: solicitud → pago → aprobación → búsqueda/preselección → confirmación/autorización → entrega de candidatos → cierre.
+- Utiliza el mismo flujo central: solicitud → pago → aprobación → búsqueda/preselección → entrega de candidatos activos → aviso informativo al candidato → cierre.
 - Puede tener precio y cantidad de candidatos distintos a una vacante regular, pero esos valores deben ser configurables.
 - La portada debe explicar claramente la diferencia entre una vacante de personal y un trabajo eventual.
 
@@ -150,7 +152,7 @@ Prioridad especial al móvil para candidatos.
 Crear cuenta → Busco empleo → completar formulario → revisar → aceptar condiciones → enviar → EMP-###### → ACTIVO.
 
 ## 18. Flujo empresa resumido
-Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → confirmación/autorización de candidatos → reporte/entrega → cierre.
+Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → entrega inmediata de perfiles activos compatibles → aviso informativo a candidatos entregados → cierre.
 
 ## 19. Criterio de éxito de UX
 Debe ser posible grabar un video corto desde un teléfono mostrando el registro completo sin necesitar explicar una secuencia complicada.
