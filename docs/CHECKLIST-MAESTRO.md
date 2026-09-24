@@ -49,8 +49,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Persistencia y confirmación de perfil implementadas.
 - [x] Vista Mi perfil/portal candidato implementada.
 - [x] Edición/actualización de perfil implementada.
-- [ ] Caducidad automática y retiro pendientes; renovación implementada.
-- [x] Estados BORRADOR / ACTIVO / VENCIDO / RETIRADO definidos; automatización de vencimiento pendiente.
+- [x] Caducidad operativa automática al consultar perfil; renovación implementada. Pendiente automatización programada global y política de eliminación definitiva.
+- [x] Estados BORRADOR / ACTIVO / VENCIDO / RETIRADO definidos; VENCIDO se aplica automáticamente al detectar fecha superada.
 
 ## Fase 4 — Empresas y vacantes
 - [x] Registro/login empresa implementado; pendiente prueba integrada.
@@ -95,7 +95,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 ## Fase 8 — Automatización
 - [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
-- [ ] Mensajes de vencimiento; aviso posterior a entrega ya implementado en cuenta y correo.
+- [x] Aviso de renovación creado cuando quedan 7 días al consultar perfil; aviso posterior a entrega implementado en cuenta y correo. Pendiente ejecución programada global/correo de vencimiento.
 - [ ] Notificaciones administrativas; notificación al candidato posterior a entrega ya implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
