@@ -16,8 +16,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Formulario Candidato v1 estructurado para implementación.
 - [x] Vigencia inicial configurable del perfil: 45 días por defecto; renovación simple en los últimos 7 días.
 - [x] Formulario Vacante v1.
-- [ ] Definir paquete/precio inicial para empresas.
-- [ ] Definir cantidad de perfiles por paquete.
+- [x] Paquetes/precios V1: 5/$8.99, 10/$10.99, 15/$12.99, disponibles/$25.
+- [x] Cantidad por paquete definida; opción $25 entrega todos los perfiles activos y compatibles disponibles, sin promesa de cantidad mínima.
 - [x] Definir consentimiento operativo: perfil ACTIVO participa en búsquedas compatibles y puede entregarse sin confirmación individual previa; aviso posterior al candidato.
 - [ ] Definir formato final de reporte.
 - [ ] Definir política de retención/eliminación.
