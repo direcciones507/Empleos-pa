@@ -26,8 +26,12 @@ await app.register(companyRoutes);
 await app.register(paymentRoutes);
 await app.register(matchingRoutes);
 await app.register(deliveryRoutes);
+async function refreshCandidateLifecycle(){try{await db.query("update candidate_profiles set status='VENCIDO',updated_at=now() where status='ACTIVO' and valid_until<current_date");await db.query(`insert into candidate_notifications(candidate_id,type,title,message) select candidate_id,'PROFILE_EXPIRING','Tu perfil está por vencer','Tu perfil de Empleos.pa vence en 7 días. Si sigues buscando empleo, entra a tu cuenta y toca “Sigo buscando empleo · Renovar”.' from candidate_profiles where status='ACTIVO' and valid_until=current_date+7 on conflict do nothing`);}catch(error){app.log.error(error,"candidate lifecycle refresh failed");}}
+await refreshCandidateLifecycle();
+const lifecycleTimer=setInterval(refreshCandidateLifecycle,60*60*1000);
+lifecycleTimer.unref();
 app.get("/health",async()=>({status:"ok",service:"empleos-pa-api"}));
 app.get("/ready",async(_request,reply)=>{try{const database=await databaseReady();return {status:"ready",database};}catch{reply.code(503);return {status:"not-ready",database:false};}});
-async function shutdown(){await app.close();await db.end();process.exit(0);}
+async function shutdown(){clearInterval(lifecycleTimer);await app.close();await db.end();process.exit(0);}
 process.on("SIGTERM",shutdown);process.on("SIGINT",shutdown);
 await app.listen({port:config.port,host:config.host});
