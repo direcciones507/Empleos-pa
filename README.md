@@ -3,7 +3,7 @@
 Plataforma digital para registro, búsqueda, preselección y conexión de candidatos con empresas en Panamá.
 
 ## Estado
-**FASE 1 — Estructuración del MVP de Empleos**
+**MVP — Construcción funcional activa**
 
 Fecha de inicio: 17-sep-2026.
 
@@ -14,7 +14,7 @@ Fecha de inicio: 17-sep-2026.
 - Pago y aprobación antes de entregar candidatos.
 - Filtrado por requisitos objetivos de cada vacante.
 - Evaluación descriptiva de correspondencia, sin ranking general de personas.
-- Confirmación de interés/autorización del candidato antes de compartir sus datos.
+- Entrega de perfiles ACTIVOS compatibles conforme al consentimiento aceptado; aviso informativo posterior al candidato.
 - Entrega de perfiles a la empresa para que ésta entreviste y decida.
 - Caducidad/renovación de perfiles para mantener la base vigente.
 - Interfaz conversacional/automatizada de entrada con dos rutas: **Busco empleo** y **Necesito contratar personal**.
