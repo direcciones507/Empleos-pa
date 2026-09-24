@@ -3,10 +3,10 @@
 Regla: este checklist gobierna la construcción. No cerrar un punto por apariencia visual; debe existir implementación o decisión documentada verificable.
 
 ## Fase 0 — Fundamentos
-- [x] Repositorio privado independiente.
+- [x] Repositorio independiente (público temporalmente durante construcción; volver a privado antes de producción).
 - [x] README inicial.
 - [x] Empleos activo.
-- [x] Servicios Puntuales reservado/desactivado.
+- [x] Trabajo eventual integrado al mismo flujo de contratación; no plataforma separada.
 - [x] Documento Maestro v0.1.
 - [x] Formulario Candidato v1 estructurado.
 - [x] Reglas Maestras.
@@ -14,7 +14,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 ## Fase 1 — Diseño funcional
 - [x] Formulario Candidato v1 estructurado para implementación.
-- [ ] Definir vigencia inicial del perfil.
+- [x] Vigencia inicial configurable del perfil: 90 días por defecto.
 - [x] Formulario Vacante v1.
 - [ ] Definir paquete/precio inicial para empresas.
 - [ ] Definir cantidad de perfiles por paquete.
@@ -42,62 +42,62 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Configuración de despliegue.
 
 ## Fase 3 — Candidatos
-- [ ] Registro/login candidato.
-- [ ] Formulario wizard responsive y validaciones.
+- [x] Registro/login candidato implementado; pendiente prueba integrada.
+- [x] Formulario wizard candidato de 6 pasos y validaciones implementado; pendiente prueba física.
 - [ ] Guardado automático de borrador.
-- [ ] Código EMP-###### secuencial seguro.
-- [ ] Persistencia y confirmación.
-- [ ] Vista Mi perfil.
-- [ ] Edición/actualización.
-- [ ] Caducidad, renovación y retiro.
-- [ ] Estados BORRADOR / ACTIVO / VENCIDO / RETIRADO.
+- [x] Código EMP-###### secuencial implementado.
+- [x] Persistencia y confirmación de perfil implementadas.
+- [x] Vista Mi perfil/portal candidato implementada.
+- [x] Edición/actualización de perfil implementada.
+- [ ] Caducidad automática y retiro pendientes; renovación implementada.
+- [x] Estados BORRADOR / ACTIVO / VENCIDO / RETIRADO definidos; automatización de vencimiento pendiente.
 
 ## Fase 4 — Empresas y vacantes
-- [ ] Registro/login empresa.
-- [ ] Datos persistentes de empresa/contacto.
-- [ ] Formulario wizard de vacante.
-- [ ] Código VAC-######.
-- [ ] Estados de vacante.
-- [ ] Pago/comprobante.
-- [ ] Estados de pago.
+- [x] Registro/login empresa implementado; pendiente prueba integrada.
+- [x] Datos persistentes de empresa/contacto implementados.
+- [x] Formulario wizard para VACANTE y EVENTUAL implementado.
+- [x] Código VAC-###### implementado.
+- [x] Estados de vacante implementados.
+- [x] Reporte/referencia de pago implementado; verificación manual ADMIN.
+- [x] Estados de pago implementados.
 - [ ] Notificación administrativa.
-- [ ] Aprobación/rechazo manual.
-- [ ] Historial de vacantes de la empresa.
+- [x] Aprobación/rechazo manual implementado.
+- [x] Historial de solicitudes de la empresa implementado.
 
 ## Fase 5 — Preselección
-- [ ] Filtros estructurados por ubicación, puesto/área, experiencia, educación, habilidades y disponibilidad.
-- [ ] Excluir perfiles vencidos/inactivos.
-- [ ] Evaluación descriptiva específica por vacante.
-- [ ] Sin ranking general.
+- [ ] Matching estructurado implementado parcialmente: puesto, ubicación y habilidades; completar experiencia, educación y disponibilidad.
+- [x] Matching excluye perfiles vencidos/inactivos.
+- [x] Coincidencias descriptivas por solicitud implementadas.
+- [x] Sin ranking general ni puntuación de candidatos.
 - [ ] Trazabilidad de criterios.
 - [ ] IA solo después del filtrado y cuando aporte valor.
 
 ## Fase 6 — Consentimiento y entrega
-- [ ] Confirmar interés del candidato.
-- [ ] Registrar autorización aplicable.
-- [ ] Excluir quien rechace/no autorice.
+- [x] Confirmación de interés del candidato implementada.
+- [x] Autorización de contacto registrada con la respuesta.
+- [x] Entrega excluye quien rechace/no autorice.
 - [ ] Preparar reporte descriptivo.
 - [ ] Entregar cantidad contratada.
-- [ ] Registrar entrega y fecha.
-- [ ] Empresa continúa entrevista/verificación/contratación directamente.
+- [x] Entrega, fecha y snapshot histórico implementados.
+- [x] Empresa recibe candidatos autorizados y continúa contacto/verificación directamente.
 
 ## Fase 7 — Panel administrativo y métricas
-- [ ] Dashboard candidatos: total/activos/nuevos/vencimiento/vencidos.
-- [ ] Dashboard empresas y vacantes.
-- [ ] Pagos pendientes/en revisión/aprobados/rechazados.
+- [x] Métricas API de candidatos total/estado/nuevos/vencimiento implementadas; revisar interfaz.
+- [x] Métricas API de empresas y vacantes implementadas; revisar interfaz.
+- [x] Gestión y métricas de pagos implementadas.
 - [ ] Gestión de estados.
-- [ ] Buscador y filtros.
-- [ ] Entregas y perfiles entregados.
-- [ ] Ingresos registrados.
+- [x] Búsqueda/filtros administrativos básicos implementados.
+- [x] Entregas y perfiles entregados implementados.
+- [x] Ingresos aprobados calculados desde PostgreSQL.
 - [ ] Métricas día/semana/mes.
 - [ ] Exportación XLSX administrativa.
-- [ ] Sin IA para conteos, filtros o métricas.
+- [x] Conteos, filtros y métricas sin IA.
 
 ## Fase 8 — Automatización
-- [ ] Entrada Busco empleo / Busco personal conectada a flujo real.
+- [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
 - [ ] Mensajes de estado y vencimiento.
 - [ ] Notificaciones administrativas.
-- [ ] Renovación de perfil sin reingreso completo.
+- [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
 
 ## Fase 9 — Legal, seguridad y privacidad
@@ -123,3 +123,12 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Despliegue.
 - [ ] Google OAuth configurado para dominio de producción.
 - [ ] Checklist final sin bloqueadores críticos.
+
+## Corte de avance — 24-sep-2026
+
+Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
+
+- Avance funcional estimado: **64%**.
+- Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección básica, autorización, entrega y métricas principales.
+- Pendiente principal: completar matching estructurado, reporte descriptivo final, automatización de vencimiento, correo de recuperación/notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
+- Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
