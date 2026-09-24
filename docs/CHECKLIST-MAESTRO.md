@@ -16,7 +16,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Formulario Candidato v1 estructurado para implementación.
 - [x] Vigencia inicial configurable del perfil: 45 días por defecto; renovación simple en los últimos 7 días.
 - [x] Formulario Vacante v1.
-- [x] Paquetes/precios V1: 5/$8.99, 10/$10.99, 15/$12.99, disponibles/$25.
+- [x] Precios V1: VACANTE 5/$8.99, 10/$10.99, 15/$12.99, disponibles/$25; SERVICIOS Y TRABAJOS EVENTUALES $3.99 por solicitud.
 - [x] Cantidad por paquete definida; opción $25 entrega todos los perfiles activos y compatibles disponibles, sin promesa de cantidad mínima.
 - [x] Definir consentimiento operativo: perfil ACTIVO participa en búsquedas compatibles y puede entregarse sin confirmación individual previa; aviso posterior al candidato.
 - [ ] Definir formato final de reporte.
@@ -55,7 +55,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 ## Fase 4 — Empresas y vacantes
 - [x] Registro/login empresa implementado; pendiente prueba integrada.
 - [x] Datos persistentes de empresa/contacto implementados.
-- [x] Formulario wizard para VACANTE y EVENTUAL implementado.
+- [x] Formulario wizard para VACANTE y EVENTUAL implementado. EVENTUAL se presenta al usuario como Servicios y trabajos eventuales, con tarifa definida de $3.99.
 - [x] Código VAC-###### implementado.
 - [x] Estados de vacante implementados.
 - [x] Reporte/referencia de pago implementado; verificación manual ADMIN.
