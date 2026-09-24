@@ -14,7 +14,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 ## Fase 1 — Diseño funcional
 - [x] Formulario Candidato v1 estructurado para implementación.
-- [x] Vigencia inicial configurable del perfil: 90 días por defecto.
+- [x] Vigencia inicial configurable del perfil: 45 días por defecto; renovación simple en los últimos 7 días.
 - [x] Formulario Vacante v1.
 - [ ] Definir paquete/precio inicial para empresas.
 - [ ] Definir cantidad de perfiles por paquete.
