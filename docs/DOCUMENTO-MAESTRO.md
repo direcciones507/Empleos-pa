@@ -33,7 +33,7 @@ La vigencia operativa inicial es de 45 días. Al quedar 7 días se ofrece renova
 ## Flujo empresa
 Entrada → Necesito contratar personal → elegir VACANTE o EVENTUAL → Formulario de solicitud → solicitud → instrucciones de pago → comprobante → notificación administrativa → verificación → APROBADO → búsqueda/preselección → reporte → entrega inmediata de perfiles activos compatibles → aviso informativo al candidato.
 
-## Matching
+## Modelo comercial V1\n- 5 perfiles: $8.99.\n- 10 perfiles: $10.99.\n- 15 perfiles: $12.99.\n- Perfiles disponibles: $25 por todos los perfiles activos y compatibles encontrados al momento de la búsqueda; no es ilimitado ni garantiza una cantidad mínima.\n\n## Matching
 Primera capa sin IA: ubicación, puesto/área, experiencia, educación, habilidades y disponibilidad.
 Segunda capa: evaluación descriptiva contra los requisitos de ESA vacante. Puede señalar coincidencias y puntos por validar en entrevista. No produce ranking general.
 
