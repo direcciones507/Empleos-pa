@@ -122,16 +122,26 @@ Debe permitir como mínimo:
 - No es una plataforma separada ni un marketplace abierto de servicios.
 - Cubre necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios.
 - Utiliza el mismo flujo central: solicitud → pago → aprobación → búsqueda/preselección → entrega de candidatos activos → aviso informativo al candidato → cierre.
-- Puede tener precio y cantidad de candidatos distintos a una vacante regular, pero esos valores deben ser configurables.
+- Tarifa V1 aprobada para Servicios y trabajos eventuales: $3.99 por solicitud. Se mantiene separado de los paquetes de vacantes regulares.
 - La portada debe explicar claramente la diferencia entre una vacante de personal y un trabajo eventual.
 
-## 14. Economía
+## 14. Profesionales destacados — módulo comercial posterior al MVP
+- Empleos.pa podrá ofrecer visibilidad publicitaria a profesionales, técnicos y prestadores de servicios mediante fichas públicas.
+- Tarifa inicial aprobada como referencia comercial: $4.99 por 30 días.
+- La ficha podrá incluir nombre o negocio, profesión/servicio, zona, descripción breve, teléfono/WhatsApp y foto o logo opcional.
+- El profesional completa su información mediante formulario; ADMIN aprueba, pausa o renueva desde el panel. No debe requerir editar código para publicar una ficha.
+- La publicación se activa y vence automáticamente según el período contratado.
+- Esta modalidad es distinta de Servicios y trabajos eventuales: en una solicitud eventual el cliente solicita una búsqueda; en Profesionales destacados el prestador paga por visibilidad pública y contacto directo.
+- La etiqueta será “Profesional destacado” o equivalente publicitario. No usar “verificado” salvo que exista un proceso real de verificación de credenciales.
+- Este módulo queda aprobado como extensión comercial posterior y no bloquea el cierre del MVP actual.
+
+## 15. Economía
 - No gastar IA en transcribir CV si el candidato puede completar datos estructurados.
 - No gastar IA en conteos, estados, filtros o métricas simples.
 - Usar automatización convencional siempre que resuelva correctamente el proceso.
 - IA principalmente para análisis descriptivo asociado a una solicitud pagada cuando aporte valor.
 
-## 15. Diseño y dispositivos
+## 16. Diseño y dispositivos
 Todo flujo público y administrativo relevante debe funcionar en:
 - móvil;
 - tablet;
@@ -140,7 +150,7 @@ Todo flujo público y administrativo relevante debe funcionar en:
 
 Prioridad especial al móvil para candidatos.
 
-## 16. Regla de construcción
+## 17. Regla de construcción
 - No construir funciones que contradigan estas reglas.
 - No activar bloques reservados por conveniencia técnica.
 - No reconstruir componentes cerrados sin una causa real.
@@ -148,16 +158,16 @@ Prioridad especial al móvil para candidatos.
 - Probar los flujos completos, no solamente componentes aislados.
 - El panel administrativo y métricas forman parte del núcleo del MVP.
 
-## 17. Flujo candidato resumido
+## 18. Flujo candidato resumido
 Crear cuenta → Busco empleo → completar formulario → revisar → aceptar condiciones → enviar → EMP-###### → ACTIVO.
 
-## 18. Flujo empresa resumido
+## 19. Flujo empresa resumido
 Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → entrega inmediata de perfiles activos compatibles → aviso informativo a candidatos entregados → cierre.
 
-## 19. Criterio de éxito de UX
+## 20. Criterio de éxito de UX
 Debe ser posible grabar un video corto desde un teléfono mostrando el registro completo sin necesitar explicar una secuencia complicada.
 
-## 20. Control de cambios
+## 21. Control de cambios
 Estas reglas son la referencia transversal. Una nueva función o cambio que las afecte debe:
 1. identificar la regla afectada;
 2. justificar el cambio;
