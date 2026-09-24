@@ -28,7 +28,7 @@ Solo dos rutas activas: **Busco empleo** y **Necesito contratar personal**. La c
 ## Flujo candidato
 Entrada → Busco empleo → Formulario Candidato → validación → código EMP-000001 → confirmación + vigencia → base activa.
 
-La vigencia operativa inicial es de 45 días. Durante los últimos 7 días se ofrece renovación con un toque; al renovar obtiene otros 45 días sin rehacer el perfil. Un perfil vencido deja de participar en búsquedas. La política final de retención/eliminación se definirá antes de producción.
+La vigencia operativa inicial es de 45 días. Al quedar 7 días se ofrece renovación con un toque; al renovar obtiene otros 45 días sin rehacer el perfil. Si no renueva, pasa automáticamente a VENCIDO y deja de participar en búsquedas. VENCIDO no implica borrado inmediato: la eliminación definitiva se regirá por la política de retención. La política final de retención/eliminación se definirá antes de producción.
 
 ## Flujo empresa
 Entrada → Necesito contratar personal → elegir VACANTE o EVENTUAL → Formulario de solicitud → solicitud → instrucciones de pago → comprobante → notificación administrativa → verificación → APROBADO → búsqueda/preselección → reporte → entrega inmediata de perfiles activos compatibles → aviso informativo al candidato.
