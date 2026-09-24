@@ -115,14 +115,13 @@ Debe permitir como mínimo:
 - Definir y documentar política de retención/eliminación antes de producción.
 - No usar datos para finalidades distintas de las informadas/aceptadas.
 
-## 13. Servicios Puntuales
-- RESERVADO / DESHABILITADO.
-- Puede dejarse espacio arquitectónico futuro.
-- No mostrar botón público.
-- No formulario operativo.
-- No pagos.
-- No matching.
-- No activar hasta que exista una decisión expresa sobre verificación, responsabilidad, reputación y reglas del servicio.
+## 13. Trabajo eventual
+- ACTIVO como tipo de solicitud dentro del flujo de contratación.
+- No es una plataforma separada ni un marketplace abierto de servicios.
+- Cubre necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios.
+- Utiliza el mismo flujo central: solicitud → pago → aprobación → búsqueda/preselección → confirmación/autorización → entrega de candidatos → cierre.
+- Puede tener precio y cantidad de candidatos distintos a una vacante regular, pero esos valores deben ser configurables.
+- La portada debe explicar claramente la diferencia entre una vacante de personal y un trabajo eventual.
 
 ## 14. Economía
 - No gastar IA en transcribir CV si el candidato puede completar datos estructurados.
@@ -151,7 +150,7 @@ Prioridad especial al móvil para candidatos.
 Crear cuenta → Busco empleo → completar formulario → revisar → aceptar condiciones → enviar → EMP-###### → ACTIVO.
 
 ## 18. Flujo empresa resumido
-Crear cuenta → Busco personal → completar vacante → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → confirmación/autorización de candidatos → reporte/entrega → cierre.
+Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → confirmación/autorización de candidatos → reporte/entrega → cierre.
 
 ## 19. Criterio de éxito de UX
 Debe ser posible grabar un video corto desde un teléfono mostrando el registro completo sin necesitar explicar una secuencia complicada.
