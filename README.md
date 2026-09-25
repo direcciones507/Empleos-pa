@@ -11,7 +11,7 @@ Fecha de inicio: 17-sep-2026.
 - Registro gratuito de candidatos mediante formulario estructurado.
 - Perfil laboral sin CV/PDF obligatorio.
 - Solicitud de vacantes por empresas.
-- Pago y aprobación antes de entregar candidatos.
+- Modo de lanzamiento `FREE`: la solicitud avanza sin pago. El modo futuro `MANUAL` requiere referencia y aprobación administrativa antes de la búsqueda.
 - Filtrado por requisitos objetivos de cada vacante.
 - Evaluación descriptiva de correspondencia, sin ranking general de personas.
 - Entrega de perfiles ACTIVOS compatibles conforme al consentimiento aceptado; aviso informativo posterior al candidato.
@@ -20,7 +20,7 @@ Fecha de inicio: 17-sep-2026.
 - Interfaz conversacional/automatizada de entrada con dos rutas: **Busco empleo** y **Necesito contratar personal**.
 
 ## Fuera del MVP
-- Servicios puntuales: **RESERVADO / DESACTIVADO**. La arquitectura podrá contemplarlo, pero no tendrá formulario, pagos ni operación pública hasta definir verificación, responsabilidad y reglas.
+- Servicios y trabajos eventuales: solicitud puntual por **$3.99**, sin garantía de cantidad de perfiles.
 - Almacenamiento de récord policivo, cédula, diplomas, certificados u otros documentos de contratación.
 - Decidir quién debe ser contratado.
 - Ranking general de candidatos.
@@ -42,7 +42,7 @@ Empleos.pa hace la conexión y preselección. La empresa realiza entrevistas, so
 Contrato reproducible, independiente del proveedor:
 
 1. Crear PostgreSQL y configurar `DATABASE_URL`.
-2. Instalar dependencias con `pnpm install --frozen-lockfile`.
+2. Instalar dependencias con `pnpm install --no-frozen-lockfile`.
 3. Aplicar esquema con `pnpm --filter @empleos-pa/api migrate`.
 4. Compilar API con `pnpm --filter @empleos-pa/api build` e iniciar con `pnpm --filter @empleos-pa/api start`.
 5. Compilar Web con `pnpm --filter @empleos-pa/web build` e iniciar con `pnpm --filter @empleos-pa/web start`.
