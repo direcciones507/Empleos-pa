@@ -14,6 +14,8 @@ import {deliveryRoutes} from "./delivery-routes.js";
 import {config} from "./config.js";
 import {databaseReady,db} from "./db.js";
 const app=Fastify({logger:true,bodyLimit:1024*1024,requestTimeout:15000});
+const requestBuckets=new Map<string,{count:number;resetAt:number}>();
+app.addHook("onRequest",async(req,reply)=>{if(!req.url.startsWith("/v1/auth/"))return;const now=Date.now();const key=req.ip+"|"+req.url.split("?")[0];const prior=requestBuckets.get(key);const bucket=!prior||prior.resetAt<=now?{count:1,resetAt:now+60000}:{count:prior.count+1,resetAt:prior.resetAt};requestBuckets.set(key,bucket);if(bucket.count>20){reply.header("Retry-After",String(Math.max(1,Math.ceil((bucket.resetAt-now)/1000))));return reply.code(429).send({error:"RATE_LIMITED"});}});
 app.addHook("onSend",async(_req,reply,payload)=>{reply.header("X-Content-Type-Options","nosniff");reply.header("X-Frame-Options","DENY");reply.header("Referrer-Policy","no-referrer");reply.header("Permissions-Policy","camera=(), microphone=(), geolocation=()");reply.header("Cache-Control","no-store");return payload;});
 await app.register(cors,{origin:config.webUrl,credentials:true});
 await app.register(cookie);
