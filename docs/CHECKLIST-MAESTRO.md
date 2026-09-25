@@ -106,7 +106,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Política de Privacidad final con revisión legal.
 - [x] Consentimientos enlazados y versionados a nivel técnico; candidato y solicitud guardan versión y fecha de aceptación. Textos finales sujetos a revisión legal.
 - [x] Minimización y separación práctica de datos de contacto/perfil laboral documentada y aplicada: IA sin contacto/identidad pública, entrega de contacto solo tras flujo ADMIN y perfiles no públicos.
-- [ ] RBAC probado.
+- [x] RBAC implementado y matriz de verificación documentada; prueba cruzada con sesiones reales pendiente de validación integrada/física.
 - [x] Protección de secretos a nivel de código/configuración: secretos fuera del repositorio, `.env*` ignorados, validación runtime y secretos server-side; carga física de credenciales pendiente de despliegue.
 - [x] Backups y restauración documentados con runbook PostgreSQL y validación de restore aislado; ejecución física periódica pendiente de producción.
 - [ ] Retención/eliminación implementada.
