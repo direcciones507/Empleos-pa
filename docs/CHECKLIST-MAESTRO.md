@@ -118,7 +118,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Prueba física candidato extremo a extremo.
 - [ ] Prueba física empresa extremo a extremo.
 - [ ] Prueba física pago→matching→entrega→aviso.
-- [ ] Accesibilidad y textos/errores.
+- [ ] Accesibilidad y textos/errores: endurecimiento técnico aplicado en navegación, registro, recuperación/restablecimiento, wizard candidato, wizard empresa, pago y avisos; pendiente validación física integral con teclado/tecnología asistiva y revisión final de textos/errores.
 - [ ] Rendimiento básico.
 - [ ] Dominio definitivo.
 - [ ] Despliegue.
