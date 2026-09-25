@@ -39,9 +39,9 @@ export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidate
   let parsed:any;try{parsed=JSON.parse(raw);}catch{throw new Error("DEEPSEEK_INVALID_JSON");}
   if(!Array.isArray(parsed?.analyses)||parsed.analyses.length>MAX_AI_CANDIDATES)throw new Error("DEEPSEEK_INVALID_SCHEMA");
   const allowed=new Set(candidates.map(x=>x.candidate_id));
-  const cleanList=(value:any)=>Array.isArray(value)?value.filter((v:any)=>typeof v==="string").map((v:string)=>v.trim()).filter(Boolean).slice(0,10):[];
+  const cleanList=(value:any)=>Array.isArray(value)?value.filter((v:any)=>typeof v==="string").map((v:string)=>v.trim().slice(0,500)).filter(Boolean).slice(0,10):[];
   const seen=new Set<string>();const analyses:CandidateAiAnalysis[]=[];
-  for(const x of parsed.analyses){const id=String(x?.candidate_id??"");if(!allowed.has(id)||seen.has(id)||typeof x?.summary!=="string")continue;seen.add(id);analyses.push({candidate_id:id,summary:x.summary.trim().slice(0,1200),strengths:cleanList(x.strengths),gaps:cleanList(x.gaps),considerations:cleanList(x.considerations)});}
+  for(const x of parsed.analyses){const id=String(x?.candidate_id??"");if(!allowed.has(id)||seen.has(id)||typeof x?.summary!=="string"||!x.summary.trim())continue;seen.add(id);analyses.push({candidate_id:id,summary:x.summary.trim().slice(0,1200),strengths:cleanList(x.strengths),gaps:cleanList(x.gaps),considerations:cleanList(x.considerations)});}
   const returned=new Set(analyses.map(x=>x.candidate_id));const missing=candidates.map(x=>x.candidate_id).filter(id=>!returned.has(id));
   return {provider:"deepseek",model:config.deepSeekModel,analyses,coverage:{requested:candidates.length,returned:analyses.length,missing_candidate_ids:missing}};
 }
