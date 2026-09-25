@@ -26,7 +26,7 @@ await app.register(companyRoutes);
 await app.register(paymentRoutes);
 await app.register(matchingRoutes);
 await app.register(deliveryRoutes);
-async function refreshCandidateLifecycle(){try{await db.query("update candidate_profiles set status='VENCIDO',updated_at=now() where status='ACTIVO' and valid_until<current_date");await db.query(`insert into candidate_notifications(candidate_id,type,title,message) select candidate_id,'PROFILE_EXPIRING','Tu perfil está por vencer','Tu perfil de Empleos.pa vence en 7 días. Si sigues buscando empleo, entra a tu cuenta y toca “Sigo buscando empleo · Renovar”.' from candidate_profiles where status='ACTIVO' and valid_until=current_date+7 on conflict do nothing`);}catch(error){app.log.error(error,"candidate lifecycle refresh failed");}}
+async function refreshCandidateLifecycle(){try{await db.query("update candidate_profiles set status='VENCIDO',updated_at=now() where status='ACTIVO' and valid_until<current_date");await db.query(`insert into candidate_notifications(candidate_id,type,title,message) select candidate_id,'PROFILE_EXPIRING','Tu perfil está por vencer','Tu perfil de Empleos.pa vence en 7 días. Si sigues buscando empleo, entra a tu cuenta y toca “Sigo buscando empleo · Renovar”.' from candidate_profiles where status='ACTIVO' and valid_until between current_date and current_date+7 on conflict do nothing`);}catch(error){app.log.error(error,"candidate lifecycle refresh failed");}}
 await refreshCandidateLifecycle();
 const lifecycleTimer=setInterval(refreshCandidateLifecycle,60*60*1000);
 lifecycleTimer.unref();
