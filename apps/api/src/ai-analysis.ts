@@ -1,7 +1,7 @@
 import {config} from "./config.js";
 
 export type CandidateAiInput={
-  candidate_id:string;candidate_code:string|null;primary_job_area:string|null;province:string|null;district:string|null;
+  candidate_id:string;primary_job_area:string|null;province:string|null;district:string|null;
   work_profile:string|null;skills:string|null;education:unknown;experience:unknown;availability_notes:string|null;
   match_trace:unknown;
 };
