@@ -15,6 +15,7 @@ import {config} from "./config.js";
 import {databaseReady,db} from "./db.js";
 const app=Fastify({logger:true,bodyLimit:1024*1024,requestTimeout:15000});
 const requestBuckets=new Map<string,{count:number;resetAt:number}>();
+const requestBucketCleanup=setInterval(()=>{const now=Date.now();for(const [key,bucket] of requestBuckets)if(bucket.resetAt<=now)requestBuckets.delete(key);},60000);requestBucketCleanup.unref();
 app.addHook("onRequest",async(req,reply)=>{if(!req.url.startsWith("/v1/auth/"))return;const now=Date.now();const key=req.ip+"|"+req.url.split("?")[0];const prior=requestBuckets.get(key);const bucket=!prior||prior.resetAt<=now?{count:1,resetAt:now+60000}:{count:prior.count+1,resetAt:prior.resetAt};requestBuckets.set(key,bucket);if(bucket.count>20){reply.header("Retry-After",String(Math.max(1,Math.ceil((bucket.resetAt-now)/1000))));return reply.code(429).send({error:"RATE_LIMITED"});}});
 app.addHook("onSend",async(_req,reply,payload)=>{reply.header("X-Content-Type-Options","nosniff");reply.header("X-Frame-Options","DENY");reply.header("Referrer-Policy","no-referrer");reply.header("Permissions-Policy","camera=(), microphone=(), geolocation=()");reply.header("Cache-Control","no-store");return payload;});
 await app.register(cors,{origin:config.webUrl,credentials:true});
@@ -36,6 +37,6 @@ lifecycleTimer.unref();
 app.post("/v1/system/candidate-lifecycle",async(req:any,reply)=>{const expected=process.env.LIFECYCLE_CRON_SECRET??"";const supplied=typeof req.headers.authorization==="string"?req.headers.authorization.replace(/^Bearer\s+/i,""):"";if(!expected||supplied!==expected)return reply.code(401).send({error:"UNAUTHORIZED"});await refreshCandidateLifecycle();return {ok:true,ran_at:new Date().toISOString()};});
 app.get("/health",async()=>({status:"ok",service:"empleos-pa-api"}));
 app.get("/ready",async(_request,reply)=>{try{const database=await databaseReady();return {status:"ready",database};}catch{reply.code(503);return {status:"not-ready",database:false};}});
-async function shutdown(){clearInterval(lifecycleTimer);await app.close();await db.end();process.exit(0);}
+async function shutdown(){clearInterval(lifecycleTimer);clearInterval(requestBucketCleanup);await app.close();await db.end();process.exit(0);}
 process.on("SIGTERM",shutdown);process.on("SIGINT",shutdown);
 await app.listen({port:config.port,host:config.host});
