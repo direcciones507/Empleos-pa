@@ -63,13 +63,14 @@ La empresa solicita y verifica directamente esa documentación cuando correspond
 - Registra la vacante mediante formulario propio.
 - Cada vacante recibe VAC-######.
 - Debe declarar requisitos y funciones de forma estructurada.
-- La solicitud queda PENDIENTE_PAGO hasta completar el proceso comercial.
+- En modo comercial MANUAL, la solicitud queda PENDIENTE_PAGO hasta completar el proceso comercial. Durante la promoción de lanzamiento, el modo FREE permite que nuevas solicitudes queden APROBADAS y avancen sin reportar pago.
 - La empresa es responsable de entrevistar, validar documentación y tomar la decisión final de contratación.
 
-## 7. Pago inicial
-- El modelo inicial permite verificación manual del pago por ADMIN.
-- El pago no se considera aprobado únicamente porque el cliente envíe un comprobante.
-- La búsqueda/preselección pagada comienza después de aprobación.
+## 7. Pago y promoción de lanzamiento
+- El flujo comercial es configurable mediante REQUEST_PAYMENT_MODE.
+- FREE es el modo de lanzamiento: la solicitud puede quedar APROBADA y avanzar a búsqueda sin reportar pago.
+- MANUAL conserva el flujo de cobro: referencia de pago → revisión por ADMIN → aprobación → búsqueda/preselección.
+- En MANUAL, el pago no se considera aprobado únicamente porque el cliente envíe una referencia o comprobante.
 - Modelo comercial V1: 5 perfiles por $8.99; 10 por $10.99; 15 por $12.99; o $25 por todos los perfiles activos y compatibles disponibles al momento de la búsqueda. “Disponibles” no significa ilimitados ni garantiza una cantidad mínima.
 
 ## 8. Preselección y matching
@@ -121,7 +122,7 @@ Debe permitir como mínimo:
 - ACTIVO como tipo de solicitud dentro del flujo de contratación.
 - No es una plataforma separada ni un marketplace abierto de servicios.
 - Cubre necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios.
-- Utiliza el mismo flujo central: solicitud → pago → aprobación → búsqueda/preselección → entrega de candidatos activos → aviso informativo al candidato → cierre.
+- Utiliza el mismo flujo central: solicitud → pago y revisión si aplica → aprobación → búsqueda/preselección → entrega de candidatos activos → aviso informativo al candidato → cierre.
 - Tarifa V1 aprobada para Servicios y trabajos eventuales: $3.99 por solicitud. Se mantiene separado de los paquetes de vacantes regulares.
 - La portada debe explicar claramente la diferencia entre una vacante de personal y un trabajo eventual.
 
@@ -162,7 +163,7 @@ Prioridad especial al móvil para candidatos.
 Crear cuenta → Busco empleo → completar formulario → revisar → aceptar condiciones → enviar → EMP-###### → ACTIVO.
 
 ## 19. Flujo empresa resumido
-Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → pago → revisión ADMIN → aprobación → búsqueda/preselección → entrega inmediata de perfiles activos compatibles → aviso informativo a candidatos entregados → cierre.
+Crear cuenta → Busco personal → elegir VACANTE o EVENTUAL → completar solicitud → revisar → aceptar condiciones → enviar → VAC-###### → en FREE: aprobación directa; en MANUAL: pago → revisión ADMIN → aprobación → búsqueda/preselección → entrega inmediata de perfiles activos compatibles → aviso informativo a candidatos entregados → cierre.
 
 ## 20. Criterio de éxito de UX
 Debe ser posible grabar un video corto desde un teléfono mostrando el registro completo sin necesitar explicar una secuencia complicada.
