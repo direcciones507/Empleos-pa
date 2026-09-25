@@ -58,7 +58,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Formulario wizard para VACANTE y EVENTUAL implementado. EVENTUAL se presenta al usuario como Servicios y trabajos eventuales, con tarifa definida de $3.99.
 - [x] Código VAC-###### implementado.
 - [x] Estados de vacante implementados.
-- [x] Reporte/referencia de pago implementado; verificación manual ADMIN.
+- [x] Modo comercial configurable: FREE para promoción de lanzamiento y MANUAL para cobro con revisión ADMIN.
+- [x] Reporte/referencia de pago implementado para modo MANUAL; verificación manual ADMIN.
 - [x] Estados de pago implementados.
 - [ ] Notificación administrativa.
 - [x] Aprobación/rechazo manual implementado.
@@ -73,13 +74,13 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] IA solo después del filtrado y cuando aporte valor.
 
 ## Fase 6 — Consentimiento y entrega
-- [x] Confirmación de interés del candidato implementada.
-- [x] Autorización de contacto registrada con la respuesta.
-- [x] Entrega excluye quien rechace/no autorice.
+- [x] Consentimiento operativo definido: un perfil ACTIVO puede participar en búsquedas compatibles sin confirmación individual previa.
+- [x] Entrega inmediata de perfiles activos seleccionados implementada; la respuesta individual previa no bloquea la entrega.
+- [x] Aviso informativo posterior a la entrega implementado para el candidato.
 - [ ] Preparar reporte descriptivo.
 - [x] Límite de candidatos del paquete comprado aplicado al seleccionar y antes de preparar la entrega; paquete DISPONIBLES no fija límite numérico.
 - [x] Entrega, fecha y snapshot histórico implementados.
-- [x] Empresa recibe candidatos autorizados y continúa contacto/verificación directamente.
+- [x] Empresa recibe los perfiles activos entregados y continúa contacto/verificación directamente.
 
 ## Fase 7 — Panel administrativo y métricas
 - [x] Métricas API de candidatos total/estado/nuevos/vencimiento implementadas; revisar interfaz.
@@ -128,7 +129,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **64%**.
+- Avance funcional estimado: **70%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, páginas legales enlazadas, protección/UX final, CI/despliegue, dominio y pruebas físicas integrales.
+- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, trazabilidad, administración/exportación final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
+- Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro y alta inicial de datos de empresa.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
