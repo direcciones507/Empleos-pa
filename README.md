@@ -36,3 +36,20 @@ Empleos.pa hace la conexión y preselección. La empresa realiza entrevistas, so
 5. Flujo de pago/aprobación.
 6. Matching, consentimiento y entrega.
 7. Checklist Maestro del MVP.
+
+## Despliegue MVP
+
+Contrato reproducible, independiente del proveedor:
+
+1. Crear PostgreSQL y configurar `DATABASE_URL`.
+2. Instalar dependencias con `pnpm install --frozen-lockfile`.
+3. Aplicar esquema con `pnpm --filter @empleos-pa/api migrate`.
+4. Compilar API con `pnpm --filter @empleos-pa/api build` e iniciar con `pnpm --filter @empleos-pa/api start`.
+5. Compilar Web con `pnpm --filter @empleos-pa/web build` e iniciar con `pnpm --filter @empleos-pa/web start`.
+6. Configurar `WEB_URL` y `NEXT_PUBLIC_API_URL` con URLs HTTPS reales.
+7. Mantener `REQUEST_PAYMENT_MODE=FREE` durante la promoción de lanzamiento; cambiar explícitamente a `MANUAL` cuando corresponda.
+8. Configurar Google OAuth y el adaptador de correo antes de habilitarlos físicamente.
+
+Variables y secretos se documentan en `.env.example`; nunca deben versionarse valores reales.
+
+Antes de producción siguen siendo obligatorios CI/build, dominio, credenciales externas, automatización durable de vencimientos, seguridad/observabilidad y pruebas físicas integrales.
