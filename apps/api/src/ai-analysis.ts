@@ -35,9 +35,9 @@ export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidate
   if(payload.length>MAX_AI_PAYLOAD_CHARS)throw new Error("DEEPSEEK_PAYLOAD_TOO_LARGE");
   const response=await fetch(config.deepSeekBaseUrl.replace(/\/$/,"")+"/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.deepSeekApiKey},body:JSON.stringify({model:config.deepSeekModel,temperature:0,response_format:{type:"json_object"},messages:[{role:"system",content:SYSTEM_PROMPT},{role:"user",content:payload}]}),signal});
   if(!response.ok)throw new Error("DEEPSEEK_REQUEST_FAILED_"+response.status);
-  const body:any=await response.json();const raw=body?.choices?.[0]?.message?.content;if(typeof raw!=="string")throw new Error("DEEPSEEK_INVALID_RESPONSE");
+  const body:any=await response.json();const raw=body?.choices?.[0]?.message?.content;if(typeof raw!=="string"||raw.length>MAX_AI_PAYLOAD_CHARS)throw new Error("DEEPSEEK_INVALID_RESPONSE");
   let parsed:any;try{parsed=JSON.parse(raw);}catch{throw new Error("DEEPSEEK_INVALID_JSON");}
-  if(!Array.isArray(parsed?.analyses))throw new Error("DEEPSEEK_INVALID_SCHEMA");
+  if(!Array.isArray(parsed?.analyses)||parsed.analyses.length>MAX_AI_CANDIDATES)throw new Error("DEEPSEEK_INVALID_SCHEMA");
   const allowed=new Set(candidates.map(x=>x.candidate_id));
   const cleanList=(value:any)=>Array.isArray(value)?value.filter((v:any)=>typeof v==="string").map((v:string)=>v.trim()).filter(Boolean).slice(0,10):[];
   const seen=new Set<string>();const analyses:CandidateAiAnalysis[]=[];
