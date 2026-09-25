@@ -39,7 +39,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Roles CANDIDATO / EMPRESA / ADMIN con enforcement server-side; pendiente prueba integrada.
 - [x] Base funcional del panel ADMIN a nivel API; pendiente interfaz y prueba integrada.
 - [ ] CI mínimo: typecheck/build.
-- [ ] Configuración de despliegue.
+- [x] Contrato reproducible de despliegue documentado: PostgreSQL → migraciones → API → Web → configuración externa; despliegue físico pendiente.
 
 ## Fase 3 — Candidatos
 - [x] Registro/login candidato implementado; pendiente prueba integrada.
@@ -49,7 +49,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Persistencia y confirmación de perfil implementadas.
 - [x] Vista Mi perfil/portal candidato implementada.
 - [x] Edición/actualización de perfil implementada.
-- [x] Caducidad operativa automática al consultar perfil; renovación implementada. Pendiente automatización programada global y política de eliminación definitiva.
+- [x] Caducidad operativa automática al consultar perfil; renovación implementada. Endpoint seguro para scheduler externo implementado; conexión física del scheduler y política de eliminación definitiva pendientes.
 - [x] Estados BORRADOR / ACTIVO / VENCIDO / RETIRADO definidos; VENCIDO se aplica automáticamente al detectar fecha superada.
 
 ## Fase 4 — Empresas y vacantes
@@ -96,7 +96,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 ## Fase 8 — Automatización
 - [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
-- [x] Aviso de renovación creado durante la ventana de los últimos 7 días al consultar perfil y mediante el ciclo global; aviso posterior a entrega implementado en cuenta y correo. Pendiente ejecución programada global/correo de vencimiento.
+- [x] Aviso de renovación creado durante la ventana de los últimos 7 días al consultar perfil y mediante el ciclo global; endpoint seguro disponible para ejecución horaria externa. Pendiente conectar scheduler físico/correo de vencimiento.
 - [x] Notificaciones administrativas operativas en panel; notificación al candidato posterior a entrega implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
@@ -129,8 +129,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **75%**.
+- Avance funcional estimado: **77%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: automatización durable de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, exportación administrativa final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
+- Pendiente principal: conexión física del scheduler de vencimiento, configuración real del proveedor de correo/notificaciones, exportación administrativa final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
 - Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro, alta inicial de datos de empresa, bandeja de avisos del candidato y reporte descriptivo de entrega.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
