@@ -32,7 +32,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Esqueleto app web móvil-first.
 - [x] API/backend.
 - [x] PostgreSQL y migraciones.
-- [ ] Ambientes y secretos.
+- [x] Ambientes y secretos: validación runtime, HTTPS en producción, modos explícitos y secretos opcionales protegidos; credenciales reales se configuran al desplegar.
 - [x] Autenticación real (correo/contraseña + sesiones; pendiente prueba integrada).
 - [x] Recuperación de contraseña a nivel API/tokens; pendiente canal de correo y prueba integrada.
 - [x] Google OAuth implementado de forma independiente; pendiente credenciales Google, dominio y prueba integrada.
@@ -104,16 +104,16 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 ## Fase 9 — Legal, seguridad y privacidad
 - [ ] Términos y Condiciones finales con revisión legal.
 - [ ] Política de Privacidad final con revisión legal.
-- [ ] Consentimientos enlazados y versionados.
+- [x] Consentimientos enlazados y versionados a nivel técnico; candidato y solicitud guardan versión y fecha de aceptación. Textos finales sujetos a revisión legal.
 - [ ] Minimización y separación práctica de datos de contacto/perfil laboral.
 - [ ] RBAC probado.
-- [ ] Protección de secretos.
-- [ ] Backups y restauración.
+- [x] Protección de secretos a nivel de código/configuración: secretos fuera del repositorio, `.env*` ignorados, validación runtime y secretos server-side; carga física de credenciales pendiente de despliegue.
+- [x] Backups y restauración documentados con runbook PostgreSQL y validación de restore aislado; ejecución física periódica pendiente de producción.
 - [ ] Retención/eliminación implementada.
 - [x] Registro/auditoría de acciones administrativas críticas implementado; pendiente prueba integrada.
 
 ## Fase 10 — Producción
-- [ ] Observabilidad y métricas técnicas.
+- [x] Observabilidad técnica base implementada: health, readiness, uptime y telemetría del ciclo de candidatos; monitoreo externo pendiente de despliegue.
 - [ ] Pruebas móvil/tablet/laptop/desktop.
 - [ ] Prueba física candidato extremo a extremo.
 - [ ] Prueba física empresa extremo a extremo.
