@@ -30,6 +30,7 @@ async function refreshCandidateLifecycle(){try{await db.query("update candidate_
 await refreshCandidateLifecycle();
 const lifecycleTimer=setInterval(refreshCandidateLifecycle,60*60*1000);
 lifecycleTimer.unref();
+app.post("/v1/system/candidate-lifecycle",async(req:any,reply)=>{const expected=process.env.LIFECYCLE_CRON_SECRET??"";const supplied=typeof req.headers.authorization==="string"?req.headers.authorization.replace(/^Bearer\s+/i,""):"";if(!expected||supplied!==expected)return reply.code(401).send({error:"UNAUTHORIZED"});await refreshCandidateLifecycle();return {ok:true,ran_at:new Date().toISOString()};});
 app.get("/health",async()=>({status:"ok",service:"empleos-pa-api"}));
 app.get("/ready",async(_request,reply)=>{try{const database=await databaseReady();return {status:"ready",database};}catch{reply.code(503);return {status:"not-ready",database:false};}});
 async function shutdown(){clearInterval(lifecycleTimer);await app.close();await db.end();process.exit(0);}
