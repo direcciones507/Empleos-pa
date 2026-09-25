@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import crypto from "node:crypto";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import {authRoutes} from "./auth-routes.js";
@@ -34,7 +35,7 @@ async function refreshCandidateLifecycle(){lifecycleRuns+=1;lifecycleLastRunAt=n
 await refreshCandidateLifecycle();
 const lifecycleTimer=setInterval(refreshCandidateLifecycle,60*60*1000);
 lifecycleTimer.unref();
-app.post("/v1/system/candidate-lifecycle",async(req:any,reply)=>{const expected=process.env.LIFECYCLE_CRON_SECRET??"";const supplied=typeof req.headers.authorization==="string"?req.headers.authorization.replace(/^Bearer\s+/i,""):"";if(!expected||supplied!==expected)return reply.code(401).send({error:"UNAUTHORIZED"});await refreshCandidateLifecycle();return {ok:true,ran_at:new Date().toISOString()};});
+app.post("/v1/system/candidate-lifecycle",async(req:any,reply)=>{const expected=config.lifecycleCronSecret;const supplied=typeof req.headers.authorization==="string"?req.headers.authorization.replace(/^Bearer\s+/i,"").trim():"";if(!expected||supplied.length!==expected.length||!crypto.timingSafeEqual(Buffer.from(supplied),Buffer.from(expected)))return reply.code(401).send({error:"UNAUTHORIZED"});await refreshCandidateLifecycle();return {ok:true,ran_at:new Date().toISOString()};});
 const startedAt=Date.now();
 let lifecycleLastRunAt:string|null=null,lifecycleLastSuccessAt:string|null=null,lifecycleLastErrorAt:string|null=null;
 let lifecycleRuns=0,lifecycleFailures=0;
