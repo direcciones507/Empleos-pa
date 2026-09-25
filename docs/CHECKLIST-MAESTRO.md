@@ -70,7 +70,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Matching excluye perfiles vencidos/inactivos.
 - [x] Coincidencias descriptivas por solicitud implementadas.
 - [x] Sin ranking general ni puntuación de candidatos.
-- [ ] Trazabilidad de criterios.
+- [x] Trazabilidad estructurada de criterios implementada por coincidencia: puesto, ubicación, habilidades, educación, experiencia y disponibilidad; sin puntuación ni ranking.
 - [ ] IA solo después del filtrado y cuando aporte valor.
 
 ## Fase 6 — Consentimiento y entrega
