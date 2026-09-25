@@ -38,7 +38,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Google OAuth implementado de forma independiente; pendiente credenciales Google, dominio y prueba integrada.
 - [x] Roles CANDIDATO / EMPRESA / ADMIN con enforcement server-side; pendiente prueba integrada.
 - [x] Base funcional del panel ADMIN a nivel API; pendiente interfaz y prueba integrada.
-- [ ] CI mínimo: typecheck/build.
+- [x] CI mínimo configurado: typecheck/build; pendiente ejecución física de validación.
 - [x] Contrato reproducible de despliegue documentado: PostgreSQL → migraciones → API → Web → configuración externa; despliegue físico pendiente.
 
 ## Fase 3 — Candidatos
@@ -91,7 +91,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Entregas y perfiles entregados implementados.
 - [x] Ingresos aprobados calculados desde PostgreSQL.
 - [x] Métricas de ingresos hoy / últimos 7 días / últimos 30 días implementadas en API y panel administrativo.
-- [ ] Exportación XLSX administrativa.
+- [x] Exportación XLSX administrativa implementada; pendiente prueba física del archivo.
 - [x] Conteos, filtros y métricas sin IA.
 
 ## Fase 8 — Automatización
@@ -110,7 +110,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Protección de secretos.
 - [ ] Backups y restauración.
 - [ ] Retención/eliminación implementada.
-- [ ] Registro/auditoría de acciones administrativas críticas.
+- [x] Registro/auditoría de acciones administrativas críticas implementado; pendiente prueba integrada.
 
 ## Fase 10 — Producción
 - [ ] Observabilidad y métricas técnicas.
@@ -129,8 +129,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **77%**.
+- Avance funcional estimado: **88%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: conexión física del scheduler de vencimiento, configuración real del proveedor de correo/notificaciones, exportación administrativa final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
-- Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro, alta inicial de datos de empresa, bandeja de avisos del candidato y reporte descriptivo de entrega.
+- Pendiente principal: guardado automático de borrador, política de retención/eliminación definitiva, IA opcional posterior al filtrado cuando aporte valor, ambientes/secretos, seguridad/observabilidad restante, configuración física de correo/scheduler/dominio y pruebas integrales.
+- Desde el corte anterior también quedaron implementados CI mínimo, exportación XLSX administrativa, auditoría administrativa, endurecimiento de concurrencia en pagos/preselección/entregas/ciclo de candidatos, desactivación segura de cuentas y limitación básica de solicitudes repetidas en autenticación.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
