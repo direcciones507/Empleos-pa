@@ -16,7 +16,7 @@ export type CandidateAiAnalysis={
   gaps:string[];
   considerations:string[];
 };
-export type AiAnalysisResult={provider:"deepseek";model:string;analyses:CandidateAiAnalysis[]};
+export type AiAnalysisResult={provider:"deepseek";model:string;analyses:CandidateAiAnalysis[];coverage:{requested:number;returned:number;missing_candidate_ids:string[]}};
 const MAX_AI_CANDIDATES=40;
 const MAX_AI_PAYLOAD_CHARS=60000;
 const cap=(v:unknown,n:number)=>typeof v==="string"?v.trim().slice(0,n):v;
@@ -27,7 +27,7 @@ const SYSTEM_PROMPT=`Eres el motor de análisis laboral de Empleos.pa. Recibes u
 export function deepSeekConfigured(){return Boolean(config.deepSeekApiKey);}
 export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidates:CandidateAiInput[],signal?:AbortSignal):Promise<AiAnalysisResult>{
   if(!config.deepSeekApiKey)throw new Error("DEEPSEEK_NOT_CONFIGURED");
-  if(!candidates.length)return {provider:"deepseek",model:config.deepSeekModel,analyses:[]};
+  if(!candidates.length)return {provider:"deepseek",model:config.deepSeekModel,analyses:[],coverage:{requested:0,returned:0,missing_candidate_ids:[]}};
   if(candidates.length>MAX_AI_CANDIDATES)throw new Error("DEEPSEEK_CANDIDATE_LIMIT");
   const safeCandidates=candidates.map(compactCandidate);
   const safeVacancy={...vacancy,position:cap(vacancy.position,300),work_location:cap(vacancy.work_location,500),skills:cap(vacancy.skills,1000),minimum_education:cap(vacancy.minimum_education,800),experience_requirement:cap(vacancy.experience_requirement,1200),schedule:cap(vacancy.schedule,800)};
@@ -42,5 +42,6 @@ export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidate
   const cleanList=(value:any)=>Array.isArray(value)?value.filter((v:any)=>typeof v==="string").map((v:string)=>v.trim()).filter(Boolean).slice(0,10):[];
   const seen=new Set<string>();const analyses:CandidateAiAnalysis[]=[];
   for(const x of parsed.analyses){const id=String(x?.candidate_id??"");if(!allowed.has(id)||seen.has(id)||typeof x?.summary!=="string")continue;seen.add(id);analyses.push({candidate_id:id,summary:x.summary.trim().slice(0,1200),strengths:cleanList(x.strengths),gaps:cleanList(x.gaps),considerations:cleanList(x.considerations)});}
-  return {provider:"deepseek",model:config.deepSeekModel,analyses};
+  const returned=new Set(analyses.map(x=>x.candidate_id));const missing=candidates.map(x=>x.candidate_id).filter(id=>!returned.has(id));
+  return {provider:"deepseek",model:config.deepSeekModel,analyses,coverage:{requested:candidates.length,returned:analyses.length,missing_candidate_ids:missing}};
 }
