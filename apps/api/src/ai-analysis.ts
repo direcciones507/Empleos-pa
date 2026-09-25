@@ -30,6 +30,8 @@ export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidate
   let parsed:any;try{parsed=JSON.parse(raw);}catch{throw new Error("DEEPSEEK_INVALID_JSON");}
   if(!Array.isArray(parsed?.analyses))throw new Error("DEEPSEEK_INVALID_SCHEMA");
   const allowed=new Set(candidates.map(x=>x.candidate_id));
-  const analyses:CandidateAiAnalysis[]=parsed.analyses.filter((x:any)=>x&&allowed.has(String(x.candidate_id))).map((x:any)=>({candidate_id:String(x.candidate_id),summary:String(x.summary??"").slice(0,1200),strengths:Array.isArray(x.strengths)?x.strengths.map(String).slice(0,10):[],gaps:Array.isArray(x.gaps)?x.gaps.map(String).slice(0,10):[],considerations:Array.isArray(x.considerations)?x.considerations.map(String).slice(0,10):[]}));
+  const cleanList=(value:any)=>Array.isArray(value)?value.filter((v:any)=>typeof v==="string").map((v:string)=>v.trim()).filter(Boolean).slice(0,10):[];
+  const seen=new Set<string>();const analyses:CandidateAiAnalysis[]=[];
+  for(const x of parsed.analyses){const id=String(x?.candidate_id??"");if(!allowed.has(id)||seen.has(id)||typeof x?.summary!=="string")continue;seen.add(id);analyses.push({candidate_id:id,summary:x.summary.trim().slice(0,1200),strengths:cleanList(x.strengths),gaps:cleanList(x.gaps),considerations:cleanList(x.considerations)});}
   return {provider:"deepseek",model:config.deepSeekModel,analyses};
 }
