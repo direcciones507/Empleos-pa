@@ -1,6 +1,8 @@
 import type {FastifyInstance} from "fastify";
 import {db} from "./db.js";
 import {createSession,hashPassword,normalizeEmail,revokeSession,sessionUser,verifyPassword,issueReset,consumeReset} from "./auth.js";
+import {sendEmail} from "./email.js";
+import {config} from "./config.js";
 const COOKIE="empleos_session";
 const cookie={httpOnly:true,sameSite:"lax" as const,secure:process.env.NODE_ENV==="production",path:"/"};
 export async function authRoutes(app:FastifyInstance){
@@ -8,6 +10,6 @@ app.post("/v1/auth/register",async(req:any,reply)=>{const {email,password,role}=
 app.post("/v1/auth/login",async(req:any,reply)=>{const {email,password}=req.body??{};if(typeof email!=="string"||typeof password!=="string")return reply.code(400).send({error:"INVALID_LOGIN"});const q=await db.query("select user_id,email,role,status,password_hash from users where normalized_email=$1",[normalizeEmail(email)]);const u=q.rows[0];if(!u?.password_hash||u.status!=="ACTIVE"||!(await verifyPassword(u.password_hash,password)))return reply.code(401).send({error:"INVALID_CREDENTIALS"});const raw=await createSession(u.user_id);reply.setCookie(COOKIE,raw,{...cookie,maxAge:60*60*24*14});return {user:{user_id:u.user_id,email:u.email,role:u.role}};});
 app.post("/v1/auth/logout",async(req:any,reply)=>{await revokeSession(req.cookies?.[COOKIE]);reply.clearCookie(COOKIE,{path:"/"});return {ok:true};});
 app.get("/v1/auth/me",async(req:any,reply)=>{const u=await sessionUser(req.cookies?.[COOKIE]);return u?{user:u}:reply.code(401).send({error:"UNAUTHENTICATED"});});
-app.post("/v1/auth/password/forgot",async(req:any)=>{const email=typeof req.body?.email==="string"?normalizeEmail(req.body.email):"";if(email){const q=await db.query("select user_id from users where normalized_email=$1 and status='ACTIVE'",[email]);if(q.rows[0])await issueReset(q.rows[0].user_id);}return {ok:true};});
+app.post("/v1/auth/password/forgot",async(req:any)=>{const email=typeof req.body?.email==="string"?normalizeEmail(req.body.email):"";if(email){const q=await db.query("select user_id,email from users where normalized_email=$1 and status='ACTIVE'",[email]);if(q.rows[0]){const token=await issueReset(q.rows[0].user_id);const resetUrl=config.webUrl.replace(/\/$/,"")+"/restablecer?token="+encodeURIComponent(token);try{await sendEmail({to:q.rows[0].email,subject:"Restablece tu contraseña de Empleos.pa",text:"Recibimos una solicitud para restablecer tu contraseña de Empleos.pa.\n\nAbre este enlace para crear una nueva contraseña:\n"+resetUrl+"\n\nEl enlace vence en 30 minutos y solo puede usarse una vez. Si no solicitaste este cambio, puedes ignorar este mensaje."});}catch(error){app.log.error({err:error},"password reset email failed");}}}return {ok:true};});
 app.post("/v1/auth/password/reset",async(req:any,reply)=>{const {token,password}=req.body??{};if(typeof token!=="string"||typeof password!=="string"||password.length<10)return reply.code(400).send({error:"INVALID_RESET"});const ok=await consumeReset(token,await hashPassword(password));return ok?{ok:true}:reply.code(400).send({error:"RESET_EXPIRED_OR_USED"});});
 }
