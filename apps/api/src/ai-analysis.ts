@@ -17,6 +17,8 @@ export type CandidateAiAnalysis={
   considerations:string[];
 };
 export type AiAnalysisResult={provider:"deepseek";model:string;analyses:CandidateAiAnalysis[]};
+const MAX_AI_CANDIDATES=40;
+const MAX_AI_PAYLOAD_CHARS=60000;
 
 const SYSTEM_PROMPT=`Eres un asistente de análisis laboral para Empleos.pa. Recibes una vacante y candidatos que YA pasaron filtros estructurados. Analiza únicamente evidencia suministrada. No inventes datos. No uses ni infieras atributos sensibles. No asignes puntuaciones, porcentajes, rankings, ganadores, etiquetas de mejor/peor ni decidas contratación. Devuelve análisis descriptivo por candidato con resumen, fortalezas relacionadas con la vacante, brechas observables y consideraciones que la empresa debe verificar. Devuelve JSON válido y nada más.`;
 
@@ -24,7 +26,10 @@ export function deepSeekConfigured(){return Boolean(config.deepSeekApiKey);}
 export async function analyzeFilteredCandidates(vacancy:VacancyAiInput,candidates:CandidateAiInput[],signal?:AbortSignal):Promise<AiAnalysisResult>{
   if(!config.deepSeekApiKey)throw new Error("DEEPSEEK_NOT_CONFIGURED");
   if(!candidates.length)return {provider:"deepseek",model:config.deepSeekModel,analyses:[]};
-  const response=await fetch(config.deepSeekBaseUrl.replace(/\/$/,"")+"/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.deepSeekApiKey},body:JSON.stringify({model:config.deepSeekModel,temperature:0,response_format:{type:"json_object"},messages:[{role:"system",content:SYSTEM_PROMPT},{role:"user",content:JSON.stringify({vacancy,candidates,output_schema:{analyses:[{candidate_id:"uuid",summary:"string",strengths:["string"],gaps:["string"],considerations:["string"]}]}})}]}),signal});
+  if(candidates.length>MAX_AI_CANDIDATES)throw new Error("DEEPSEEK_CANDIDATE_LIMIT");
+  const payload=JSON.stringify({vacancy,candidates,output_schema:{analyses:[{candidate_id:"uuid",summary:"string",strengths:["string"],gaps:["string"],considerations:["string"]}]}});
+  if(payload.length>MAX_AI_PAYLOAD_CHARS)throw new Error("DEEPSEEK_PAYLOAD_TOO_LARGE");
+  const response=await fetch(config.deepSeekBaseUrl.replace(/\/$/,"")+"/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+config.deepSeekApiKey},body:JSON.stringify({model:config.deepSeekModel,temperature:0,response_format:{type:"json_object"},messages:[{role:"system",content:SYSTEM_PROMPT},{role:"user",content:payload}]}),signal});
   if(!response.ok)throw new Error("DEEPSEEK_REQUEST_FAILED_"+response.status);
   const body:any=await response.json();const raw=body?.choices?.[0]?.message?.content;if(typeof raw!=="string")throw new Error("DEEPSEEK_INVALID_RESPONSE");
   let parsed:any;try{parsed=JSON.parse(raw);}catch{throw new Error("DEEPSEEK_INVALID_JSON");}
