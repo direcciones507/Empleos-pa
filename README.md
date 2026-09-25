@@ -20,7 +20,6 @@ Fecha de inicio: 17-sep-2026.
 - Interfaz conversacional/automatizada de entrada con dos rutas: **Busco empleo** y **Necesito contratar personal**.
 
 ## Fuera del MVP
-- Servicios y trabajos eventuales: solicitud puntual por **$3.99**, sin garantía de cantidad de perfiles.
 - Almacenamiento de récord policivo, cédula, diplomas, certificados u otros documentos de contratación.
 - Decidir quién debe ser contratado.
 - Ranking general de candidatos.
