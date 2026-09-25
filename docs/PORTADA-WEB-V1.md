@@ -83,5 +83,5 @@ La portada debe poder entenderse en segundos. Una persona que busca empleo debe 
 ## 7. Elementos legales
 Privacidad y Términos no serán texto decorativo. Antes de producción deberán contener la versión aplicable y aprobada del servicio, y el registro/formularios deberán enlazar a las condiciones correspondientes.
 
-## 8. Servicios Puntuales
-No aparecerá en la portada ni en navegación. Permanece RESERVADO / DESHABILITADO.
+## 8. Servicios y trabajos eventuales
+ACTIVO dentro del MVP como tipo de solicitud empresarial. La portada debe explicar claramente la diferencia entre una vacante regular y una necesidad puntual o temporal. La tarifa V1 es $3.99 por solicitud, sin garantía de cantidad de perfiles. Utiliza el mismo flujo central de búsqueda, preselección, entrega y aviso al candidato.
