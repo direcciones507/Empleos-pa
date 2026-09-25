@@ -19,7 +19,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Precios V1: VACANTE 5/$8.99, 10/$10.99, 15/$12.99, disponibles/$25; SERVICIOS Y TRABAJOS EVENTUALES $3.99 por solicitud.
 - [x] Cantidad por paquete definida; opción $25 entrega todos los perfiles activos y compatibles disponibles, sin promesa de cantidad mínima.
 - [x] Definir consentimiento operativo: perfil ACTIVO participa en búsquedas compatibles y puede entregarse sin confirmación individual previa; aviso posterior al candidato.
-- [ ] Definir formato final de reporte.
+- [x] Formato final de reporte descriptivo definido: resumen de solicitud + fecha/cantidad + fichas snapshot de perfiles, sin ranking ni puntuación.
 - [ ] Definir política de retención/eliminación.
 - [x] Panel administrativo v1.
 - [x] UX simple/mobile-first v1.
@@ -77,7 +77,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Consentimiento operativo definido: un perfil ACTIVO puede participar en búsquedas compatibles sin confirmación individual previa.
 - [x] Entrega inmediata de perfiles activos seleccionados implementada; la respuesta individual previa no bloquea la entrega.
 - [x] Aviso informativo posterior a la entrega implementado para el candidato.
-- [ ] Preparar reporte descriptivo.
+- [x] Reporte descriptivo implementado en la entrega y visible en el portal de empresa.
 - [x] Límite de candidatos del paquete comprado aplicado al seleccionar y antes de preparar la entrega; paquete DISPONIBLES no fija límite numérico.
 - [x] Entrega, fecha y snapshot histórico implementados.
 - [x] Empresa recibe los perfiles activos entregados y continúa contacto/verificación directamente.
@@ -125,12 +125,12 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [ ] Google OAuth configurado para dominio de producción.
 - [ ] Checklist final sin bloqueadores críticos.
 
-## Corte de avance — 24-sep-2026
+## Corte de avance — 25-sep-2026
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **70%**.
+- Avance funcional estimado: **72%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: reporte descriptivo final, automatización de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, trazabilidad, administración/exportación final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
-- Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro y alta inicial de datos de empresa.
+- Pendiente principal: automatización durable de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, trazabilidad, administración/exportación final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
+- Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro, alta inicial de datos de empresa, bandeja de avisos del candidato y reporte descriptivo de entrega.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
