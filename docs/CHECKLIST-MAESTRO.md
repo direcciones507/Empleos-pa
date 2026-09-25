@@ -61,7 +61,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Modo comercial configurable: FREE para promoción de lanzamiento y MANUAL para cobro con revisión ADMIN.
 - [x] Reporte/referencia de pago implementado para modo MANUAL; verificación manual ADMIN.
 - [x] Estados de pago implementados.
-- [ ] Notificación administrativa.
+- [x] Notificación administrativa implementada: feed de pagos en revisión y solicitudes aprobadas, visible y accionable desde el panel ADMIN.
 - [x] Aprobación/rechazo manual implementado.
 - [x] Historial de solicitudes de la empresa implementado.
 
@@ -97,7 +97,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 ## Fase 8 — Automatización
 - [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
 - [x] Aviso de renovación creado durante la ventana de los últimos 7 días al consultar perfil y mediante el ciclo global; aviso posterior a entrega implementado en cuenta y correo. Pendiente ejecución programada global/correo de vencimiento.
-- [ ] Notificaciones administrativas; notificación al candidato posterior a entrega ya implementada.
+- [x] Notificaciones administrativas operativas en panel; notificación al candidato posterior a entrega implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
 
@@ -129,7 +129,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **74%**.
+- Avance funcional estimado: **75%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
 - Pendiente principal: automatización durable de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, exportación administrativa final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
 - Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro, alta inicial de datos de empresa, bandeja de avisos del candidato y reporte descriptivo de entrega.
