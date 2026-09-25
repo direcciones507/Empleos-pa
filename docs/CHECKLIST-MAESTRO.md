@@ -44,7 +44,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 ## Fase 3 — Candidatos
 - [x] Registro/login candidato implementado; pendiente prueba integrada.
 - [x] Formulario wizard candidato de 6 pasos y validaciones implementado; pendiente prueba física.
-- [ ] Guardado automático de borrador.
+- [x] Guardado automático de borrador implementado para perfil, estudios y experiencia; pendiente prueba física.
 - [x] Código EMP-###### secuencial implementado.
 - [x] Persistencia y confirmación de perfil implementadas.
 - [x] Vista Mi perfil/portal candidato implementada.
@@ -71,7 +71,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Coincidencias descriptivas por solicitud implementadas.
 - [x] Sin ranking general ni puntuación de candidatos.
 - [x] Trazabilidad estructurada de criterios implementada por coincidencia: puesto, ubicación, habilidades, educación, experiencia y disponibilidad; sin puntuación ni ranking.
-- [ ] IA solo después del filtrado y cuando aporte valor.
+- [x] IA DeepSeek implementada como segunda capa opcional después del filtrado estructurado; análisis descriptivo sin ranking ni decisión automática. Pendiente configurar secreto y prueba física.
 
 ## Fase 6 — Consentimiento y entrega
 - [x] Consentimiento operativo definido: un perfil ACTIVO puede participar en búsquedas compatibles sin confirmación individual previa.
@@ -99,7 +99,7 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Aviso de renovación creado durante la ventana de los últimos 7 días al consultar perfil y mediante el ciclo global; endpoint seguro disponible para ejecución horaria externa. Pendiente conectar scheduler físico/correo de vencimiento.
 - [x] Notificaciones administrativas operativas en panel; notificación al candidato posterior a entrega implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
-- [ ] IA limitada a tareas con valor real.
+- [x] IA limitada al análisis descriptivo de candidatos ya filtrados; selección y contratación permanecen humanas. Pendiente conexión física de DeepSeek.
 
 ## Fase 9 — Legal, seguridad y privacidad
 - [ ] Términos y Condiciones finales con revisión legal.
@@ -129,8 +129,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **88%**.
+- Avance funcional estimado: **93%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: guardado automático de borrador, política de retención/eliminación definitiva, IA opcional posterior al filtrado cuando aporte valor, ambientes/secretos, seguridad/observabilidad restante, configuración física de correo/scheduler/dominio y pruebas integrales.
-- Desde el corte anterior también quedaron implementados CI mínimo, exportación XLSX administrativa, auditoría administrativa, endurecimiento de concurrencia en pagos/preselección/entregas/ciclo de candidatos, desactivación segura de cuentas y limitación básica de solicitudes repetidas en autenticación.
+- Pendiente principal: política de retención/eliminación definitiva, ambientes/secretos, conexión física de DeepSeek, seguridad/observabilidad restante, configuración física de correo/scheduler/dominio y pruebas integrales.
+- Desde el corte anterior también quedaron implementados CI mínimo, exportación XLSX administrativa, auditoría administrativa, endurecimiento de concurrencia en pagos/preselección/entregas/ciclo de candidatos, desactivación segura de cuentas, limitación básica de solicitudes repetidas en autenticación, guardado automático completo del borrador y la infraestructura de análisis descriptivo con DeepSeek.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
