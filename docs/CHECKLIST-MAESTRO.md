@@ -131,6 +131,6 @@ Criterio: porcentaje de construcción funcional del MVP, no porcentaje de prueba
 
 - Avance funcional estimado: **93%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: política de retención/eliminación definitiva, ambientes/secretos, conexión física de DeepSeek, seguridad/observabilidad restante, configuración física de correo/scheduler/dominio y pruebas integrales.
+- Pendiente principal tras reconciliación técnica: política de retención/eliminación y textos legales finales (requieren decisión/revisión), más validaciones físicas y de producción: credenciales/secretos reales, DeepSeek, correo, scheduler, rendimiento, dominio, despliegue y pruebas integrales.
 - Desde el corte anterior también quedaron implementados CI mínimo, exportación XLSX administrativa, auditoría administrativa, endurecimiento de concurrencia en pagos/preselección/entregas/ciclo de candidatos, desactivación segura de cuentas, limitación básica de solicitudes repetidas en autenticación, guardado automático completo del borrador y la infraestructura de análisis descriptivo con DeepSeek.
-- Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
+- Reconciliación técnica: no quedan puntos funcionales del MVP identificados como omitidos fuera de los bloqueos legales/decisión y de la validación/configuración física de Fase 10. Las pruebas físicas completas son el siguiente frente antes del cierre final.
