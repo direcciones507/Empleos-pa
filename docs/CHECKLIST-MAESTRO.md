@@ -86,17 +86,17 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 - [x] Métricas API de candidatos total/estado/nuevos/vencimiento implementadas; revisar interfaz.
 - [x] Métricas API de empresas y vacantes implementadas; revisar interfaz.
 - [x] Gestión y métricas de pagos implementadas.
-- [ ] Gestión de estados.
+- [x] Gestión de estados implementada con transiciones administrativas controladas y acciones operativas protegidas.
 - [x] Búsqueda/filtros administrativos básicos implementados.
 - [x] Entregas y perfiles entregados implementados.
 - [x] Ingresos aprobados calculados desde PostgreSQL.
-- [ ] Métricas día/semana/mes.
+- [x] Métricas de ingresos hoy / últimos 7 días / últimos 30 días implementadas en API y panel administrativo.
 - [ ] Exportación XLSX administrativa.
 - [x] Conteos, filtros y métricas sin IA.
 
 ## Fase 8 — Automatización
 - [x] Entrada Busco empleo / Busco personal conectada a registro; portada distingue VACANTE y EVENTUAL.
-- [x] Aviso de renovación creado cuando quedan 7 días al consultar perfil; aviso posterior a entrega implementado en cuenta y correo. Pendiente ejecución programada global/correo de vencimiento.
+- [x] Aviso de renovación creado durante la ventana de los últimos 7 días al consultar perfil y mediante el ciclo global; aviso posterior a entrega implementado en cuenta y correo. Pendiente ejecución programada global/correo de vencimiento.
 - [ ] Notificaciones administrativas; notificación al candidato posterior a entrega ya implementada.
 - [x] Renovación de perfil sin reingreso completo implementada.
 - [ ] IA limitada a tareas con valor real.
@@ -129,8 +129,8 @@ Regla: este checklist gobierna la construcción. No cerrar un punto por aparienc
 
 Criterio: porcentaje de construcción funcional del MVP, no porcentaje de pruebas ni preparación legal para producción.
 
-- Avance funcional estimado: **72%**.
+- Avance funcional estimado: **74%**.
 - Núcleo ya construido: arquitectura web/API/PostgreSQL, autenticación y roles, candidato, empresa, VACANTE/EVENTUAL, pago manual, preselección estructurada, entrega y métricas principales.
-- Pendiente principal: automatización durable de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, trazabilidad, administración/exportación final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
+- Pendiente principal: automatización durable de vencimiento, correo de recuperación y configuración real del proveedor de notificaciones, exportación administrativa final, seguridad/observabilidad, CI/despliegue, dominio y pruebas físicas integrales.
 - Desde el corte anterior también quedaron implementados el modo FREE de lanzamiento, la tarifa EVENTUAL $3.99 de punta a punta, protección web por rol, continuidad segura de retorno login/registro, alta inicial de datos de empresa, bandeja de avisos del candidato y reporte descriptivo de entrega.
 - Las pruebas físicas completas permanecen deliberadamente pendientes hasta cerrar construcción, según decisión operativa actual.
