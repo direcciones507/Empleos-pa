@@ -3,7 +3,8 @@ import type {FastifyInstance} from "fastify";
 import "@fastify/cookie";
 import {db} from "./db.js";
 import {normalizeEmail,type Role} from "./auth.js";
-import {canSelfReactivateWithGoogle,roleReturn} from "./account-reactivation.js";
+import {canSelfReactivateWithGoogle} from "./account-reactivation.js";
+import {destinationFor,normalizeProfiles,publicProfile} from "./profiles.js";
 
 const SESSION_COOKIE="empleos_session";
 const REACTIVATION_COOKIE="empleos_reactivation";
@@ -71,24 +72,28 @@ export async function googleOAuthRoutes(app:FastifyInstance){
           if(!canSelfReactivateWithGoogle(user,profile.sub)){await client.query("rollback");return reply.code(403).send({error:"ACCOUNT_DISABLED"});}
           const reactivationToken=random();
           await client.query("update account_reactivation_tokens set used_at=now() where user_id=$1 and used_at is null",[user.user_id]);
-          await client.query("insert into account_reactivation_tokens(user_id,token_hash,return_to,expires_at) values($1,$2,$3,now()+interval '10 minutes')",[user.user_id,digest(reactivationToken),safeReturn(stateResult.rows[0].return_to)]);
+          await client.query("insert into account_reactivation_tokens(user_id,token_hash,return_to,requested_profile,expires_at) values($1,$2,$3,$4,now()+interval '10 minutes')",[user.user_id,digest(reactivationToken),safeReturn(stateResult.rows[0].return_to),publicProfile(stateResult.rows[0].requested_role)??null]);
           await client.query("commit");
           reply.setCookie(REACTIVATION_COOKIE,reactivationToken,{...reactivationCookie,maxAge:60*10});
           return reply.type("text/html; charset=utf-8").send(reactivationPage());
         }
         if(user.google_subject&&user.google_subject!==profile.sub){await client.query("rollback");return reply.code(409).send({error:"ACCOUNT_CONFLICT"});}
         if(!user.google_subject)await client.query("update users set google_subject=$1,email_verified_at=coalesce(email_verified_at,now()),updated_at=now() where user_id=$2",[profile.sub,user.user_id]);
-        userResult=await client.query("select user_id,email,role from users where user_id=$1",[user.user_id]);
+        const requested=publicProfile(stateResult.rows[0].requested_role);
+        if(requested&&user.role!=="ADMIN")await client.query("insert into user_profiles(user_id,profile_type) values($1,$2) on conflict do nothing",[user.user_id,requested]);
+        userResult=await client.query("select u.user_id,u.email,u.role,coalesce(array_agg(up.profile_type order by up.profile_type) filter(where up.profile_type is not null),'{}') profiles from users u left join user_profiles up on up.user_id=u.user_id where u.user_id=$1 group by u.user_id,u.email,u.role",[user.user_id]);
       }else{
         const role=stateResult.rows[0].requested_role;
         if(!role){await client.query("rollback");return reply.redirect(s.webUrl+"/registro?oauth=choose-role");}
         userResult=await client.query("insert into users(email,normalized_email,google_subject,role,email_verified_at) values($1,$2,$3,$4,now()) returning user_id,email,role",[profile.email,email,profile.sub,role]);
+        await client.query("insert into user_profiles(user_id,profile_type) values($1,$2)",[userResult.rows[0].user_id,role]);
+        userResult.rows[0].profiles=[role];
       }
       const sessionToken=random();
       await client.query("insert into auth_sessions(user_id,token_hash,expires_at) values($1,$2,now()+interval '14 days')",[userResult.rows[0].user_id,digest(sessionToken)]);
       await client.query("commit");
       reply.setCookie(SESSION_COOKIE,sessionToken,{...sessionCookie,maxAge:60*60*24*14});
-      return reply.redirect(s.webUrl+roleReturn(userResult.rows[0].role,stateResult.rows[0].return_to));
+      return reply.redirect(s.webUrl+destinationFor({role:userResult.rows[0].role,profiles:normalizeProfiles(userResult.rows[0].profiles)},stateResult.rows[0].requested_role,stateResult.rows[0].return_to));
     }catch(error){
       await client.query("rollback").catch(()=>{});
       throw error;
@@ -101,7 +106,7 @@ export async function googleOAuthRoutes(app:FastifyInstance){
     const client=await db.connect();
     try{
       await client.query("begin");
-      const result=await client.query(`select t.token_id,t.return_to,u.user_id,u.email,u.role,u.status,u.disabled_reason,u.google_subject
+      const result=await client.query(`select t.token_id,t.return_to,t.requested_profile,u.user_id,u.email,u.role,u.status,u.disabled_reason,u.google_subject
         from account_reactivation_tokens t join users u on u.user_id=t.user_id
         where t.token_hash=$1 and t.used_at is null and t.expires_at>now()
         for update of t,u`,[digest(raw)]);
@@ -113,12 +118,14 @@ export async function googleOAuthRoutes(app:FastifyInstance){
       }
       await client.query("update account_reactivation_tokens set used_at=now() where token_id=$1",[row.token_id]);
       await client.query("update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1 and status='DISABLED' and disabled_reason='USER_REQUEST'",[row.user_id]);
+      if(row.requested_profile&&row.role!=="ADMIN")await client.query("insert into user_profiles(user_id,profile_type) values($1,$2) on conflict do nothing",[row.user_id,row.requested_profile]);
+      const profileRows=await client.query("select profile_type from user_profiles where user_id=$1 order by profile_type",[row.user_id]);
       const sessionToken=random();
       await client.query("insert into auth_sessions(user_id,token_hash,expires_at) values($1,$2,now()+interval '14 days')",[row.user_id,digest(sessionToken)]);
       await client.query("commit");
       reply.clearCookie(REACTIVATION_COOKIE,reactivationCookie);
       reply.setCookie(SESSION_COOKIE,sessionToken,{...sessionCookie,maxAge:60*60*24*14});
-      return reply.code(303).redirect(settings().webUrl+roleReturn(row.role,row.return_to));
+      return reply.code(303).redirect(settings().webUrl+destinationFor({role:row.role,profiles:profileRows.rows.map(x=>x.profile_type)},row.requested_profile,row.return_to));
     }catch(error){
       await client.query("rollback").catch(()=>{});
       throw error;
