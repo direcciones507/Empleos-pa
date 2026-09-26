@@ -1,0 +1,13 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
+const candidate=read("app/candidato/page.tsx"),company=read("app/empresa/page.tsx");
+test("cambio de perfil visible solo en panel candidato",()=>{assert.match(candidate,/ProfileSwitch current="CANDIDATO"/);assert.doesNotMatch(read("app/candidato/layout.tsx"),/ProfileSwitch/);assert.doesNotMatch(read("app/candidato/perfil/page.tsx"),/ProfileSwitch/)});
+test("cambio de perfil visible solo en panel empresa",()=>{assert.match(company,/ProfileSwitch current="EMPRESA"/);assert.doesNotMatch(read("app/empresa/layout.tsx"),/ProfileSwitch/);assert.doesNotMatch(read("app/empresa/perfil/page.tsx"),/ProfileSwitch/);assert.doesNotMatch(read("app/empresa/vacantes/nueva/page.tsx"),/ProfileSwitch/)});
+test("páginas internas no montan un botón flotante",()=>assert.doesNotMatch(read("app/globals.css"),/\.contextBar\{position:fixed/));
+test("cerrar sesión llama al endpoint real",()=>assert.match(read("components/LogoutButton.tsx"),/api\("\/v1\/auth\/logout",\{method:"POST"/));
+test("desactivar candidato requiere confirmación",()=>assert.match(candidate,/if\(!confirm\(/));
+test("desactivar empresa requiere confirmación",()=>assert.match(company,/if\(!confirm\(/));
+test("zona de peligro está separada al final",()=>{assert.match(candidate,/dangerZone/);assert.match(company,/dangerZone/)});
+test("formularios muestran contactos separados",()=>{const forms=read("app/candidato/perfil/page.tsx")+read("app/empresa/perfil/page.tsx");assert.match(forms,/Correo de contacto/);assert.match(forms,/Celular \/ WhatsApp/);assert.match(forms,/Teléfono fijo \(opcional\)/)});
