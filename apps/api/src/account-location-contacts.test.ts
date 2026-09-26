@@ -1,0 +1,18 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const migration=readFileSync(new URL("../migrations/0026_account_location_contacts.sql",import.meta.url),"utf8");
+const candidate=readFileSync(new URL("./candidate-routes.ts",import.meta.url),"utf8");
+const company=readFileSync(new URL("./company-routes.ts",import.meta.url),"utf8");
+const delivery=readFileSync(new URL("./delivery-routes.ts",import.meta.url),"utf8");
+test("candidato conserva provincia distrito y corregimiento",()=>assert.match(candidate,/province,district,corregimiento/));
+test("empresa guarda corregimiento",()=>assert.match(company,/corregimiento=excluded\.corregimiento/));
+test("vacante guarda ubicación administrativa",()=>assert.match(company,/work_location,province,district,corregimiento/));
+test("candidato guarda dirección privada completa",()=>assert.match(candidate,/address_reference=excluded\.address_reference/));
+test("dirección privada no entra en entregas a empresa",()=>assert.doesNotMatch(delivery,/address_reference/));
+test("correo de contacto es independiente",()=>assert.match(candidate,/contact_email/));
+test("celular y teléfono fijo son campos separados",()=>assert.match(candidate,/mobile_whatsapp,landline_phone/));
+test("teléfono fijo acepta vacío",()=>assert.match(candidate,/text\(b\.landline_phone\)/));
+test("migración preserva phone al copiarlo",()=>assert.match(migration,/mobile_whatsapp=coalesce\([^;]*phone/s));
+test("migración no borra datos",()=>{assert.doesNotMatch(migration,/\bdelete\b/i);assert.doesNotMatch(migration,/drop column/i)});
+test("desactivación voluntaria permanece USER_REQUEST",()=>assert.match(candidate,/disabled_reason='USER_REQUEST'/));
