@@ -7,7 +7,7 @@ const databaseUrl=process.env.DATABASE_URL;
 if(!databaseUrl)throw new Error("Missing required environment variable: DATABASE_URL");
 const here=dirname(fileURLToPath(import.meta.url));
 const migrationsDir=join(here,"../../migrations");
-const db=new pg.Client({connectionString:databaseUrl,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:undefined});
+const db=new pg.Client({connectionString:databaseUrl,ssl:false});
 
 await db.connect();
 try{
