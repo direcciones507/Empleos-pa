@@ -1,1 +1,1 @@
-{"name":"empleos-pa","private":true,"version":"0.1.0","packageManager":"pnpm@9.15.4","scripts":{"dev":"pnpm -r --parallel dev","build":"pnpm -r build","typecheck":"pnpm -r typecheck"}}
+{"name":"empleos-pa","private":true,"version":"0.1.0","packageManager":"pnpm@9.15.4","scripts":{"dev":"pnpm -r --parallel dev","build":"pnpm -r build","start":"pnpm --filter @empleos-pa/api start","typecheck":"pnpm -r typecheck"}}
