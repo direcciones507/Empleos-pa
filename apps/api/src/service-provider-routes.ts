@@ -1,0 +1,11 @@
+import type {FastifyInstance} from "fastify";
+import {db} from "./db.js";
+import {requireRoles} from "./rbac.js";
+
+const fields=`full_name,service_trade,service_description,service_province,service_district,service_corregimiento,service_areas,available_days,available_hours,mobile_whatsapp,landline_phone,contact_email,fixed_location_name,fixed_location_province,fixed_location_district,fixed_location_corregimiento,fixed_location_address,updated_at`;
+const limits:Record<string,number>={full_name:200,service_trade:200,service_description:4000,service_province:120,service_district:120,service_corregimiento:120,service_areas:1000,available_days:500,available_hours:500,mobile_whatsapp:50,landline_phone:50,contact_email:320,fixed_location_name:200,fixed_location_province:120,fixed_location_district:120,fixed_location_corregimiento:120,fixed_location_address:1000};
+function text(v:any){return typeof v==="string"&&v.trim()?v.trim():null}
+export async function serviceProviderRoutes(app:FastifyInstance){
+  app.get("/v1/service-provider/profile",{preHandler:requireRoles("CANDIDATO")},async(req,reply)=>{const q=await db.query(`select ${fields} from service_provider_profiles where user_id=$1`,[req.authUser!.user_id]);return q.rows[0]?{profile:q.rows[0]}:reply.code(404).send({error:"SERVICE_PROFILE_NOT_FOUND"});});
+  app.put("/v1/service-provider/profile",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{const b=req.body??{};for(const [key,max] of Object.entries(limits)){if(b[key]!==undefined&&b[key]!==null&&typeof b[key]!=="string")return reply.code(400).send({error:"INVALID_SERVICE_FIELD",field:key});if(typeof b[key]==="string"&&b[key].trim().length>max)return reply.code(400).send({error:"SERVICE_FIELD_TOO_LONG",field:key,max});}if(b.contact_email&& !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.contact_email).trim()))return reply.code(400).send({error:"INVALID_CONTACT_EMAIL"});const names=Object.keys(limits);const vals=names.map(k=>text(b[k]));const q=await db.query(`insert into service_provider_profiles(user_id,${names.join(",")}) values($1,${names.map((_,i)=>`$${i+2}`).join(",")}) on conflict(user_id) do update set ${names.map(n=>`${n}=excluded.${n}`).join(",")},updated_at=now() returning ${fields}`,[req.authUser!.user_id,...vals]);return {profile:q.rows[0]};});
+}
