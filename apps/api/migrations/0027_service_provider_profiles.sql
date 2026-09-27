@@ -1,0 +1,22 @@
+create table if not exists service_provider_profiles (
+  user_id uuid primary key references users(user_id) on delete cascade,
+  full_name text,
+  service_trade text,
+  service_description text,
+  service_province text,
+  service_district text,
+  service_corregimiento text,
+  service_areas text,
+  available_days text,
+  available_hours text,
+  mobile_whatsapp text,
+  landline_phone text,
+  contact_email text,
+  fixed_location_name text,
+  fixed_location_province text,
+  fixed_location_district text,
+  fixed_location_corregimiento text,
+  fixed_location_address text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
