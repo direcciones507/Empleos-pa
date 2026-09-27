@@ -13,25 +13,22 @@ export async function serviceMatchingRoutes(app:FastifyInstance){
     const service=vacancy.rows[0];
     if(service.request_type!=="EVENTUAL")return reply.code(409).send({error:"NOT_EVENTUAL_SERVICE"});
     if(!["APROBADA","EN_BUSQUEDA"].includes(service.status))return reply.code(409).send({error:"VACANCY_NOT_READY_FOR_MATCHING"});
-    const role=normalizeSql("primary_job_area");
-    const area=normalizeSql("work_locations");
-    const province=normalizeSql("province");
-    const district=normalizeSql("district");
-    const corregimiento=normalizeSql("corregimiento");
-    const q=await db.query(`select candidate_id,candidate_code,full_name,primary_job_area,province,district,corregimiento,work_locations,available_from,availability_notes,contact_email,mobile_whatsapp,landline_phone,
+    const role=normalizeSql("service_trade");
+    const area=normalizeSql("service_areas");
+    const province=normalizeSql("service_province");
+    const district=normalizeSql("service_district");
+    const corregimiento=normalizeSql("service_corregimiento");
+    const q=await db.query(`select full_name,service_trade,service_description,service_province,service_district,service_corregimiento,service_areas,available_days,available_hours,contact_email,mobile_whatsapp,landline_phone,fixed_location_name,fixed_location_province,fixed_location_district,fixed_location_corregimiento,fixed_location_address,
       (${role}=${normalizeSql("$1")}) service_match,
       (${province}=${normalizeSql("$2")} or ${area} like '%'||${normalizeSql("$2")}||'%') province_match,
       (${district}=${normalizeSql("$3")} or ${area} like '%'||${normalizeSql("$3")}||'%') district_match,
-      (nullif(trim(coalesce($4,'')),'') is null or ${corregimiento}=${normalizeSql("$4")} or ${area} like '%'||${normalizeSql("$4")}||'%') corregimiento_match,
-      (available_from is null or available_from<=coalesce($5::date,current_date)) availability_match
-      from candidate_profiles
-      where status='ACTIVO' and valid_until>=current_date
-        and ${role}=${normalizeSql("$1")}
+      (nullif(trim(coalesce($4,'')),'') is null or ${corregimiento}=${normalizeSql("$4")} or ${area} like '%'||${normalizeSql("$4")}||'%') corregimiento_match
+      from service_provider_profiles
+      where ${role}=${normalizeSql("$1")}
         and (${province}=${normalizeSql("$2")} or ${area} like '%'||${normalizeSql("$2")}||'%')
         and (${district}=${normalizeSql("$3")} or ${area} like '%'||${normalizeSql("$3")}||'%')
         and (nullif(trim(coalesce($4,'')),'') is null or ${corregimiento}=${normalizeSql("$4")} or ${area} like '%'||${normalizeSql("$4")}||'%')
-        and (available_from is null or available_from<=coalesce($5::date,current_date))
-      order by updated_at desc limit 100`,[service.position,service.province,service.district,service.corregimiento,service.estimated_start]);
+      order by updated_at desc limit 100`,[service.position,service.province,service.district,service.corregimiento]);
     return {service:{code:service.vacancy_code,service:service.position,province:service.province,district:service.district,corregimiento:service.corregimiento,schedule:service.schedule,estimated_start:service.estimated_start},items:q.rows};
   });
 }
