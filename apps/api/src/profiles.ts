@@ -20,11 +20,7 @@ export function normalizeProfiles(values: unknown): PublicProfile[] {
 
 export function profileForReturnTo(value: unknown): PublicProfile | undefined {
   const destination = safeReturn(value);
-  if (
-    destination.startsWith("/candidato") ||
-    destination.startsWith("/servicios/ofrecer")
-  )
-    return "CANDIDATO";
+  if (destination.startsWith("/candidato")) return "CANDIDATO";
   if (destination.startsWith("/empresa")) return "EMPRESA";
   return undefined;
 }
@@ -52,6 +48,7 @@ export function destinationFor(
   returnTo: unknown,
 ) {
   const safe = safeReturn(returnTo);
+  if (safe.startsWith("/servicios/ofrecer")) return safe;
   const explicit = publicProfile(requested) ?? profileForReturnTo(safe);
   if (explicit && user.profiles.includes(explicit)) {
     return profileForReturnTo(safe) === explicit
