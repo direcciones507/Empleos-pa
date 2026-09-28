@@ -7,7 +7,7 @@ export function LogoutButton() {
     setBusy(true);
     try {
       await api("/v1/auth/logout", { method: "POST", body: "{}" });
-      location.href = "/login";
+      location.href = "/";
     } catch {
       setBusy(false);
       alert("No se pudo cerrar la sesión.");
