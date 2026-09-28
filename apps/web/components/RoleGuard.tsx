@@ -7,6 +7,10 @@ export function RoleGuard({role,children}:{role:"CANDIDATO"|"EMPRESA"|"ADMIN";ch
   useEffect(()=>{
     api("/v1/auth/me").then(x=>{
       if((role==="ADMIN"&&x?.user?.is_admin)||(role!=="ADMIN"&&x?.user?.profiles?.includes(role))){setAllowed(true);return;}
+      if(role!=="ADMIN"&&x?.user){
+        window.location.replace("/elegir-perfil");
+        return;
+      }
       window.location.replace("/");
     }).catch(()=>{
       const returnTo=window.location.pathname+window.location.search;
