@@ -22,7 +22,9 @@ test("una cuenta con ambos perfiles entra a candidato desde Busco empleo", () =>
 });
 
 test("Ofrezco servicios conserva el perfil separado de prestador", () => {
-  assert.equal(profileForReturnTo("/servicios/ofrecer"), "CANDIDATO");
+  assert.equal(profileForReturnTo("/servicios/ofrecer"), undefined);
+  assert.equal(destinationFor(dual, undefined, "/servicios/ofrecer"), "/servicios/ofrecer");
+  assert.equal(destinationFor(dual, "EMPRESA", "/servicios/ofrecer"), "/servicios/ofrecer");
   assert.equal(destinationFor(dual, "CANDIDATO", "/servicios/ofrecer"), "/servicios/ofrecer");
 });
 
