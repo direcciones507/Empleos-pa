@@ -28,4 +28,19 @@ export async function adminReportRoutes(app:FastifyInstance){
     const byType=Object.fromEntries(requests.rows.map((row:any)=>[row.request_type,row.total]));
     return {from,to,candidates:Number(candidates.rows[0]?.total??0),vacancy_requests:Number(byType.VACANTE??0),service_requests:Number(byType.EVENTUAL??0),service_providers:Number(providers.rows[0]?.total??0),revenue:String(revenue.rows[0]?.total??"0.00"),candidate_locations:candidateLocations.rows,request_locations:requestLocations.rows};
   });
+
+  app.get("/v1/admin/report-comparison",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{
+    const days=Number(req.query?.days??7);
+    if(![7,30].includes(days))return reply.code(400).send({error:"INVALID_COMPARISON_PERIOD"});
+    const interval=`${days} days`;
+    const [candidates,requests,providers,revenue]=await Promise.all([
+      db.query(`select count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from candidate_profiles`,[interval]),
+      db.query(`select request_type,count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from vacancies group by request_type`,[interval]),
+      db.query(`select count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from service_provider_profiles`,[interval]),
+      db.query(`select coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-$1::interval),0)::numeric(12,2) current,coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-($1::interval*2) and created_at<now()-$1::interval),0)::numeric(12,2) previous from payments`,[interval])
+    ]);
+    const r=Object.fromEntries(requests.rows.map((x:any)=>[x.request_type,{current:Number(x.current??0),previous:Number(x.previous??0)}]));
+    const pair=(x:any)=>({current:Number(x?.current??0),previous:Number(x?.previous??0)});
+    return {days,candidates:pair(candidates.rows[0]),vacancy_requests:r.VACANTE??pair(null),service_requests:r.EVENTUAL??pair(null),service_providers:pair(providers.rows[0]),revenue:{current:Number(revenue.rows[0]?.current??0),previous:Number(revenue.rows[0]?.previous??0)}};
+  });
 }
