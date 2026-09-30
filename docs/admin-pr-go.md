@@ -1,0 +1,3 @@
+# Go
+
+PR creation authorized.
