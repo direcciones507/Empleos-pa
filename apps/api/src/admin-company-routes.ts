@@ -16,6 +16,16 @@ export async function adminCompanyRoutes(app:FastifyInstance){
     return {items:q.rows};
   });
 
+  app.get("/v1/admin/companies/:id",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{
+    const id=String(req.params.id??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return reply.code(400).send({error:"INVALID_COMPANY_ID"});
+    const [company,requests,payments,deliveries]=await Promise.all([
+      db.query(`select c.*,u.email account_email,u.status account_status from companies c join users u on u.user_id=c.owner_user_id where c.company_id=$1`,[id]),
+      db.query(`select vacancy_code,status,request_type,position,quantity,work_location,package,package_price,created_at,updated_at from vacancies where company_id=$1 order by created_at desc limit 100`,[id]),
+      db.query(`select p.payment_id,p.status,p.amount,p.reference,p.submitted_at,p.reviewed_at,p.created_at,v.vacancy_code,v.position from vacancy_payments p join vacancies v on v.vacancy_id=p.vacancy_id where v.company_id=$1 order by p.created_at desc limit 100`,[id]),
+      db.query(`select d.delivery_id,d.status,d.created_at,d.sent_at,v.vacancy_code,v.position,count(dc.delivery_candidate_id)::int profiles from vacancy_deliveries d join vacancies v on v.vacancy_id=d.vacancy_id left join vacancy_delivery_candidates dc on dc.delivery_id=d.delivery_id where v.company_id=$1 group by d.delivery_id,v.vacancy_code,v.position order by d.created_at desc limit 100`,[id])]);
+    if(!company.rowCount)return reply.code(404).send({error:"COMPANY_NOT_FOUND"});return {company:company.rows[0],requests:requests.rows,payments:payments.rows,deliveries:deliveries.rows};
+  });
+
   app.get("/v1/admin/activity",{preHandler:requireRoles("ADMIN")},async()=>{
     const q=await db.query(`
       select * from (
