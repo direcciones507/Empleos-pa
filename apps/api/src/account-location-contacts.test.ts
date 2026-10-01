@@ -56,7 +56,7 @@ test("migración no borra datos", () => {
   assert.doesNotMatch(migration, /drop column/i);
 });
 test("desactivación voluntaria permanece USER_REQUEST", () =>
-  assert.match(candidate, /disabled_reason='USER_REQUEST'/));
+  assert.match(company, /disabled_reason='USER_REQUEST'/));
 test("logout revoca el token antes de borrar la cookie", () => {
   const route = authRoutes.slice(
     authRoutes.indexOf('app.post("/v1/auth/logout"'),
