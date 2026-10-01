@@ -6,7 +6,7 @@ export function RoleGuard({ role, children }: { role: "CANDIDATO" | "EMPRESA" | 
   const [allowed, setAllowed] = useState(false);
   useEffect(() => {
     api("/v1/auth/me").then(async (response) => {
-      if ((role === "ADMIN" && response?.user?.is_admin) || (role !== "ADMIN" && response?.user?.profiles?.includes(role))) { setAllowed(true); return; }
+      if ((role === "ADMIN" && (response?.user?.is_admin || (response?.user?.role === "ADMIN" && response?.user?.status === "ACTIVE"))) || (role !== "ADMIN" && response?.user?.profiles?.includes(role))) { setAllowed(true); return; }
       if (role !== "ADMIN" && response?.user) {
         await api(`/v1/auth/profiles/${role}/enable`, { method: "POST" });
         setAllowed(true); return;
