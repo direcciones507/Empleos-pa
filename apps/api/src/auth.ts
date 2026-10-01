@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import argon2 from "argon2";
 import { db } from "./db.js";
+import { isAdminAccount } from "./profiles.js";
 export type Role = "CANDIDATO" | "EMPRESA" | "ADMIN";
 export type PublicProfile = "CANDIDATO" | "EMPRESA";
 const SESSION_DAYS = 14;
@@ -51,7 +52,8 @@ export async function sessionUser(raw?: string) {
     "select u.user_id,u.email,u.role,u.status,coalesce((select array_agg(up.profile_type order by up.profile_type) from user_profiles up where up.user_id=u.user_id),array[]::text[]) as profiles from auth_sessions s join users u on u.user_id=s.user_id where s.token_hash=$1 and s.revoked_at is null and s.expires_at>now() and u.status='ACTIVE'",
     [digest(raw)],
   );
-  return q.rows[0] ?? null;
+  const row = q.rows[0];
+  return row ? { ...row, is_admin: isAdminAccount(row) } : null;
 }
 export async function enableProfile(userId: string, profile: PublicProfile) {
   await db.query(

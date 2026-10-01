@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { destinationFor, profileForReturnTo } from "./profiles.js";
+import { destinationFor, isAdminAccount, profileForReturnTo } from "./profiles.js";
 
 const dual = { role: "CANDIDATO" as const, profiles: ["CANDIDATO", "EMPRESA"] as ("CANDIDATO" | "EMPRESA")[] };
 
@@ -42,4 +42,16 @@ test("OAuth conserva rechazo de states vencidos, usados y replay", () => {
   assert.match(source, /used_at is null and expires_at>now\(\)/);
   assert.match(source, /update oauth_states set used_at=now\(\)/);
   assert.match(source, /\/login\?oauth=expired/);
+});
+
+test("ADMIN ACTIVE es administrador; otros roles o estados no", () => {
+  assert.equal(isAdminAccount({ role: "ADMIN", status: "ACTIVE" }), true);
+  assert.equal(isAdminAccount({ role: "ADMIN", status: "DISABLED" }), false);
+  assert.equal(isAdminAccount({ role: "CANDIDATO", status: "ACTIVE" }), false);
+  assert.equal(isAdminAccount(null), false);
+});
+
+test("sessionUser expone is_admin y RoleGuard lo consume", () => {
+  const auth = readFileSync(new URL("./auth.ts", import.meta.url), "utf8");
+  assert.match(auth, /is_admin:\s*isAdminAccount\(row\)/);
 });

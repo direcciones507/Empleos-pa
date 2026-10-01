@@ -33,6 +33,10 @@ export function safeReturn(value: unknown) {
     : "/";
 }
 
+export function isAdminAccount(user: { role?: string; status?: string } | null | undefined) {
+  return user?.role === "ADMIN" && user?.status === "ACTIVE";
+}
+
 export function hasRole(
   user: { role: Role; profiles: PublicProfile[] },
   required: Role,
