@@ -1,3 +1,3 @@
 import {RoleGuard} from "../../components/RoleGuard";
-const links=[["/admin","Dashboard"],["/admin/candidatos","Candidatos"],["/admin/empresas","Empresas"],["/admin/vacantes","Vacantes"],["/admin/servicios","Servicios"],["/admin/pagos","Pagos"],["/admin/entregas","Entregas"],["/admin/reportes","Reportes"],["/admin/auditoria","Auditoría"]];
+const links=[["/admin","Dashboard"],["/admin/candidatos","Candidatos"],["/admin/empresas","Empresas"],["/admin/vacantes","Vacantes"],["/admin/servicios","Servicios"],["/admin/pagos","Pagos"],["/admin/entregas","Entregas"],["/admin/reportes","Reportes"],["/admin/asistente","Asistente IA"],["/admin/auditoria","Auditoría"]];
 export default function Layout({children}:{children:React.ReactNode}){return <RoleGuard role="ADMIN"><nav className="adminNav" aria-label="Navegación administrativa">{links.map(([href,label])=><a key={href} href={href}>{label}</a>)}</nav>{children}</RoleGuard>}
