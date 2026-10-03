@@ -21,7 +21,7 @@ export async function adminReportRoutes(app:FastifyInstance){
       db.query(`select request_type,count(*)::int total from vacancies where created_at >= $1::date and created_at < ($2::date + interval '1 day') group by request_type`,[from,to]),
       db.query(`select count(*)::int total from service_provider_profiles where created_at >= $1::date and created_at < ($2::date + interval '1 day')`,[from,to]),
       db.query(`select count(*)::int total from candidate_profiles where created_at >= $1::date and created_at < ($2::date + interval '1 day')`,[from,to]),
-      db.query(`select coalesce(sum(amount),0)::numeric(12,2) total from payments where status='APROBADO' and created_at >= $1::date and created_at < ($2::date + interval '1 day')`,[from,to]),
+      db.query(`select coalesce(sum(amount),0)::numeric(12,2) total from vacancy_payments where status='APROBADO' and created_at >= $1::date and created_at < ($2::date + interval '1 day')`,[from,to]),
       db.query(`select coalesce(nullif(trim(province),''),'Sin provincia') province,coalesce(nullif(trim(district),''),'Sin distrito') district,count(*)::int candidates from candidate_profiles where created_at >= $1::date and created_at < ($2::date + interval '1 day') group by 1,2 order by candidates desc,1,2 limit 100`,[from,to]),
       db.query(`select coalesce(nullif(trim(c.province),''),'Sin provincia') province,coalesce(nullif(trim(c.district),''),'Sin distrito') district,count(*) filter (where v.request_type='VACANTE')::int vacancies,count(*) filter (where v.request_type='EVENTUAL')::int services from vacancies v join companies c on c.company_id=v.company_id where v.created_at >= $1::date and v.created_at < ($2::date + interval '1 day') group by 1,2 order by count(*) desc,1,2 limit 100`,[from,to])
     ]);
@@ -37,7 +37,7 @@ export async function adminReportRoutes(app:FastifyInstance){
       db.query(`select count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from candidate_profiles`,[interval]),
       db.query(`select request_type,count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from vacancies group by request_type`,[interval]),
       db.query(`select count(*) filter (where created_at>=now()-$1::interval)::int current,count(*) filter (where created_at>=now()-($1::interval*2) and created_at<now()-$1::interval)::int previous from service_provider_profiles`,[interval]),
-      db.query(`select coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-$1::interval),0)::numeric(12,2) current,coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-($1::interval*2) and created_at<now()-$1::interval),0)::numeric(12,2) previous from payments`,[interval])
+      db.query(`select coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-$1::interval),0)::numeric(12,2) current,coalesce(sum(amount) filter (where status='APROBADO' and created_at>=now()-($1::interval*2) and created_at<now()-$1::interval),0)::numeric(12,2) previous from vacancy_payments`,[interval])
     ]);
     const r=Object.fromEntries(requests.rows.map((x:any)=>[x.request_type,{current:Number(x.current??0),previous:Number(x.previous??0)}]));
     const pair=(x:any)=>({current:Number(x?.current??0),previous:Number(x?.previous??0)});

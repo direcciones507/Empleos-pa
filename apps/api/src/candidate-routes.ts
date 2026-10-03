@@ -310,8 +310,8 @@ export async function candidateRoutes(app: FastifyInstance) {
           return reply.code(400).send({ error: "PROFILE_INCOMPLETE", field: missing });
         }
         const u = await client.query(
-          "update candidate_profiles set candidate_code=coalesce(candidate_code,'EMP-'||lpad(nextval('candidate_code_seq')::text,6,'0')),status='ACTIVO',consent_version=$2,consent_accepted_at=now(),valid_until=current_date+config.candidateValidityDays,submitted_at=coalesce(submitted_at,now()),updated_at=now() where user_id=$1 returning candidate_code,status,consent_version,consent_accepted_at,valid_until,submitted_at",
-          [req.authUser!.user_id, CANDIDATE_CONSENT_VERSION],
+          "update candidate_profiles set candidate_code=coalesce(candidate_code,'EMP-'||lpad(nextval('candidate_code_seq')::text,6,'0')),status='ACTIVO',consent_version=$2,consent_accepted_at=now(),valid_until=current_date+$3::int,submitted_at=coalesce(submitted_at,now()),updated_at=now() where user_id=$1 returning candidate_code,status,consent_version,consent_accepted_at,valid_until,submitted_at",
+          [req.authUser!.user_id, CANDIDATE_CONSENT_VERSION, config.candidateValidityDays],
         );
         await client.query("commit");
         return { profile: u.rows[0] };
@@ -361,8 +361,8 @@ export async function candidateRoutes(app: FastifyInstance) {
           return reply.code(409).send({ error: "PROFILE_NOT_RENEWABLE" });
         }
         const q = await client.query(
-          "update candidate_profiles set status='ACTIVO',valid_until=current_date+config.candidateValidityDays,updated_at=now() where candidate_id=$1 and candidate_code is not null returning candidate_id,candidate_code,status,valid_until",
-          [current.rows[0].candidate_id],
+          "update candidate_profiles set status='ACTIVO',valid_until=current_date+$2::int,updated_at=now() where candidate_id=$1 and candidate_code is not null returning candidate_id,candidate_code,status,valid_until",
+          [current.rows[0].candidate_id, config.candidateValidityDays],
         );
         if (!q.rowCount) {
           await client.query("rollback");
@@ -477,8 +477,8 @@ export async function candidateRoutes(app: FastifyInstance) {
           return reply.code(409).send({ error: "PROFILE_NOT_REACTIVATABLE" });
         }
         const q = await client.query(
-          "update candidate_profiles set status='ACTIVO',valid_until=current_date+config.candidateValidityDays,updated_at=now() where candidate_id=$1 and candidate_code is not null and status='RETIRADO' returning candidate_code,status,valid_until",
-          [current.rows[0].candidate_id],
+          "update candidate_profiles set status='ACTIVO',valid_until=current_date+$2::int,updated_at=now() where candidate_id=$1 and candidate_code is not null and status='RETIRADO' returning candidate_code,status,valid_until",
+          [current.rows[0].candidate_id, config.candidateValidityDays],
         );
         if (!q.rowCount) {
           await client.query("rollback");
