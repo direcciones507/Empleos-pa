@@ -7,7 +7,7 @@ const normalizeSql=(value:string)=>`lower(translate(coalesce(${value},''),'ÁÉ�
 export async function serviceMatchingRoutes(app:FastifyInstance){
   app.get("/v1/admin/services/:code/matches",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{
     const code=String(req.params.code??"").trim();
-    if(!/^EMP-VAC-\d{6}$/.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
+    if(!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
     const vacancy=await db.query("select vacancy_code,request_type,position,province,district,corregimiento,work_location,schedule,estimated_start,status from vacancies where vacancy_code=$1",[code]);
     if(!vacancy.rowCount)return reply.code(404).send({error:"VACANCY_NOT_FOUND"});
     const service=vacancy.rows[0];
