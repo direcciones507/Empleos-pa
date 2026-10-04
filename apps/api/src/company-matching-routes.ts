@@ -1,0 +1,75 @@
+import type {FastifyInstance} from "fastify";
+import {db} from "./db.js";
+import {requireRoles} from "./rbac.js";
+import {analyzeFilteredCandidates,deepSeekConfigured} from "./ai-analysis.js";
+import {config} from "./config.js";
+
+const vacancyCode=/^VAC-\d{6}$/;
+const CANDIDATE_UNIT_PRICE_CENTS=299;
+const money=(cents:number)=>Number((cents/100).toFixed(2));
+const pricing={currency:"USD",unit_price:money(CANDIDATE_UNIT_PRICE_CENTS),unit:"candidate_delivered"};
+
+export async function companyMatchingRoutes(app:FastifyInstance){
+  app.get("/v1/company/vacancies/:code/matches",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
+    const code=String(req.params.code??"").trim();
+    if(!vacancyCode.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
+    const v=await db.query(`select v.vacancy_code,v.position,v.work_location,v.skills,v.minimum_education,v.experience_requirement,v.schedule,v.status from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2`,[code,req.authUser!.user_id]);
+    if(!v.rowCount)return reply.code(404).send({error:"VACANCY_NOT_FOUND"});
+    if(!["APROBADA","EN_BUSQUEDA"].includes(v.rows[0].status))return reply.code(409).send({error:"VACANCY_NOT_READY_FOR_MATCHING"});
+    const x=v.rows[0];
+    const q=await db.query(`select candidate_id,candidate_code,primary_job_area,province,district,work_profile,skills,education,experience,availability_notes,
+      jsonb_build_object('role',lower(translate(coalesce(primary_job_area,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))=lower(translate(coalesce($1,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')),'location',lower(translate(coalesce(work_locations,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(coalesce($2,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%','skills',coalesce((select array_agg(trim(s)) from unnest(string_to_array(coalesce($3,''),',')) s where trim(s)<>'' and lower(translate(coalesce(skills,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(trim(s),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%'),'{}'::text[]),'availability',(available_from is null or available_from<=current_date)) match_trace
+      from candidate_profiles where status='ACTIVO' and valid_until>=current_date and (lower(translate(coalesce(primary_job_area,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))=lower(translate(coalesce($1,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) or (nullif(trim(coalesce($2,'')),'') is not null and lower(translate(coalesce(work_locations,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(trim($2),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%') or (nullif(trim(coalesce($3,'')),'') is not null and exists(select 1 from unnest(string_to_array($3,',')) s where trim(s)<>'' and lower(translate(coalesce(skills,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(trim(s),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%'))) order by updated_at desc limit 40`,[x.position,x.work_location,x.skills]);
+    if(!q.rowCount)return {vacancy:{code:x.vacancy_code,position:x.position},count:0,pricing,quote:{quantity:0,total:0},ai_available:deepSeekConfigured(),analyses:[]};
+    if(!deepSeekConfigured())return {vacancy:{code:x.vacancy_code,position:x.position},count:q.rowCount,pricing,quote:{quantity:q.rowCount,total:money(q.rowCount*CANDIDATE_UNIT_PRICE_CENTS)},ai_available:false,analyses:[]};
+    try{
+      const result=await analyzeFilteredCandidates(x,q.rows,AbortSignal.timeout(config.deepSeekTimeoutMs));
+      return {vacancy:{code:x.vacancy_code,position:x.position},count:q.rowCount,pricing,quote:{quantity:q.rowCount,total:money(q.rowCount*CANDIDATE_UNIT_PRICE_CENTS)},ai_available:true,provider:result.provider,model:result.model,analyses:result.analyses,coverage:result.coverage};
+    }catch(error){req.log.error(error,"company candidate AI analysis failed");return reply.code(502).send({error:"AI_ANALYSIS_FAILED"});}
+  });
+
+  app.post("/v1/company/vacancies/:code/candidates/accept",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
+    const code=String(req.params.code??"").trim();
+    if(!vacancyCode.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
+    const ids=Array.isArray(req.body?.candidate_ids)?req.body.candidate_ids.map((x:any)=>String(x).trim()):[];
+    if(!ids.length)return reply.code(400).send({error:"CANDIDATES_REQUIRED"});
+    const unique=[...new Set<string>(ids)];
+    if(unique.length>40)return reply.code(400).send({error:"TOO_MANY_CANDIDATES"});
+    const expectedTotalCents=unique.length*CANDIDATE_UNIT_PRICE_CENTS;
+    const quote={quantity:unique.length,total:money(expectedTotalCents)};
+    if(req.body?.confirm_price!==true)return reply.code(409).send({error:"PRICE_CONFIRMATION_REQUIRED",pricing,quote});
+    const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if(unique.some(id=>!uuid.test(id)))return reply.code(400).send({error:"INVALID_CANDIDATE_ID"});
+    const c=await db.connect();
+    try{
+      await c.query("begin");
+      const v=await c.query(`select v.vacancy_id,v.status,v.position,v.work_location from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_code=$1 and co.owner_user_id=$2 for update of v`,[code,req.authUser!.user_id]);
+      if(!v.rowCount){await c.query("rollback");return reply.code(404).send({error:"VACANCY_NOT_FOUND"});}
+      if(!["APROBADA","EN_BUSQUEDA"].includes(v.rows[0].status)){await c.query("rollback");return reply.code(409).send({error:"VACANCY_NOT_READY_FOR_MATCHING"});}
+      const eligible=await c.query("select candidate_id from candidate_profiles where candidate_id=any($1::uuid[]) and status='ACTIVO' and valid_until>=current_date for update",[unique]);
+      if(eligible.rowCount!==unique.length){await c.query("rollback");return reply.code(409).send({error:"CANDIDATE_SET_CHANGED"});}
+      await c.query("delete from vacancy_candidates where vacancy_id=$1",[v.rows[0].vacancy_id]);
+      for(const id of unique)await c.query("insert into vacancy_candidates(vacancy_id,candidate_id,interest_status,contact_authorized,responded_at) values($1,$2,'INTERESADO',true,now())",[v.rows[0].vacancy_id,id]);
+      await c.query("update vacancies set package=null,package_candidate_limit=null,package_price=$1,status=$2,updated_at=now() where vacancy_id=$3",[quote.total,config.requestPaymentMode==="FREE"?"EN_BUSQUEDA":"PENDIENTE_PAGO",v.rows[0].vacancy_id]);
+      if(config.requestPaymentMode!=="FREE"){
+        await c.query("commit");
+        return {ok:true,accepted:unique.length,total:unique.length,status:"PENDIENTE_PAGO",payment_required:true,pricing,quote};
+      }
+      const d=await c.query("insert into vacancy_deliveries(vacancy_id,status,notes) values($1,'LISTA',$2) returning delivery_id",[v.rows[0].vacancy_id,`Entrega automática de ${unique.length} candidatura(s) confirmada(s) a $2.99 cada una.`]);
+      await c.query(`insert into vacancy_delivery_candidates(delivery_id,candidate_id,candidate_code,full_name,phone,email,primary_job_area,work_profile,skills,province,district,education,experience)
+        select $1,cp.candidate_id,cp.candidate_code,cp.full_name,cp.phone,u.email,cp.primary_job_area,cp.work_profile,cp.skills,cp.province,cp.district,cp.education,cp.experience
+        from vacancy_candidates vc join candidate_profiles cp on cp.candidate_id=vc.candidate_id join users u on u.user_id=cp.user_id
+        where vc.vacancy_id=$2 and cp.status='ACTIVO' and cp.valid_until>=current_date`,[d.rows[0].delivery_id,v.rows[0].vacancy_id]);
+      const snapshot=await c.query("select count(*)::int total from vacancy_delivery_candidates where delivery_id=$1",[d.rows[0].delivery_id]);
+      if(snapshot.rows[0].total!==unique.length){await c.query("rollback");return reply.code(409).send({error:"DELIVERY_SNAPSHOT_MISMATCH"});}
+      await c.query(`insert into candidate_notifications(candidate_id,vacancy_id,type,title,message)
+        select dc.candidate_id,$2,'PROFILE_DELIVERED','Tu perfil estuvo en una búsqueda',$3
+        from vacancy_delivery_candidates dc where dc.delivery_id=$1
+        on conflict(candidate_id,vacancy_id,type) do nothing`,[d.rows[0].delivery_id,v.rows[0].vacancy_id,`Tu perfil estuvo incluido en una búsqueda para ${v.rows[0].position} en ${v.rows[0].work_location}. Una empresa podría contactarte. Mantente pendiente de tus medios de contacto.`]);
+      await c.query("update vacancy_deliveries set status='ENVIADA',sent_at=now(),updated_at=now() where delivery_id=$1",[d.rows[0].delivery_id]);
+      await c.query("update vacancies set status='ENTREGADA',updated_at=now() where vacancy_id=$1",[v.rows[0].vacancy_id]);
+      await c.query("commit");
+      return {ok:true,accepted:unique.length,total:unique.length,status:"ENTREGADA",payment_required:false,delivery_status:"ENVIADA",pricing,quote};
+    }catch(error){await c.query("rollback").catch(()=>{});throw error;}finally{c.release();}
+  });
+}
