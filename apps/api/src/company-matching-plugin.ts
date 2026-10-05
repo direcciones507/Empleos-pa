@@ -21,32 +21,18 @@ export async function registerCompanyMatching(app:FastifyInstance){
     if(!cookie)return payload;
     automaticVacancies.add(code);
 
-    // Run after the response so vacancy creation stays fast. Every operation
-    // reuses the authenticated company session and the already-tested routes.
     setImmediate(async()=>{
       try{
         const match=await app.inject({method:"GET",url:`/v1/company/vacancies/${code}/matches`,headers:{cookie}});
-        if(match.statusCode!==200){
-          app.log.error({vacancy_code:code,status:match.statusCode},"automatic vacancy matching lookup failed");
-          return;
-        }
+        if(match.statusCode!==200){app.log.error({vacancy_code:code,status:match.statusCode},"automatic vacancy matching lookup failed");return;}
         const result=match.json() as any;
-        const ids=[...new Set<string>(Array.isArray(result?.analyses)?result.analyses.map((x:any)=>String(x?.candidate_id??"")).filter(Boolean):[])];
-        if(!ids.length){
-          app.log.info({vacancy_code:code},"automatic vacancy matching completed with zero candidates");
-          return;
-        }
+        const ids=[...new Set<string>(Array.isArray(result?.analyses)?result.analyses.map((x:any)=>String(x?.candidate_id??"")).filter(Boolean):[])].slice(0,config.freeCandidateLimit);
+        if(!ids.length){app.log.info({vacancy_code:code},"automatic vacancy matching completed with zero candidates");return;}
         const accepted=await app.inject({method:"POST",url:`/v1/company/vacancies/${code}/candidates/accept`,headers:{cookie,"content-type":"application/json"},payload:{candidate_ids:ids,confirm_price:true}});
-        if(accepted.statusCode<200||accepted.statusCode>=300){
-          app.log.error({vacancy_code:code,status:accepted.statusCode},"automatic vacancy candidate acceptance failed");
-          return;
-        }
-        app.log.info({vacancy_code:code,candidates:ids.length},"automatic vacancy matching completed");
-      }catch(error){
-        app.log.error({err:error,vacancy_code:code},"automatic vacancy matching failed");
-      }finally{
-        automaticVacancies.delete(code);
-      }
+        if(accepted.statusCode<200||accepted.statusCode>=300){app.log.error({vacancy_code:code,status:accepted.statusCode},"automatic vacancy candidate acceptance failed");return;}
+        app.log.info({vacancy_code:code,candidates:ids.length,free_limit:config.freeCandidateLimit},"automatic vacancy matching completed");
+      }catch(error){app.log.error({err:error,vacancy_code:code},"automatic vacancy matching failed");}
+      finally{automaticVacancies.delete(code);}
     });
     return payload;
   });
