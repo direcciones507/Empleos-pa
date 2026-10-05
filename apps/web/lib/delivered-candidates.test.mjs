@@ -59,13 +59,15 @@ test("analysis still loading or failed is never described as missing historical 
   for(const state of ["loading","error"]){const html=harness(()=>Promise.resolve({}),ready([],state)).html();assert.ok(html.includes(state==="loading"?"Cargando análisis conservado…":"No se pudo cargar el análisis conservado."));assert.ok(!html.includes("no conserva un análisis descriptivo histórico"))}
 });
 
-test("delivered card CSS keeps full width with three, two and one fluid columns",()=>{
+test("delivered analysis keeps three horizontal columns on tablet and desktop and stacks on mobile",()=>{
   const tree=harness(()=>Promise.resolve({}),ready()).tree();const css=nodes(tree,n=>n.type==="style")[0].props.children;
   assert.match(css,/\.deliveredCandidateCard\{display:block;min-width:0/);
   assert.match(css,/\.deliveredAnalysis\{width:100%;min-width:0/);
   assert.match(css,/\.deliveredGrid\{display:grid;grid-template-columns:minmax\(0,1\.35fr\) minmax\(0,1fr\) minmax\(0,1fr\)/);
-  assert.match(css,/@media\(max-width:760px\).*\.deliveredGrid\{grid-template-columns:1fr 1fr\}/);
-  assert.match(css,/@media\(max-width:480px\)\{\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
+  const tabletRules = css.slice(css.indexOf("@media(max-width:900px)"), css.indexOf("@media(max-width:620px)"));
+  assert.ok(tabletRules.includes(".candidateGrid{grid-template-columns:1fr 1fr}"));
+  assert.ok(!tabletRules.includes(".deliveredGrid"));
+  assert.match(css,/@media\(max-width:620px\)\{\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
 });
 
 test("search, selection and acceptance still send selected analyses and reload delivery",async()=>{

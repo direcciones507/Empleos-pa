@@ -17,7 +17,7 @@ test("company matching only considers active non-expired candidates",()=>{
 
 test("provider key remains server side",()=>{
   assert.doesNotMatch(routes,/deepSeekApiKey/);
-  assert.match(ai,/authorization:\"Bearer \"\+config\.deepSeekApiKey/);
+  assert.match(ai,/"authorization"\s*:\s*"Bearer "\s*\+\s*config\.deepSeekApiKey/);
 });
 
 test("AI policy prohibits ranking and hiring decisions",()=>{
@@ -25,8 +25,8 @@ test("AI policy prohibits ranking and hiring decisions",()=>{
   assert.match(ai,/no decidas contratación/);
 });
 
-test("acceptance enforces candidate and package limits",()=>{
+test("acceptance enforces candidate limits and price confirmation",()=>{
   assert.match(routes,/TOO_MANY_CANDIDATES/);
-  assert.match(routes,/PACKAGE_CANDIDATE_LIMIT/);
+  assert.match(routes,/PRICE_CONFIRMATION_REQUIRED/);
   assert.match(routes,/CANDIDATE_SET_CHANGED/);
 });
