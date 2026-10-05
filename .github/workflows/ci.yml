@@ -13,6 +13,20 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pr50
+          POSTGRES_PASSWORD: isolated-fixture-only
+          POSTGRES_DB: empleos_pr50
+        ports:
+          - 55450:5432
+        options: >-
+          --health-cmd "pg_isready -U pr50 -d empleos_pr50"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +50,16 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Contract tests
+        run: node --test tests/*.test.mjs
+
+      - name: PostgreSQL integration
+        working-directory: apps/api
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://pr50:isolated-fixture-only@127.0.0.1:55450/empleos_pr50
+        run: node --import tsx src/structured-matching-postgres.integration.ts
 
       - name: Build
         run: pnpm build
