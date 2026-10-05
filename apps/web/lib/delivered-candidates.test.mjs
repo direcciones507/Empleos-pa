@@ -64,8 +64,8 @@ test("delivered card CSS keeps full width with three, two and one fluid columns"
   assert.match(css,/\.deliveredCandidateCard\{display:block;min-width:0/);
   assert.match(css,/\.deliveredAnalysis\{width:100%;min-width:0/);
   assert.match(css,/\.deliveredGrid\{display:grid;grid-template-columns:minmax\(0,1\.35fr\) minmax\(0,1fr\) minmax\(0,1fr\)/);
-  assert.match(css,/@media\(max-width:760px\).*\.deliveredGrid\{grid-template-columns:1fr 1fr\}/);
-  assert.match(css,/@media\(max-width:480px\)\{\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:900px\).*\.deliveredGrid\{grid-template-columns:1fr 1fr\}/);
+  assert.match(css,/@media\(max-width:620px\)\{\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
 });
 
 test("search, selection and acceptance still send selected analyses and reload delivery",async()=>{
