@@ -1,39 +1,7 @@
 import type {FastifyInstance} from "fastify";
 import {companyMatchingRoutes} from "./company-matching-routes.js";
+import {companyDeliveryAnalysisRoutes} from "./company-delivery-analysis-routes.js";
 import {config} from "./config.js";
 import {processFreeVacancy,processWaitingFreeVacancies} from "./free-matching-engine.js";
-
-const automaticVacancies=new Set<string>();
-let candidateRematchRunning=false;
-
-export async function registerCompanyMatching(app:FastifyInstance){
-  await companyMatchingRoutes(app);
-
-  app.addHook("onSend",async(req,reply,payload)=>{
-    if(config.requestPaymentMode!=="FREE")return payload;
-    const path=req.url.split("?")[0];
-
-    if(req.method==="POST"&&path==="/v1/company/vacancies"&&reply.statusCode===201){
-      let code="";
-      try{const body=typeof payload==="string"?JSON.parse(payload):payload as any;code=String(body?.vacancy?.vacancy_code??"");}catch{return payload;}
-      if(!/^VAC-\d{6}$/.test(code)||automaticVacancies.has(code))return payload;
-      automaticVacancies.add(code);
-      setImmediate(async()=>{
-        try{await processFreeVacancy(code,app.log);}catch(error){app.log.error({err:error,vacancy_code:code},"automatic vacancy matching failed");}
-        finally{automaticVacancies.delete(code);}
-      });
-      return payload;
-    }
-
-    // A profile is useful to the market only after successful activation.
-    // Re-check waiting FREE vacancies then, never on partial draft saves.
-    if(req.method==="POST"&&path==="/v1/candidate/profile/submit"&&reply.statusCode>=200&&reply.statusCode<300&&!candidateRematchRunning){
-      candidateRematchRunning=true;
-      setImmediate(async()=>{
-        try{await processWaitingFreeVacancies(app.log);}catch(error){app.log.error({err:error},"automatic candidate rematch failed");}
-        finally{candidateRematchRunning=false;}
-      });
-    }
-    return payload;
-  });
-}
+const automaticVacancies=new Set<string>();let candidateRematchRunning=false;
+export async function registerCompanyMatching(app:FastifyInstance){await companyMatchingRoutes(app);await companyDeliveryAnalysisRoutes(app);app.addHook("onSend",async(req,reply,payload)=>{if(config.requestPaymentMode!=="FREE")return payload;const path=req.url.split("?")[0];if(req.method==="POST"&&path==="/v1/company/vacancies"&&reply.statusCode===201){let code="";try{const body=typeof payload==="string"?JSON.parse(payload):payload as any;code=String(body?.vacancy?.vacancy_code??"");}catch{return payload;}if(!/^VAC-\d{6}$/.test(code)||automaticVacancies.has(code))return payload;automaticVacancies.add(code);setImmediate(async()=>{try{await processFreeVacancy(code,app.log);}catch(error){app.log.error({err:error,vacancy_code:code},"automatic vacancy matching failed");}finally{automaticVacancies.delete(code);}});return payload;}if(req.method==="POST"&&path==="/v1/candidate/profile/submit"&&reply.statusCode>=200&&reply.statusCode<300&&!candidateRematchRunning){candidateRematchRunning=true;setImmediate(async()=>{try{await processWaitingFreeVacancies(app.log);}catch(error){app.log.error({err:error},"automatic candidate rematch failed");}finally{candidateRematchRunning=false;}});}return payload;});}
