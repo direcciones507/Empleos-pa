@@ -13,8 +13,9 @@ test("candidate structured fields accept minimum salary and preferences", () => 
     structured_licenses: [{ category: "D" }],
     mobility: { can_travel: true },
   });
-  assert.equal(result?.salary_minimum, 800);
-  assert.equal(result?.salary_period, "MES");
+  assert.ok(result);
+  assert.equal(result.salary_minimum, 800);
+  assert.equal(result.salary_period, "MES");
 });
 
 test("vacancy rejects inverted salary range", () => {
@@ -35,8 +36,9 @@ test("vacancy keeps required/preferred requirements as structured data", () => {
       { type: "LANGUAGE", value: "Inglés", priority: "PREFERRED" },
     ],
   });
-  assert.equal(result?.experience_min_years, 2);
-  assert.equal(result?.structured_requirements.length, 2);
+  assert.ok(result);
+  assert.equal(result.experience_min_years, 2);
+  assert.equal(result.structured_requirements.length, 2);
 });
 
 test("negative numeric values are rejected", () => {
