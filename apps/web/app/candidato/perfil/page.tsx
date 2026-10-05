@@ -1,4 +1,5 @@
-"use client";import {useEffect,useRef,useState} from "react";import {api} from "../../../lib/api";import {CandidateStructuredFields} from "../../components/StructuredMatchingFields";
+"use client";import {useEffect,useRef,useState} from "react";import {api} from "../../../lib/api";
+import {CandidateStructuredFields} from "../../components/StructuredMatchingFields";
 const steps=["Datos","Trabajo","Estudios","Experiencia","Habilidades","Revisar"];const blank:any={education:[{}],experience:[],confirmations:{},contact_preference:"WhatsApp"};
 const mobility=["Cerca de donde vivo","Dentro de mi distrito","Distritos cercanos","Toda mi provincia","Otras provincias","Dispuesto/a a reubicarme"],documentOptions=["Cédula","Pasaporte","Otro documento"];
 function errorText(e:any,fallback:string){const field=e?.body?.field?` (${e.body.field})`:"";switch(e?.body?.error){case"INVALID_CONTACT_EMAIL":return"Revisa el correo de contacto.";case"INVALID_AVAILABLE_FROM":return"Revisa la fecha disponible para comenzar.";case"INVALID_PROFILE_FIELD":return`Revisa el campo indicado${field}.`;case"PROFILE_FIELD_TOO_LONG":return`Hay un campo con demasiado texto${field}.`;case"PROFILE_FIELD_TOO_LARGE":return`Hay demasiada información en un campo${field}.`;case"PROFILE_INCOMPLETE":return"Faltan campos obligatorios. Revisa los campos marcados con *.";default:return fallback}}
