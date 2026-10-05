@@ -21,13 +21,13 @@ function enumValue(value: unknown, allowed: readonly string[]) {
   return value;
 }
 
-function boundedArray(value: unknown, max = 100) {
+function boundedArray(value: unknown, max = 100): unknown[] | undefined {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > max) return undefined;
   return value;
 }
 
-function boundedObject(value: unknown) {
+function boundedObject(value: unknown): JsonObject | undefined {
   if (value === undefined || value === null) return {};
   return plainObject(value) ? value : undefined;
 }
@@ -41,7 +41,7 @@ export function normalizeCandidateStructuredFields(body: JsonObject) {
   const structured_languages = boundedArray(body.structured_languages, 30);
   const structured_licenses = boundedArray(body.structured_licenses, 30);
   const mobility = boundedObject(body.mobility);
-  if ([salary_minimum, salary_period, employment_types, schedule_preferences, structured_skills, structured_languages, structured_licenses, mobility].some((v) => v === undefined)) return null;
+  if (salary_minimum === undefined || salary_period === undefined || employment_types === undefined || schedule_preferences === undefined || structured_skills === undefined || structured_languages === undefined || structured_licenses === undefined || mobility === undefined) return null;
   return { salary_minimum, salary_period, employment_types, schedule_preferences, structured_skills, structured_languages, structured_licenses, mobility };
 }
 
@@ -59,7 +59,7 @@ export function normalizeVacancyStructuredFields(body: JsonObject) {
   const structured_languages = boundedArray(body.structured_languages, 30);
   const structured_licenses = boundedArray(body.structured_licenses, 30);
   const mobility_requirement = boundedObject(body.mobility_requirement);
-  if ([employment_type, salary_minimum, salary_maximum, salary_period, experience_min_years, experience_scope, job_level, schedule_structured, structured_requirements, structured_skills, structured_languages, structured_licenses, mobility_requirement].some((v) => v === undefined)) return null;
+  if (employment_type === undefined || salary_minimum === undefined || salary_maximum === undefined || salary_period === undefined || experience_min_years === undefined || experience_scope === undefined || job_level === undefined || schedule_structured === undefined || structured_requirements === undefined || structured_skills === undefined || structured_languages === undefined || structured_licenses === undefined || mobility_requirement === undefined) return null;
   if (salary_minimum !== null && salary_maximum !== null && salary_maximum < salary_minimum) return null;
   return {
     employment_type,
