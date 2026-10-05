@@ -1,1 +1,0 @@
-Candidate submit retries that receive PROFILE_ALREADY_SUBMITTED are resolved by fetching the authenticated candidate profile and continuing only when that profile has a candidate_code. This prevents a false activation error without changing other 409 responses.
