@@ -2,8 +2,6 @@ import {db} from "./db.js";
 import {analyzeFilteredCandidates,deepSeekConfigured} from "./ai-analysis.js";
 import {config} from "./config.js";
 
-const normalizeSql=`lower(translate(coalesce(%s,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))`;
-
 export async function processFreeVacancy(vacancyCode:string,log:any){
   if(config.requestPaymentMode!=="FREE")return {status:"SKIPPED_PAYMENT_MODE"};
   const v=await db.query(`select vacancy_id,vacancy_code,position,work_location,skills,minimum_education,experience_requirement,schedule,status from vacancies where vacancy_code=$1`,[vacancyCode]);
@@ -29,6 +27,8 @@ export async function processFreeVacancy(vacancyCode:string,log:any){
     const d=await c.query("insert into vacancy_deliveries(vacancy_id,status,notes) values($1,'LISTA',$2) returning delivery_id",[x.vacancy_id,`Entrega automática gratuita de hasta ${config.freeCandidateLimit} candidatura(s).`]);
     await c.query(`insert into vacancy_delivery_candidates(delivery_id,candidate_id,candidate_code,full_name,phone,email,primary_job_area,work_profile,skills,province,district,education,experience)
       select $1,cp.candidate_id,cp.candidate_code,cp.full_name,cp.phone,u.email,cp.primary_job_area,cp.work_profile,cp.skills,cp.province,cp.district,cp.education,cp.experience from candidate_profiles cp join users u on u.user_id=cp.user_id where cp.candidate_id=any($2::uuid[])`,[d.rows[0].delivery_id,eligibleIds]);
+    const snapshot=await c.query("select count(*)::int total from vacancy_delivery_candidates where delivery_id=$1",[d.rows[0].delivery_id]);
+    if(snapshot.rows[0].total!==eligibleIds.length){await c.query("rollback");return {status:"DELIVERY_SNAPSHOT_MISMATCH"};}
     await c.query(`insert into candidate_notifications(candidate_id,vacancy_id,type,title,message) select dc.candidate_id,$2,'PROFILE_DELIVERED','Tu perfil estuvo en una búsqueda',$3 from vacancy_delivery_candidates dc where dc.delivery_id=$1 on conflict(candidate_id,vacancy_id,type) do nothing`,[d.rows[0].delivery_id,x.vacancy_id,`Tu perfil estuvo incluido en una búsqueda para ${x.position} en ${x.work_location}. Una empresa podría contactarte.`]);
     await c.query("update vacancy_deliveries set status='ENVIADA',sent_at=now(),updated_at=now() where delivery_id=$1",[d.rows[0].delivery_id]);
     await c.query("update vacancies set package=null,package_candidate_limit=$1,package_price=0,status='ENTREGADA',updated_at=now() where vacancy_id=$2",[config.freeCandidateLimit,x.vacancy_id]);
