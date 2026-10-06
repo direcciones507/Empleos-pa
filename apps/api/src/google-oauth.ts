@@ -46,6 +46,7 @@ function settings() {
 export async function googleOAuthRoutes(app: FastifyInstance) {
   app.get("/v1/auth/google/start", async (req: any, reply) => {
     const s = settings();
+    const reactivation = safeReturn(req.query?.returnTo) === "/reactivate";
     const role: Role | undefined =
       req.query?.role === "CANDIDATO" || req.query?.role === "EMPRESA"
         ? req.query.role
@@ -61,7 +62,8 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
       response_type: "code",
       scope: "openid email profile",
       state,
-      prompt: "select_account",
+      prompt: reactivation ? "login" : "select_account",
+      ...(reactivation ? { max_age: "0" } : {}),
     });
     return reply.redirect("https://accounts.google.com/o/oauth2/v2/auth?" + p);
   });
