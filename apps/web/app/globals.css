@@ -32,3 +32,7 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .homeHero .homeChoices{max-width:1100px;margin:30px auto 0;padding:0 clamp(20px,5vw,56px)}
 @media(max-width:820px){.homeHeroBanner{height:clamp(250px,62vw,420px);background-position:center center}.homeHero .homeChoices{margin-top:22px}}
 @media(max-width:600px){.homeHeroBanner{height:62vw;min-height:230px;background-position:center center}.homeHero .homeChoices{grid-template-columns:1fr;padding:0 18px}}
+
+/* Landing message below panoramic hero */
+.heroMessage{text-align:center;max-width:900px;margin:30px auto 0;padding:0 22px}.heroMessage .eyebrowDark{margin:0 0 8px;color:#0a9b66}.heroMessage h1{margin:0;color:#0b2551;font-size:clamp(2.25rem,5vw,4.2rem);line-height:1;letter-spacing:-.055em}.heroMessage h1 span{color:#0a9b66}.heroMessage>p:last-child{margin:13px 0 0;color:#607086;font-size:clamp(1rem,2vw,1.2rem)}
+@media(max-width:600px){.heroMessage{margin-top:24px}.heroMessage h1{font-size:2.45rem}}
