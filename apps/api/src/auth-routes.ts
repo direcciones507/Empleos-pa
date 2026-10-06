@@ -102,15 +102,20 @@ export async function authRoutes(app: FastifyInstance) {
     )
       return reply.code(400).send({ error: "INVALID_LOGIN" });
     const q = await db.query(
-      "select user_id,email,role,status,password_hash from users where normalized_email=$1",
+      "select user_id,email,role,status,disabled_reason,password_hash,google_subject from users where normalized_email=$1",
       [normalizeEmail(email)],
     );
     const u = q.rows[0];
     const validPassword = u?.password_hash
       ? await verifyPassword(u.password_hash, password)
       : false;
-    if (!u || u.status !== "ACTIVE" || !validPassword)
+    if (!u || !validPassword)
       return reply.code(401).send({ error: "INVALID_CREDENTIALS" });
+    if (u.status !== "ACTIVE") {
+      if (u.status === "DISABLED" && u.disabled_reason === "USER_REQUEST")
+        return reply.code(403).send({ error: "REACTIVATION_REQUIRED", method: u.google_subject ? "GOOGLE" : "PASSWORD" });
+      return reply.code(403).send({ error: "ACCOUNT_DISABLED" });
+    }
     if (requested && u.role !== "ADMIN")
       await enableProfile(u.user_id, requested);
     const raw = await createSession(u.user_id);
