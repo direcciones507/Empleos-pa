@@ -182,14 +182,24 @@ export async function companyRoutes(app: FastifyInstance) {
         EVENTUAL_399: { limit: null, price: 3.99 },
       };
       const packageKey =
-        requestType === "EVENTUAL" ? "EVENTUAL_399" : b.package;
+        requestType === "EVENTUAL"
+          ? "EVENTUAL_399"
+          : typeof b.package === "string"
+            ? b.package
+            : config.requestPaymentMode === "FREE"
+              ? "DISPONIBLES"
+              : undefined;
       if (
         requestType === "EVENTUAL" &&
         b.package !== undefined &&
         b.package !== "EVENTUAL_399"
       )
         return reply.code(400).send({ error: "INVALID_EVENTUAL_PACKAGE" });
-      if (requestType === "VACANTE" && typeof b.package !== "string")
+      if (
+        requestType === "VACANTE" &&
+        config.requestPaymentMode !== "FREE" &&
+        typeof b.package !== "string"
+      )
         return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
       const selectedPackage = packages[packageKey];
       if (!selectedPackage)
@@ -236,7 +246,6 @@ export async function companyRoutes(app: FastifyInstance) {
         license_requirement: 500,
         minimum_education: 1000,
         experience_requirement: 1000,
-        salary: 500,
       };
       for (const [k, max] of Object.entries(boundedFields)) {
         if (b[k] !== undefined && b[k] !== null && typeof b[k] !== "string")
@@ -309,7 +318,7 @@ export async function companyRoutes(app: FastifyInstance) {
             optionalText("modality"),
             String(b.schedule).trim(),
             estimatedStart,
-            optionalText("salary"),
+            null,
             optionalText("minimum_education"),
             optionalText("experience_requirement"),
             String(b.skills).trim(),
