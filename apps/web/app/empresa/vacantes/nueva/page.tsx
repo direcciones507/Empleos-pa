@@ -104,11 +104,8 @@ export default function Nueva() {
       location.href = "/empresa";
     } catch (e: any) {
       const field = e?.body?.field;
-      setMsg(
-        field
-          ? `Revisa el campo ${field}.`
-          : "Revisa la información obligatoria.",
-      );
+      const labels: Record<string,string> = {position:"Puesto",work_location:"Lugar / referencia del trabajo",province:"Provincia del trabajo",district:"Distrito del trabajo",corregimiento:"Corregimiento del trabajo",schedule:"Horario",skills:"Habilidades / conocimientos",main_functions:"Funciones principales",package:"Plan"};
+      setMsg(field ? `Revisa el campo: ${labels[field] ?? field}.` : e?.body?.error === "VACANCY_PACKAGE_REQUIRED" ? "No se pudo aplicar la promoción de lanzamiento. Intenta nuevamente." : "Revisa la información obligatoria.");
     }
   }
   return (
@@ -268,11 +265,6 @@ export default function Nueva() {
               type="date"
               v={v.estimated_start}
               f={(x: string) => set("estimated_start", x)}
-            />
-            <F
-              n="Salario / rango"
-              v={v.salary}
-              f={(x: string) => set("salary", x)}
             />
           </>
         )}
