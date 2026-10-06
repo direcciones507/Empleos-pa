@@ -81,7 +81,7 @@ export default function Nueva() {
         });
       }
       setStep((x) => Math.min(4, x + 1));
-      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+      if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e: any) {
       setMsg(companyError(e));
     }
