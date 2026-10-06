@@ -2,8 +2,9 @@ import type { FastifyInstance } from "fastify";
 import { db } from "./db.js";
 import { requireRoles } from "./rbac.js";
 import { config } from "./config.js";
+import { normalizeCandidateStructuredFields } from "./structured-matching-fields.js";
 const CANDIDATE_CONSENT_VERSION = "2026-09-25-v1";
-const fields = `candidate_id,candidate_code,status,full_name,identity_document_type,identity_document_number,contact_email,mobile_whatsapp,landline_phone,province,district,corregimiento,sector,address_reference,work_profile,primary_job_area,other_job_areas,currently_working,available_from,availability_notes,work_locations,salary_expectation,education,has_experience,experience,skills,languages,computer_skills,driver_license,contact_preference,confirmations,consent_version,consent_accepted_at,valid_until,submitted_at,updated_at`;
+const fields = `candidate_id,candidate_code,status,full_name,identity_document_type,identity_document_number,contact_email,mobile_whatsapp,landline_phone,province,district,corregimiento,sector,address_reference,work_profile,primary_job_area,other_job_areas,currently_working,available_from,availability_notes,work_locations,salary_expectation,education,has_experience,experience,skills,languages,computer_skills,driver_license,contact_preference,confirmations,consent_version,consent_accepted_at,valid_until,submitted_at,updated_at,salary_minimum,salary_period,employment_types,schedule_preferences,structured_skills,structured_languages,structured_licenses,mobility`;
 function text(v: any) {
   return typeof v === "string" ? v.trim() : null;
 }
@@ -217,8 +218,16 @@ export async function candidateRoutes(app: FastifyInstance) {
               .code(400)
               .send({ error: "INVALID_PROFILE_CONFIRMATION", field: key });
       }
+      const structured = normalizeCandidateStructuredFields(b);
+      if (!structured)
+        return reply.code(400).send({ error: "INVALID_STRUCTURED_PROFILE" });
+      // Keys come from the normalizer, never from arbitrary request properties.
+      const structuredUpdates = Object.keys(structured)
+        .filter((key) => b[key] !== undefined)
+        .map((key) => `,${key}=excluded.${key}`)
+        .join("");
       const q = await db.query(
-        `insert into candidate_profiles(user_id,full_name,identity_document_type,identity_document_number,phone,contact_email,mobile_whatsapp,landline_phone,province,district,corregimiento,sector,address_reference,work_profile,primary_job_area,other_job_areas,currently_working,available_from,availability_notes,work_locations,salary_expectation,education,has_experience,experience,skills,languages,computer_skills,driver_license,contact_preference,confirmations) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22::jsonb,$23,$24::jsonb,$25,$26,$27,$28,$29,$30::jsonb) on conflict(user_id) do update set full_name=excluded.full_name,identity_document_type=excluded.identity_document_type,identity_document_number=excluded.identity_document_number,phone=excluded.phone,contact_email=excluded.contact_email,mobile_whatsapp=excluded.mobile_whatsapp,landline_phone=excluded.landline_phone,province=excluded.province,district=excluded.district,corregimiento=excluded.corregimiento,sector=excluded.sector,address_reference=excluded.address_reference,work_profile=excluded.work_profile,primary_job_area=excluded.primary_job_area,other_job_areas=excluded.other_job_areas,currently_working=excluded.currently_working,available_from=excluded.available_from,availability_notes=excluded.availability_notes,work_locations=excluded.work_locations,salary_expectation=excluded.salary_expectation,education=excluded.education,has_experience=excluded.has_experience,experience=excluded.experience,skills=excluded.skills,languages=excluded.languages,computer_skills=excluded.computer_skills,driver_license=excluded.driver_license,contact_preference=excluded.contact_preference,confirmations=excluded.confirmations,updated_at=now() returning ${fields}`,
+        `insert into candidate_profiles(user_id,full_name,identity_document_type,identity_document_number,phone,contact_email,mobile_whatsapp,landline_phone,province,district,corregimiento,sector,address_reference,work_profile,primary_job_area,other_job_areas,currently_working,available_from,availability_notes,work_locations,salary_expectation,education,has_experience,experience,skills,languages,computer_skills,driver_license,contact_preference,confirmations,salary_minimum,salary_period,employment_types,schedule_preferences,structured_skills,structured_languages,structured_licenses,mobility) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22::jsonb,$23,$24::jsonb,$25,$26,$27,$28,$29,$30::jsonb,$31,$32,$33::jsonb,$34::jsonb,$35::jsonb,$36::jsonb,$37::jsonb,$38::jsonb) on conflict(user_id) do update set full_name=excluded.full_name,identity_document_type=excluded.identity_document_type,identity_document_number=excluded.identity_document_number,phone=excluded.phone,contact_email=excluded.contact_email,mobile_whatsapp=excluded.mobile_whatsapp,landline_phone=excluded.landline_phone,province=excluded.province,district=excluded.district,corregimiento=excluded.corregimiento,sector=excluded.sector,address_reference=excluded.address_reference,work_profile=excluded.work_profile,primary_job_area=excluded.primary_job_area,other_job_areas=excluded.other_job_areas,currently_working=excluded.currently_working,available_from=excluded.available_from,availability_notes=excluded.availability_notes,work_locations=excluded.work_locations,salary_expectation=excluded.salary_expectation,education=excluded.education,has_experience=excluded.has_experience,experience=excluded.experience,skills=excluded.skills,languages=excluded.languages,computer_skills=excluded.computer_skills,driver_license=excluded.driver_license,contact_preference=excluded.contact_preference,confirmations=excluded.confirmations${structuredUpdates},updated_at=now() returning ${fields}`,
         [
           req.authUser!.user_id,
           text(b.full_name),
@@ -250,6 +259,14 @@ export async function candidateRoutes(app: FastifyInstance) {
           text(b.driver_license),
           text(b.contact_preference),
           JSON.stringify(b.confirmations ?? {}),
+          structured.salary_minimum,
+          structured.salary_period,
+          JSON.stringify(structured.employment_types),
+          JSON.stringify(structured.schedule_preferences),
+          JSON.stringify(structured.structured_skills),
+          JSON.stringify(structured.structured_languages),
+          JSON.stringify(structured.structured_licenses),
+          JSON.stringify(structured.mobility),
         ],
       );
       return { profile: q.rows[0] };

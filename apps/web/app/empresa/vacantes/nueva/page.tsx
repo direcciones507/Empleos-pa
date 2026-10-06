@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
+import { VacancyStructuredFields } from "../../../components/StructuredMatchingFields";
 const steps = ["Empresa", "Vacante", "Requisitos", "Funciones", "Revisar"];
 export default function Nueva() {
   const [step, setStep] = useState(0),
@@ -330,6 +331,7 @@ export default function Nueva() {
         {step === 2 && (
           <>
             <h1>Requisitos</h1>
+            <VacancyStructuredFields v={v} set={set} />
             <F
               n="Educación mínima"
               v={v.minimum_education}

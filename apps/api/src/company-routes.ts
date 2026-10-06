@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { db } from "./db.js";
 import { requireRoles } from "./rbac.js";
 import { config } from "./config.js";
+import { normalizeVacancyStructuredFields } from "./structured-matching-fields.js";
 async function company(userId: string) {
   const q = await db.query(
     "select * from companies where owner_user_id=$1 order by created_at limit 1",
@@ -288,11 +289,14 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "INVALID_OCCUPATION_NAME" });
       const optionalText = (key: string) =>
         typeof b[key] === "string" ? b[key].trim() || null : null;
+      const structured = normalizeVacancyStructuredFields(b);
+      if (!structured)
+        return reply.code(400).send({ error: "INVALID_STRUCTURED_VACANCY" });
       const client = await db.connect();
       try {
         await client.query("begin");
         const q = await client.query(
-          `insert into vacancies(company_id,request_type,position,quantity,work_location,province,district,corregimiento,modality,schedule,estimated_start,salary,minimum_education,experience_requirement,skills,languages,license_requirement,main_functions,profile_notes,additional_info,confirmations,consent_version,consent_accepted_at,package,package_candidate_limit,package_price,status) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21::jsonb,$22,now(),$23,$24,$25,$26) returning vacancy_code,status,position,quantity,created_at`,
+          `insert into vacancies(company_id,request_type,position,quantity,work_location,province,district,corregimiento,modality,schedule,estimated_start,salary,minimum_education,experience_requirement,skills,languages,license_requirement,main_functions,profile_notes,additional_info,confirmations,consent_version,consent_accepted_at,package,package_candidate_limit,package_price,status,employment_type,employment_duration,schedule_structured,salary_minimum,salary_maximum,salary_period,salary_negotiable,experience_min_years,experience_scope,structured_requirements,structured_skills,structured_languages,structured_licenses,mobility_requirement,job_level,occupation_code) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21::jsonb,$22,now(),$23,$24,$25,$26,$27,$28,$29::jsonb,$30,$31,$32,$33,$34,$35,$36::jsonb,$37::jsonb,$38::jsonb,$39::jsonb,$40::jsonb,$41,$42) returning vacancy_code,status,position,quantity,created_at`,
           [
             x.company_id,
             requestType,
@@ -327,6 +331,22 @@ export async function companyRoutes(app: FastifyInstance) {
             config.requestPaymentMode === "FREE"
               ? "APROBADA"
               : "PENDIENTE_PAGO",
+            structured.employment_type,
+            structured.employment_duration,
+            JSON.stringify(structured.schedule_structured),
+            structured.salary_minimum,
+            structured.salary_maximum,
+            structured.salary_period,
+            structured.salary_negotiable,
+            structured.experience_min_years,
+            structured.experience_scope,
+            JSON.stringify(structured.structured_requirements),
+            JSON.stringify(structured.structured_skills),
+            JSON.stringify(structured.structured_languages),
+            JSON.stringify(structured.structured_licenses),
+            JSON.stringify(structured.mobility_requirement),
+            structured.job_level,
+            structured.occupation_code,
           ],
         );
         await client.query(
