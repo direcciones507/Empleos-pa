@@ -141,15 +141,11 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
         const x = u.rows[0];
         if (x.status !== "ACTIVE") {
           if (x.status === "DISABLED" && x.disabled_reason === "USER_REQUEST") {
-            await client.query(
-              "update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",
-              [x.user_id],
-            );
-            x.status = "ACTIVE";
-          } else {
             await client.query("rollback");
-            return reply.redirect(s.webUrl + "/login?oauth=disabled");
+            return reply.redirect(s.webUrl + "/login?oauth=reactivation-required");
           }
+          await client.query("rollback");
+          return reply.redirect(s.webUrl + "/login?oauth=disabled");
         }
         if (x.google_subject && x.google_subject !== profile.sub) {
           await client.query("rollback");
