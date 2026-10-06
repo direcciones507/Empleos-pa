@@ -83,7 +83,7 @@ test("candidate structured fields use the existing hydration, autosave and next-
   assert.equal(JSON.parse(calls.at(-1).options.body).salary_minimum, 950);
 });
 
-test("new vacancy keeps company validation, legacy fields, package selection and structured submission", async () => {
+test("new vacancy keeps company validation and structured submission without legacy package pricing UI", async () => {
   const calls = [];
   const company = { name: "Empresa", contact_name: "Ana", email: "ana@example.com", mobile_whatsapp: "60000000", province: "Veraguas", district: "Santiago", corregimiento: "Santiago" };
   const vacancy = { request_type: "VACANTE", quantity: "2", package: "PERFILES_10", skills: "Excel, contabilidad", salary: "800", salary_minimum: 850, employment_type: "INDEFINIDO", confirm_correct: true, confirm_terms: true, confirm_scope: true };
@@ -95,7 +95,11 @@ test("new vacancy keeps company validation, legacy fields, package selection and
   assert.equal(h.values[0], 1);
   const legacy = h.html();
   assert.ok(legacy.includes("Cantidad"));
-  assert.ok(legacy.includes("Paquete de candidatos"));
+  assert.ok(!legacy.includes("Paquete de candidatos"));
+  assert.ok(!legacy.includes("5 · $8.99"));
+  assert.ok(!legacy.includes("10 · $10.99"));
+  assert.ok(!legacy.includes("15 · $12.99"));
+  assert.ok(!legacy.includes("Disponibles · $25"));
   assert.ok(legacy.includes("occupation-suggestions"));
   h.values[0] = 2;
   const requirements = h.html();
