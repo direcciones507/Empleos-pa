@@ -555,10 +555,6 @@ export async function candidateRoutes(app: FastifyInstance) {
             [profile.rows[0].candidate_id],
           );
         }
-        await client.query(
-          "update users set status='DISABLED',disabled_at=now(),disabled_reason='USER_REQUEST',updated_at=now() where user_id=$1",
-          [req.authUser!.user_id],
-        );
         await client.query("commit");
         return { ok: true, profile_status: "RETIRADO" };
       } catch (e) {
