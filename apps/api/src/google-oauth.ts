@@ -148,9 +148,10 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
             }
             await client.query("update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",[x.user_id]);
             x.status = "ACTIVE";
+          } else {
+            await client.query("rollback");
+            return reply.redirect(s.webUrl + "/login?oauth=disabled");
           }
-          await client.query("rollback");
-          return reply.redirect(s.webUrl + "/login?oauth=disabled");
         }
         if (x.google_subject && x.google_subject !== profile.sub) {
           await client.query("rollback");
