@@ -34,7 +34,8 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     } catch { setError("No pudimos iniciar sesión. Revisa tus datos."); setBusy(false); }
   }
   const params = new URLSearchParams();
-  if (returnTo) params.set("returnTo", returnTo);
+  if (reactivation) params.set("returnTo", "/reactivate");
+  else if (returnTo) params.set("returnTo", returnTo);
   if (profile) params.set("role", profile);
   const suffix = params.size ? `?${params.toString()}` : "";
   return <form className={compact ? "login compactLogin" : "login"} onSubmit={submit}><h2>Iniciar sesión</h2><p>Accede a tu cuenta de Empleos.pa.</p><label>Correo<input name="email" type="email" autoComplete="email" required placeholder="tu@correo.com"/></label><label>Contraseña<input name="password" type="password" autoComplete="current-password" required placeholder="••••••••"/></label>{error && <p className="formError" role="alert">{error}</p>}<button disabled={busy}>{busy ? "Procesando…" : reactivation?"Reactivar mi cuenta":"Entrar"}</button><a className="forgot" href="/recuperar">¿Olvidaste tu contraseña?</a><a className="google" href={`${API_URL}/v1/auth/google/start${suffix}`}><GoogleMark/><span>{reactivation?"Reactivar con Google":"Entrar con Google"}</span></a><small>¿No tienes cuenta? <a href={`/registro${suffix}`}>Crear cuenta</a></small></form>;
