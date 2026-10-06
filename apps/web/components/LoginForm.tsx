@@ -31,7 +31,14 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     try {
       const response = await api(reactivation?"/v1/auth/reactivate":"/v1/auth/login", { method: "POST", body: JSON.stringify({ email: form.get("email"), password: form.get("password"), profile, return_to: returnTo }) });
       location.href = response.redirect_to;
-    } catch { setError("No pudimos iniciar sesión. Revisa tus datos."); setBusy(false); }
+    } catch (e:any) {
+      if (!reactivation && e?.body?.error === "REACTIVATION_REQUIRED") {
+        setReactivation(true);
+        setError(e?.body?.method === "GOOGLE" ? "Esta cuenta está desactivada. Para reactivarla debes autenticarte nuevamente con Google." : "Esta cuenta está desactivada. Confirma tu contraseña para reactivarla.");
+      } else if (e?.body?.error === "ACCOUNT_DISABLED") setError("Esta cuenta está bloqueada y no puede reactivarse desde aquí.");
+      else setError("No pudimos iniciar sesión. Revisa tus datos.");
+      setBusy(false);
+    }
   }
   const params = new URLSearchParams();
   if (reactivation) params.set("returnTo", "/reactivate");
