@@ -10,7 +10,7 @@ export async function serviceProviderRoutes(app:FastifyInstance){
   app.post("/v1/service-provider/verification/start",{preHandler:requireRoles("CANDIDATO","EMPRESA")},async(req,reply)=>{
     if(!config.diditApiKey||!config.diditWorkflowId)return reply.code(503).send({error:"IDENTITY_VERIFICATION_NOT_CONFIGURED"});
     const p=await db.query("select full_name,identity_document_type,identity_document_number,contact_email from service_provider_profiles where user_id=$1",[req.authUser!.user_id]);
-    if(!p.rowCount)return reply.code(409).send({error:"SERVICE_PROFILE_REQUIRED"});
+    if(!p.rowCount)return reply.code(409).send({error:"SERVICE_IDENTITY_REQUIRED"});
     const response=await fetch("https://apx.didit.me/auth/v2/session/",{method:"POST",headers:{"content-type":"application/json","x-api-key":config.diditApiKey},body:JSON.stringify({workflow_id:config.diditWorkflowId,vendor_data:req.authUser!.user_id,callback:config.webUrl+"/servicios?verification=returned"})});
     const data:any=await response.json().catch(()=>({}));
     if(!response.ok)return reply.code(502).send({error:"IDENTITY_PROVIDER_ERROR"});
