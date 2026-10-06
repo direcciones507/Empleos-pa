@@ -5,10 +5,44 @@ import "./visual-fixes.css";
 import "./multi-profile.css";
 
 const GA_MEASUREMENT_ID = "G-MR6Q7QM940";
+const SITE_URL = "https://empleospa.com";
 
 export const metadata: Metadata = {
-  title: "Empleos.pa",
-  description: "Encuentra oportunidades. Encuentra talento.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Empleos.pa | Empleo y talento en Panamá",
+    template: "%s | Empleos.pa",
+  },
+  description:
+    "Conecta con oportunidades de empleo y talento en Panamá. Crea tu perfil laboral o publica una vacante en Empleos.pa.",
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_PA",
+    url: SITE_URL,
+    siteName: "Empleos.pa",
+    title: "Empleos.pa | Empleo y talento en Panamá",
+    description:
+      "Encuentra oportunidades de empleo o conecta con talento en Panamá.",
+    images: [
+      {
+        url: "/empleos-pa-hero-panama.png",
+        alt: "Empleos.pa, empleo y talento en Panamá",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Empleos.pa | Empleo y talento en Panamá",
+    description:
+      "Encuentra oportunidades de empleo o conecta con talento en Panamá.",
+    images: ["/empleos-pa-hero-panama.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
