@@ -84,6 +84,7 @@ export async function authRoutes(app: FastifyInstance) {
     if(!u||u.status!=="DISABLED"||u.disabled_reason!=="USER_REQUEST"||!validPassword)
       return reply.code(401).send({error:"INVALID_REACTIVATION"});
     await db.query("update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",[u.user_id]);
+    await db.query("update candidate_profiles set status='ACTIVO',valid_until=case when candidate_code is not null then current_date+$2::int else valid_until end,updated_at=now() where user_id=$1 and status='RETIRADO'",[u.user_id, config.candidateValidityDays]);
     const raw=await createSession(u.user_id);
     if(!raw)return reply.code(401).send({error:"INVALID_REACTIVATION"});
     reply.setCookie(COOKIE,raw,{...cookie,maxAge:60*60*24*14});
