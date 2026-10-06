@@ -11,7 +11,7 @@ export async function serviceProviderRoutes(app:FastifyInstance){
     if(!config.diditApiKey||!config.diditWorkflowId)return reply.code(503).send({error:"IDENTITY_VERIFICATION_NOT_CONFIGURED"});
     const p=await db.query("select full_name,identity_document_type,identity_document_number,contact_email from service_provider_profiles where user_id=$1",[req.authUser!.user_id]);
     if(!p.rowCount){const me=await db.query("select email from users where user_id=$1",[req.authUser!.user_id]);await db.query("insert into service_provider_profiles(user_id,full_name,contact_email,identity_document_type,identity_document_number) values($1,$2,$3,$4,$5) on conflict(user_id) do nothing",[req.authUser!.user_id,"Pendiente",me.rows[0]?.email??null,"DIDIT","PENDING"]);}
-    const response=await fetch("https://apx.didit.me/auth/v2/session/",{method:"POST",headers:{"content-type":"application/json","x-api-key":config.diditApiKey},body:JSON.stringify({workflow_id:config.diditWorkflowId,vendor_data:req.authUser!.user_id,callback:config.webUrl+"/servicios?verification=returned"})});
+    const response=await fetch("https://verification.didit.me/v3/session/",{method:"POST",headers:{"content-type":"application/json","x-api-key":config.diditApiKey},body:JSON.stringify({workflow_id:config.diditWorkflowId,vendor_data:req.authUser!.user_id,callback:config.webUrl+"/servicios/ofrecer?verification=returned"})});
     const data:any=await response.json().catch(()=>({}));
     if(!response.ok)return reply.code(502).send({error:"IDENTITY_PROVIDER_ERROR"});
     const sessionId=String(data.session_id??data.id??"").trim(),url=String(data.url??data.verification_url??"").trim();
@@ -27,7 +27,7 @@ export async function serviceProviderRoutes(app:FastifyInstance){
     if(!config.diditApiKey)return reply.code(503).send({error:"IDENTITY_VERIFICATION_NOT_CONFIGURED"});
     const q=await db.query("select verification_id,provider_session_id,status from service_provider_verifications where user_id=$1 order by created_at desc limit 1",[req.authUser!.user_id]);
     if(!q.rowCount)return reply.code(404).send({error:"VERIFICATION_NOT_FOUND"});
-    const response=await fetch("https://verification.didit.me/v2/session/"+encodeURIComponent(q.rows[0].provider_session_id)+"/decision/",{headers:{"x-api-key":config.diditApiKey}});
+    const response=await fetch("https://verification.didit.me/v3/session/"+encodeURIComponent(q.rows[0].provider_session_id)+"/decision/",{headers:{"x-api-key":config.diditApiKey}});
     const data:any=await response.json().catch(()=>({}));
     if(!response.ok)return reply.code(502).send({error:"IDENTITY_PROVIDER_ERROR"});
     const raw=String(data.status??data.decision?.status??data.decision??"").toUpperCase();
