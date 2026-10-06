@@ -555,6 +555,18 @@ export async function candidateRoutes(app: FastifyInstance) {
             [profile.rows[0].candidate_id],
           );
         }
+        await client.query(
+          "update users set status='DISABLED',disabled_at=now(),disabled_reason='USER_REQUEST',updated_at=now() where user_id=$1",
+          [req.authUser!.user_id],
+        );
+        await client.query(
+          "update auth_sessions set revoked_at=now() where user_id=$1 and revoked_at is null",
+          [req.authUser!.user_id],
+        );
+        await client.query(
+          "update password_reset_tokens set used_at=now() where user_id=$1 and used_at is null",
+          [req.authUser!.user_id],
+        );
         await client.query("commit");
         return { ok: true, profile_status: "RETIRADO" };
       } catch (e) {
@@ -571,7 +583,7 @@ export async function candidateRoutes(app: FastifyInstance) {
     async (req) => {
       await refreshExpiry(req.authUser!.user_id);
       const q = await db.query(
-        `select n.notification_id,n.type,n.title,n.message,n.read_at,n.created_at from candidate_notifications n join candidate_profiles cp on cp.candidate_id=n.candidate_id where cp.user_id=$1 order by n.created_at desc limit 100`,
+        `select n.notification_id,n.type,n.title,n.message,n.read_at,n.created_at from candidate_notifications n join candidate_profiles cp on cp.candidate_id=n.candidate_id where cp.user_id=$1 and n.archived_at is null and n.deleted_at is null order by n.created_at desc limit 100`,
         [req.authUser!.user_id],
       );
       return { items: q.rows };
@@ -597,4 +609,43 @@ export async function candidateRoutes(app: FastifyInstance) {
         : reply.code(404).send({ error: "NOTIFICATION_NOT_FOUND" });
     },
   );
+  app.get(
+    "/v1/candidate/notifications/archived",
+    { preHandler: requireRoles("CANDIDATO") },
+    async (req) => {
+      const q = await db.query(
+        `select n.notification_id,n.type,n.title,n.message,n.read_at,n.created_at,n.archived_at from candidate_notifications n join candidate_profiles cp on cp.candidate_id=n.candidate_id where cp.user_id=$1 and n.archived_at is not null and n.deleted_at is null order by n.archived_at desc limit 100`,
+        [req.authUser!.user_id],
+      );
+      return { items: q.rows };
+    },
+  );
+  app.post(
+    "/v1/candidate/notifications/:id/archive",
+    { preHandler: requireRoles("CANDIDATO") },
+    async (req: any, reply) => {
+      const id=String(req.params.id??"");
+      const q=await db.query(`update candidate_notifications n set archived_at=coalesce(n.archived_at,now()) from candidate_profiles cp where n.notification_id=$1 and n.candidate_id=cp.candidate_id and cp.user_id=$2 and n.deleted_at is null returning n.notification_id,n.archived_at`,[id,req.authUser!.user_id]);
+      return q.rowCount?{notification:q.rows[0]}:reply.code(404).send({error:"NOTIFICATION_NOT_FOUND"});
+    },
+  );
+  app.post(
+    "/v1/candidate/notifications/:id/unarchive",
+    { preHandler: requireRoles("CANDIDATO") },
+    async (req: any, reply) => {
+      const id=String(req.params.id??"");
+      const q=await db.query(`update candidate_notifications n set archived_at=null from candidate_profiles cp where n.notification_id=$1 and n.candidate_id=cp.candidate_id and cp.user_id=$2 and n.deleted_at is null returning n.notification_id`,[id,req.authUser!.user_id]);
+      return q.rowCount?{notification:q.rows[0]}:reply.code(404).send({error:"NOTIFICATION_NOT_FOUND"});
+    },
+  );
+  app.delete(
+    "/v1/candidate/notifications/:id",
+    { preHandler: requireRoles("CANDIDATO") },
+    async (req: any, reply) => {
+      const id=String(req.params.id??"");
+      const q=await db.query(`update candidate_notifications n set deleted_at=coalesce(n.deleted_at,now()) from candidate_profiles cp where n.notification_id=$1 and n.candidate_id=cp.candidate_id and cp.user_id=$2 returning n.notification_id`,[id,req.authUser!.user_id]);
+      return q.rowCount?{ok:true}:reply.code(404).send({error:"NOTIFICATION_NOT_FOUND"});
+    },
+  );
+
 }
