@@ -133,15 +133,23 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "GOOGLE_EMAIL_NOT_VERIFIED" });
       }
       let u = await client.query(
-        "select user_id,email,role,status,google_subject from users where google_subject=$1 or normalized_email=$2 order by (google_subject=$1) desc limit 1",
+        "select user_id,email,role,status,google_subject,disabled_reason from users where google_subject=$1 or normalized_email=$2 order by (google_subject=$1) desc limit 1",
         [profile.sub, email],
       );
       const requestedProfile = publicProfile(st.rows[0].requested_role);
       if (u.rowCount) {
         const x = u.rows[0];
         if (x.status !== "ACTIVE") {
-          await client.query("rollback");
-          return reply.code(403).send({ error: "ACCOUNT_DISABLED" });
+          if (x.status === "DISABLED" && x.disabled_reason === "USER_REQUEST") {
+            await client.query(
+              "update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",
+              [x.user_id],
+            );
+            x.status = "ACTIVE";
+          } else {
+            await client.query("rollback");
+            return reply.redirect(s.webUrl + "/login?oauth=disabled");
+          }
         }
         if (x.google_subject && x.google_subject !== profile.sub) {
           await client.query("rollback");

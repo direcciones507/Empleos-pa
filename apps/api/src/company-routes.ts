@@ -182,14 +182,24 @@ export async function companyRoutes(app: FastifyInstance) {
         EVENTUAL_399: { limit: null, price: 3.99 },
       };
       const packageKey =
-        requestType === "EVENTUAL" ? "EVENTUAL_399" : b.package;
+        requestType === "EVENTUAL"
+          ? "EVENTUAL_399"
+          : typeof b.package === "string"
+            ? b.package
+            : config.requestPaymentMode === "FREE"
+              ? "DISPONIBLES"
+              : undefined;
       if (
         requestType === "EVENTUAL" &&
         b.package !== undefined &&
         b.package !== "EVENTUAL_399"
       )
         return reply.code(400).send({ error: "INVALID_EVENTUAL_PACKAGE" });
-      if (requestType === "VACANTE" && typeof b.package !== "string")
+      if (
+        requestType === "VACANTE" &&
+        config.requestPaymentMode !== "FREE" &&
+        typeof b.package !== "string"
+      )
         return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
       const selectedPackage = packages[packageKey];
       if (!selectedPackage)
