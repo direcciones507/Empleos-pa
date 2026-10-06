@@ -116,8 +116,23 @@ export async function candidateRoutes(app: FastifyInstance) {
         "select status from candidate_profiles where user_id=$1",
         [req.authUser!.user_id],
       );
-      if (existing.rowCount && existing.rows[0].status === "RETIRADO")
-        return reply.code(409).send({ error: "PROFILE_REACTIVATION_REQUIRED" });
+      if (existing.rowCount && existing.rows[0].status === "RETIRADO") {
+        const account = await db.query(
+          "select status,disabled_reason from users where user_id=$1",
+          [req.authUser!.user_id],
+        );
+        if (
+          account.rows[0]?.status === "ACTIVE" &&
+          account.rows[0]?.disabled_reason == null
+        ) {
+          await db.query(
+            "update candidate_profiles set status='ACTIVO',valid_until=case when candidate_code is not null then current_date+$2::int else valid_until end,updated_at=now() where user_id=$1 and status='RETIRADO'",
+            [req.authUser!.user_id, config.candidateValidityDays],
+          );
+        } else {
+          return reply.code(409).send({ error: "PROFILE_REACTIVATION_REQUIRED" });
+        }
+      }
       const b = req.body ?? {};
       for (const [key, max] of Object.entries(profileTextLimits)) {
         if (
