@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { db } from "./db.js";
 import { normalizeEmail, type Role } from "./auth.js";
+import { config } from "./config.js";
 import {
   destinationFor,
   normalizeProfiles,
@@ -149,6 +150,7 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
               return reply.redirect(s.webUrl + "/login?oauth=reactivation-required");
             }
             await client.query("update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",[x.user_id]);
+            await client.query("update candidate_profiles set status=\'ACTIVO\',valid_until=case when candidate_code is not null then current_date+$2::int else valid_until end,updated_at=now() where user_id=$1 and status=\'RETIRADO\'",[x.user_id, config.candidateValidityDays]);
             x.status = "ACTIVE";
           } else {
             await client.query("rollback");
