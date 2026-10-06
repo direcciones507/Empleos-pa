@@ -246,6 +246,7 @@ export async function companyRoutes(app: FastifyInstance) {
         license_requirement: 500,
         minimum_education: 1000,
         experience_requirement: 1000,
+        salary: 500,
       };
       for (const [k, max] of Object.entries(boundedFields)) {
         if (b[k] !== undefined && b[k] !== null && typeof b[k] !== "string")
@@ -318,7 +319,7 @@ export async function companyRoutes(app: FastifyInstance) {
             optionalText("modality"),
             String(b.schedule).trim(),
             estimatedStart,
-            null,
+            optionalText("salary"),
             optionalText("minimum_education"),
             optionalText("experience_requirement"),
             String(b.skills).trim(),
