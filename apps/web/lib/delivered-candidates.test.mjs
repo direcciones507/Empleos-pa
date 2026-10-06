@@ -67,7 +67,7 @@ test("delivered analysis keeps three horizontal columns on tablet and desktop an
   const tabletRules = css.slice(css.indexOf("@media(max-width:900px)"), css.indexOf("@media(max-width:620px)"));
   assert.ok(tabletRules.includes(".candidateGrid{grid-template-columns:1fr 1fr}"));
   assert.ok(!tabletRules.includes(".deliveredGrid"));
-  assert.match(css,/@media\(max-width:620px\)\{\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:620px\)\{\.candidateCompare,\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
 });
 
 test("search, selection and acceptance still send selected analyses and reload delivery",async()=>{

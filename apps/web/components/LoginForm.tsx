@@ -17,6 +17,10 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     setProfile(publicProfile(query.get("role")) ?? profileForReturnTo(destination));
     if (query.get("oauth") === "expired")
       setError("Ese acceso con Google venció o ya fue utilizado. Inicia sesión nuevamente.");
+    else if (query.get("oauth") === "reactivation-required")
+      setError("Esta cuenta está desactivada. Debes reactivarla antes de volver a entrar.");
+    else if (query.get("oauth") === "disabled")
+      setError("Esta cuenta está desactivada y no puede iniciar sesión.");
   }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
