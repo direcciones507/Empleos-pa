@@ -274,58 +274,6 @@ export default function Nueva() {
               v={v.salary}
               f={(x: string) => set("salary", x)}
             />
-            {v.request_type === "EVENTUAL" ? (
-              <>
-                <h2>Precio de la solicitud</h2>
-                <div className="reviewBox">
-                  <strong>$3.99</strong>
-                  <p>Tarifa única para servicios y trabajos eventuales.</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2>Paquete de candidatos</h2>
-                <div
-                  className="choice packageChoice"
-                  role="group"
-                  aria-label="Paquete de candidatos"
-                >
-                  <button
-                    aria-pressed={v.package === "PERFILES_5"}
-                    onClick={() => set("package", "PERFILES_5")}
-                    className={v.package === "PERFILES_5" ? "on" : ""}
-                  >
-                    5 · $8.99
-                  </button>
-                  <button
-                    aria-pressed={v.package === "PERFILES_10"}
-                    onClick={() => set("package", "PERFILES_10")}
-                    className={v.package === "PERFILES_10" ? "on" : ""}
-                  >
-                    10 · $10.99
-                  </button>
-                  <button
-                    aria-pressed={v.package === "PERFILES_15"}
-                    onClick={() => set("package", "PERFILES_15")}
-                    className={v.package === "PERFILES_15" ? "on" : ""}
-                  >
-                    15 · $12.99
-                  </button>
-                  <button
-                    aria-pressed={v.package === "DISPONIBLES"}
-                    onClick={() => set("package", "DISPONIBLES")}
-                    className={v.package === "DISPONIBLES" ? "on" : ""}
-                  >
-                    Disponibles · $25
-                  </button>
-                </div>
-                <p>
-                  “Disponibles” incluye todos los perfiles activos y compatibles
-                  encontrados al momento de la búsqueda. No garantiza una
-                  cantidad mínima.
-                </p>
-              </>
-            )}
           </>
         )}
         {step === 2 && (
@@ -397,20 +345,7 @@ export default function Nueva() {
                 {v.work_location || "Ubicación pendiente"}
               </p>
               <p>{v.schedule || "Horario pendiente"}</p>
-              <p>
-                <b>{v.request_type === "EVENTUAL" ? "Tarifa:" : "Paquete:"}</b>{" "}
-                {v.request_type === "EVENTUAL"
-                  ? "$3.99 por solicitud"
-                  : v.package === "PERFILES_5"
-                    ? "5 candidatos · $8.99"
-                    : v.package === "PERFILES_10"
-                      ? "10 candidatos · $10.99"
-                      : v.package === "PERFILES_15"
-                        ? "15 candidatos · $12.99"
-                        : v.package === "DISPONIBLES"
-                          ? "Todos los perfiles compatibles disponibles · $25"
-                          : "Pendiente"}
-              </p>
+
             </div>
             <div className="infoBox">
               <strong>Promoción de lanzamiento</strong>
