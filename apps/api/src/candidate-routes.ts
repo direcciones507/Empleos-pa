@@ -569,7 +569,7 @@ export async function candidateRoutes(app: FastifyInstance) {
         );
         await client.query("commit");
         reply.clearCookie("empleos_session", { path: "/" });
-        return { ok: true, profile_status: "RETIRADO", account_status: "DISABLED" };
+        return { ok: true, profile_status: "RETIRADO" };
       } catch (e) {
         await client.query("rollback").catch(() => {});
         throw e;
