@@ -31,7 +31,7 @@ export const metadata: Metadata = {
       "Encuentra oportunidades de empleo o conecta con talento en Panamá.",
     images: [
       {
-        url: "/empleos-pa-hero-panama.png",
+        url: "/empleos-pa-og.jpg",
         alt: "Empleos.pa, empleo y talento en Panamá",
       },
     ],
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "Empleos.pa | Empleo y talento en Panamá",
     description:
       "Encuentra oportunidades de empleo o conecta con talento en Panamá.",
-    images: ["/empleos-pa-hero-panama.png"],
+    images: ["/empleos-pa-og.jpg"],
   },
 };
 
