@@ -10,6 +10,7 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
   const [returnTo, setReturnTo] = useState("");
   const [profile, setProfile] = useState<PublicProfile>();
   const [busy, setBusy] = useState(false);
+  const [reactivation, setReactivation] = useState(false);
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     const destination = safeReturn(query.get("returnTo"));
@@ -17,8 +18,10 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     setProfile(publicProfile(query.get("role")) ?? profileForReturnTo(destination));
     if (query.get("oauth") === "expired")
       setError("Ese acceso con Google venció o ya fue utilizado. Inicia sesión nuevamente.");
-    else if (query.get("oauth") === "reactivation-required")
-      setError("Esta cuenta está desactivada. Debes reactivarla antes de volver a entrar.");
+    else if (query.get("oauth") === "reactivation-required") {
+      setReactivation(true);
+      setError("Esta cuenta está desactivada. Confirma abajo para reactivarla con Google.");
+    }
     else if (query.get("oauth") === "disabled")
       setError("Esta cuenta está desactivada y no puede iniciar sesión.");
   }, []);
@@ -26,13 +29,14 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
     try {
-      const response = await api("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: form.get("email"), password: form.get("password"), profile, return_to: returnTo }) });
+      const response = await api(reactivation?"/v1/auth/reactivate":"/v1/auth/login", { method: "POST", body: JSON.stringify({ email: form.get("email"), password: form.get("password"), profile, return_to: returnTo }) });
       location.href = response.redirect_to;
     } catch { setError("No pudimos iniciar sesión. Revisa tus datos."); setBusy(false); }
   }
   const params = new URLSearchParams();
-  if (returnTo) params.set("returnTo", returnTo);
+  if (reactivation) params.set("returnTo", "/reactivate");
+  else if (returnTo) params.set("returnTo", returnTo);
   if (profile) params.set("role", profile);
   const suffix = params.size ? `?${params.toString()}` : "";
-  return <form className={compact ? "login compactLogin" : "login"} onSubmit={submit}><h2>Iniciar sesión</h2><p>Accede a tu cuenta de Empleos.pa.</p><label>Correo<input name="email" type="email" autoComplete="email" required placeholder="tu@correo.com"/></label><label>Contraseña<input name="password" type="password" autoComplete="current-password" required placeholder="••••••••"/></label>{error && <p className="formError" role="alert">{error}</p>}<button disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button><a className="forgot" href="/recuperar">¿Olvidaste tu contraseña?</a><a className="google" href={`${API_URL}/v1/auth/google/start${suffix}`}><GoogleMark/><span>Entrar con Google</span></a><small>¿No tienes cuenta? <a href={`/registro${suffix}`}>Crear cuenta</a></small></form>;
+  return <form className={compact ? "login compactLogin" : "login"} onSubmit={submit}><h2>Iniciar sesión</h2><p>Accede a tu cuenta de Empleos.pa.</p><label>Correo<input name="email" type="email" autoComplete="email" required placeholder="tu@correo.com"/></label><label>Contraseña<input name="password" type="password" autoComplete="current-password" required placeholder="••••••••"/></label>{error && <p className="formError" role="alert">{error}</p>}<button disabled={busy}>{busy ? "Procesando…" : reactivation?"Reactivar mi cuenta":"Entrar"}</button><a className="forgot" href="/recuperar">¿Olvidaste tu contraseña?</a><a className="google" href={`${API_URL}/v1/auth/google/start${suffix}`}><GoogleMark/><span>{reactivation?"Reactivar con Google":"Entrar con Google"}</span></a><small>¿No tienes cuenta? <a href={`/registro${suffix}`}>Crear cuenta</a></small></form>;
 }

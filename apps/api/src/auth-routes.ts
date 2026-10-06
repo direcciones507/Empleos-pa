@@ -74,6 +74,22 @@ export async function authRoutes(app: FastifyInstance) {
       client.release();
     }
   });
+  app.post("/v1/auth/reactivate", async (req: any, reply) => {
+    const { email, password } = req.body ?? {};
+    if (typeof email !== "string" || typeof password !== "string" || email.length > 320 || password.length > 200 || !email.trim())
+      return reply.code(400).send({ error: "INVALID_REACTIVATION" });
+    const q = await db.query("select user_id,status,disabled_reason,password_hash from users where normalized_email=$1",[normalizeEmail(email)]);
+    const u=q.rows[0];
+    const validPassword=u?.password_hash?await verifyPassword(u.password_hash,password):false;
+    if(!u||u.status!=="DISABLED"||u.disabled_reason!=="USER_REQUEST"||!validPassword)
+      return reply.code(401).send({error:"INVALID_REACTIVATION"});
+    await db.query("update users set status='ACTIVE',disabled_at=null,disabled_reason=null,updated_at=now() where user_id=$1",[u.user_id]);
+    const raw=await createSession(u.user_id);
+    if(!raw)return reply.code(401).send({error:"INVALID_REACTIVATION"});
+    reply.setCookie(COOKIE,raw,{...cookie,maxAge:60*60*24*14});
+    const user=await sessionUser(raw);
+    return {ok:true,user,redirect_to:destinationFor(user,undefined,undefined)};
+  });
   app.post("/v1/auth/login", async (req: any, reply) => {
     const { email, password } = req.body ?? {},
       requested = publicProfile(req.body?.profile);
