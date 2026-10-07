@@ -54,3 +54,18 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .launchOffer span{display:block;color:#087b68;font-size:.76rem;font-weight:900;letter-spacing:.1em;margin-bottom:8px}
 .launchOffer strong{display:block;color:#12385c;font-size:clamp(1.35rem,3vw,1.8rem);line-height:1.2}
 .launchOffer p{color:#31556c!important;font-size:1rem;line-height:1.55;margin:9px 0 0}
+
+
+/* Final homepage card polish */
+.homeChoices article:first-child{background:linear-gradient(145deg,#f7fbff,#eef6ff);border-color:#bfd8f1}
+.homeChoices .companyChoice{background:linear-gradient(145deg,#f7fdf9,#eaf8f1);border-color:#b8dfce}
+.homeChoices .choiceIcon{width:52px;height:52px;border-radius:50%;background:#dceeff;color:#145fa8}
+.homeChoices .companyChoice .choiceIcon{background:#dff5e9;color:#087b68}
+.homeChoices .choiceIcon svg{width:27px;height:27px}
+.homeChoices h2{font-size:1.78rem;font-weight:900}
+.homeChoices p{color:#4f6478}
+.requestTypeGrid article:first-child{background:linear-gradient(145deg,#fffaf3,#fff3e2);border-color:#f0d3aa}
+.requestTypeGrid article:last-child{background:linear-gradient(145deg,#f6fbff,#edf5ff);border-color:#c5d9ef}
+.requestTypeGrid h3{font-size:1.72rem;font-weight:900;color:#0b2551}
+.requestTypeGrid article:first-child>span{color:#b66316}
+.homeBrand .brandText>span{color:#e87924}
