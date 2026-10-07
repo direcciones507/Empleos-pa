@@ -108,8 +108,9 @@ test("new vacancy keeps company validation and structured submission without leg
   const structured = nodes(h.tree(), node => node.type === componentExports.VacancyStructuredFields)[0];
   structured.props.set("salary_minimum", 950);
   h.values[0] = 4;
-  assert.ok(h.html().includes("Precio unitario: $4.99"));
-  assert.ok(h.html().includes("14.97"));
+  assert.ok(h.html().includes("Precio normal: $4.99"));
+  assert.ok(h.html().includes("Precio promocional: $2.50"));
+  assert.ok(h.html().includes("50% de descuento"));
   const submit = nodes(h.tree(), node => node.type === "button" && node.props.onClick?.name === "submit")[0];
   assert.ok(submit, "existing submit button remains connected");
   await submit.props.onClick();

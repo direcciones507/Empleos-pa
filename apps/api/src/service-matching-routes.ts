@@ -2,7 +2,7 @@ import type {FastifyInstance} from "fastify";
 import {db} from "./db.js";
 import {requireRoles} from "./rbac.js";
 
-const normalizeSql=(value:string)=>`lower(translate(coalesce(${value},''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))`;
+import {normalizeSql} from "./candidate-match-query.js";
 
 export async function serviceMatchingRoutes(app:FastifyInstance){
   app.get("/v1/admin/services/:code/matches",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{

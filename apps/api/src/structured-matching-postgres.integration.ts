@@ -8,6 +8,8 @@ import {candidateRoutes} from './candidate-routes.js';
 import {companyRoutes} from './company-routes.js';
 import {companyMatchingRoutes} from './company-matching-routes.js';
 import {yappyPaymentRoutes} from './yappy-payment-routes.js';
+import {deliveryRoutes} from './delivery-routes.js';
+import {launchMatchingPaymentIntegration} from './launch-matching-payment-postgres.integration.js';
 import {yappyOperationIntegration} from './yappy-operation-postgres.integration.js';
 import {serviceContactIntegration} from './service-contact-postgres.integration.js';
 import {authRoutes} from './auth-routes.js';
@@ -70,8 +72,10 @@ try {
  app=Fastify();await app.register(cookie);await app.register(authRoutes);await app.register(candidateRoutes);await app.register(companyRoutes);
  await app.register(companyMatchingRoutes);
  await app.register(yappyPaymentRoutes);
+ await app.register(deliveryRoutes);
  const serviceFixture=await serviceContactIntegration(app);
  await yappyOperationIntegration(app,serviceFixture);
+ await launchMatchingPaymentIntegration(app,serviceFixture);
  const call=async(method:string,path:string,payload?:any,status=200)=>{const raw=path.startsWith('/v1/company')?companySession:candidateSession;const r=await app.inject({method,url:path,headers:{cookie:`empleos_session=${raw}`},...(payload===undefined?{}:{payload})});assert.equal(r.statusCode,status,`${method} ${path}: ${r.body}`);return r;};
  const unauthorized=await app.inject({method:'GET',url:'/v1/candidate/profile'});assert.equal(unauthorized.statusCode,401);
  const lc={full_name:'Ana Pérez',contact_email:'ana@example.test',mobile_whatsapp:'60000000',identity_document_type:'Cédula',identity_document_number:'8-1-1',landline_phone:'',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',address_reference:'Casa azul',work_profile:'Contadora',primary_job_area:'Contabilidad',other_job_areas:'Administración',currently_working:false,available_from:'2099-01-01',availability_notes:'Diurno',work_locations:'Toda mi provincia',salary_expectation:'850',education:[{level:'Universitario'}],has_experience:true,experience:[{position:'Auxiliar',duties:'Registro contable'}],skills:'Excel, contabilidad',languages:'Español e inglés',computer_skills:'Office',driver_license:'D',contact_preference:'WhatsApp',confirmations:{correct:true,data_processing:true,no_hiring_guarantee:true}};
@@ -85,7 +89,7 @@ try {
  const lv={position:'Asistente contable',quantity:2,work_location:'Santiago',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',modality:'Presencial',schedule:'Lunes a viernes',estimated_start:'2099-01-01',salary:'800 a 1000',minimum_education:'Universitario',experience_requirement:'Un año',skills:'Excel, contabilidad',languages:'Español',license_requirement:'Opcional',main_functions:'Gestionar cuentas',profile_notes:'Atención al detalle',additional_info:'Entrevista',package:'PERFILES_10',confirm_correct:true,confirm_terms:true,confirm_scope:true};
  const sv={employment_type:'TEMPORAL',employment_duration:'6 meses',schedule_structured:{shift:'DIURNO'},salary_minimum:800,salary_maximum:1000,salary_period:'MES',salary_negotiable:true,experience_min_years:1.5,experience_scope:'SECTOR',structured_requirements:[{type:'SKILL',value:'Excel',priority:'REQUIRED'}],structured_skills:[{name:'Excel'}],structured_languages:[{language:'INGLES'}],structured_licenses:[{category:'D'}],mobility_requirement:{travel_required:false},job_level:'TECNICO',occupation_code:'ACCOUNTING'};
  const vr=(await call('POST','/v1/company/vacancies',{...lv,...sv},201)).json().vacancy;
- const vacancy=await one('select * from vacancies where vacancy_code=$1',[vr.vacancy_code]);check(vacancy,{...lv,...sv});assert.equal(vacancy.status,'APROBADA');assert.equal(vacancy.package_price,'49.90');assert.equal(vacancy.package_candidate_limit,10);assert.ok(await one("select * from occupation_catalog where normalized_name='asistente contable'"));log('VACANCY_PERSISTENCE',{fields:16,legacyFields:true,transactionAndOccupationCatalog:true});
+ const vacancy=await one('select * from vacancies where vacancy_code=$1',[vr.vacancy_code]);check(vacancy,{...lv,...sv,package:null});assert.equal(vacancy.status,'APROBADA');assert.equal(vacancy.package_price,'0.00');assert.equal(vacancy.package_candidate_limit,null);assert.ok(await one("select * from occupation_catalog where normalized_name='asistente contable'"));log('VACANCY_PERSISTENCE',{fields:16,legacyFields:true,transactionAndOccupationCatalog:true});
  config.requestPaymentMode='MANUAL';
  const paidResponse=(await call('POST','/v1/company/vacancies',{...lv,request_type:'EVENTUAL',package:'EVENTUAL_399'},201)).json().vacancy;
  const paidVacancy=await one('select * from vacancies where vacancy_code=$1',[paidResponse.vacancy_code]);assert.equal(paidVacancy.status,'APROBADA');assert.equal(paidVacancy.package_price,'0.00');assert.deepEqual(paidVacancy.structured_requirements,[]);assert.equal(paidVacancy.occupation_code,null);

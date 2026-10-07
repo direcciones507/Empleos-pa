@@ -74,7 +74,7 @@ test("search, selection and acceptance still send selected analyses and reload d
   const calls=[];const h=harness((url,options)=>{calls.push({url,options});return Promise.resolve(url.endsWith("/matches")?{count:1,ai_available:true,analyses:[analysis]}:url.endsWith("/accept")?{status:"ENTREGADA",accepted:1}:url.endsWith("delivery-analysis")?{analyses:[analysis]}:url.endsWith("delivery")?{candidates:[candidate]}:{items:[vacancy]})},{...ready(),3:[{...vacancy,status:"APROBADA"}],4:null});
   let button=nodes(h.tree(),n=>n.type==="button"&&n.props.children==="Buscar perfiles compatibles")[0];await button.props.onClick();
   nodes(h.tree(),n=>n.type==="input"&&n.props.type==="checkbox")[0].props.onChange();
-  button=nodes(h.tree(),n=>n.type==="button"&&n.props.children==="Aceptar y continuar")[0];assert.equal(button.props.disabled,false);await button.props.onClick();
+  button=nodes(h.tree(),n=>n.type==="button"&&n.props.children==="Confirmar candidatos y pagar con Yappy")[0];assert.equal(button.props.disabled,false);await button.props.onClick();
   const acceptance=calls.find(x=>x.url.endsWith("/accept"));assert.equal(acceptance.options.method,"POST");assert.deepEqual(JSON.parse(acceptance.options.body),{candidate_ids:["1"],analyses:[analysis],confirm_price:true});
   assert.ok(h.html().includes("Análisis descriptivo conservado"));assert.ok(calls.some(x=>x.url.endsWith("/delivery")));
 });

@@ -3,6 +3,8 @@ import crypto from "node:crypto";
 import {db} from "./db.js";
 import {requireRoles} from "./rbac.js";
 import {config} from "./config.js";
+import {candidateQuote,PROMOTION_VERSION} from "./candidate-pricing.js";
+import {sendPreparedCandidateDelivery} from "./paid-candidate-delivery.js";
 
 function orderId(){return ("EP"+Date.now().toString(36)+crypto.randomBytes(2).toString("hex")).slice(0,15);}
 function money(n:number){return n.toFixed(2);}
@@ -52,12 +54,19 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
  app.post("/v1/company/payments/yappy/test",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>createProviderOrder(req,reply,{amount:0.01,purpose:"TEST"}));
  app.post("/v1/company/vacancies/:code/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
   const code=String(req.params.code??"").trim();if(!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
-  const q=await db.query("select v.vacancy_id,v.status,v.request_type,v.package_price from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2",[code,req.authUser!.user_id]);
+  const q=await db.query("select v.vacancy_id,v.status,v.request_type,v.package_price,v.confirmations from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2",[code,req.authUser!.user_id]);
   if(!q.rowCount)return reply.code(404).send({error:"VACANCY_NOT_FOUND"});
   if(q.rows[0].request_type!=="VACANTE")return reply.code(409).send({error:"SERVICE_CONNECTION_PAYMENT_REQUIRED"});
   const prior=await db.query("select yappy_order_id from yappy_payment_orders where operation_key=$1 and user_id=$2 and status='EXECUTED'",["VACANCY:"+q.rows[0].vacancy_id,req.authUser!.user_id]);
   if(q.rows[0].status!=="PENDIENTE_PAGO"&&!prior.rowCount)return reply.code(409).send({error:"PAYMENT_NOT_ALLOWED"});
-  const amount=Number(q.rows[0].package_price);if(!Number.isFinite(amount)||amount<=0)return reply.code(409).send({error:"PAYMENT_AMOUNT_INVALID"});
+  const purchase=q.rows[0].confirmations?.candidate_purchase;
+  let amount=Number(q.rows[0].package_price);
+  if(purchase?.version===PROMOTION_VERSION){
+   if(!Array.isArray(purchase.candidate_ids)||new Set(purchase.candidate_ids).size!==purchase.quantity||purchase.candidate_ids.length!==purchase.quantity||!Number.isInteger(purchase.quantity)||purchase.quantity<1||purchase.quantity>40)return reply.code(409).send({error:"PAYMENT_SELECTION_INVALID"});
+   const total=candidateQuote(purchase.quantity).total;
+   if(total!==amount||total!==purchase.total)return reply.code(409).send({error:"PAYMENT_AMOUNT_CHANGED"});
+   amount=total;
+  }if(!Number.isFinite(amount)||amount<=0)return reply.code(409).send({error:"PAYMENT_AMOUNT_INVALID"});
   return createProviderOrder(req,reply,{amount,purpose:"VACANCY",vacancyId:q.rows[0].vacancy_id});
  });
  app.post("/v1/company/service-contact-requests/:id/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
@@ -92,10 +101,16 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
     if(next==="EXECUTED"&&order.purpose==="VACANCY"&&order.vacancy_id){
      const vacancy=await c.query("select v.*,co.owner_user_id from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_id=$1 for update of v",[order.vacancy_id]);
      const v=vacancy.rows[0];if(!v||v.request_type!=="VACANTE"||v.owner_user_id!==order.user_id||Number(v.package_price)!==Number(order.amount)){await c.query("rollback");return reply.code(409).send({success:false});}
-     await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[order.vacancy_id]);
+     if(v.status!=="PENDIENTE_PAGO"){await c.query("rollback");return reply.code(409).send({success:false});}
+     if(v.confirmations?.candidate_purchase?.version===PROMOTION_VERSION&&candidateQuote(v.confirmations.candidate_purchase.quantity).total!==Number(order.amount)){await c.query("rollback");return reply.code(409).send({success:false});}
+     if(!v.confirmations?.candidate_purchase)await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[order.vacancy_id]);
      await c.query("insert into vacancy_payments(vacancy_id,status,amount,reference,submitted_at,reviewed_at) values($1,'APROBADO',$2,$3,now(),now()) on conflict do nothing",[order.vacancy_id,order.amount,"YAPPY:"+orderId]);
     }
     await c.query("update yappy_payment_orders set status=$1,provider_confirmation_number=coalesce($2,provider_confirmation_number),completed_at=case when $1='EXECUTED' then now() else completed_at end,updated_at=now() where yappy_order_id=$3",[next,String(req.query?.confirmationNumber??"")||null,orderId]);
+    if(next==="EXECUTED"&&order.purpose==="VACANCY"&&order.vacancy_id){
+     const v=await c.query("select * from vacancies where vacancy_id=$1",[order.vacancy_id]);
+     if(v.rows[0]?.confirmations?.candidate_purchase)await sendPreparedCandidateDelivery(c,v.rows[0]);
+    }
    }
    await c.query("commit");return {success:true};
   }catch(e){await c.query("rollback").catch(()=>{});throw e;}finally{c.release();}

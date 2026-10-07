@@ -3,9 +3,14 @@ import {db} from './db.js';
 import {requireRoles} from './rbac.js';
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const norm=(x:string)=>`lower(translate(trim(coalesce(${x},'')),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))`;
-// The company projection deliberately omits names, identity, email, phone and address.
-const compatible=`sp.service_trade is not null and ${norm('sp.service_trade')}=${norm('v.position')} and ${norm('sp.service_province')}=${norm('v.province')} and ${norm('sp.service_district')}=${norm('v.district')} and (nullif(trim(v.corregimiento),'') is null or ${norm('sp.service_corregimiento')}=${norm('v.corregimiento')}) and u.status='ACTIVE' and exists(select 1 from user_profiles up where up.user_id=sp.user_id and up.profile_type='CANDIDATO') and exists(select 1 from service_provider_verifications sv where sv.user_id=sp.user_id and sv.status='APPROVED')`;
+import {normalizeSql as norm} from './candidate-match-query.js';
+// Keep identity approval; honor the profile's explicitly declared service areas.
+const area=norm('sp.service_areas');
+const national=`${area} in ('todo panama','todo el pais','a nivel nacional')`;
+const province=`(${norm('sp.service_province')}=${norm('v.province')} or (nullif(trim(v.province),'') is not null and strpos(${area},${norm('v.province')})>0) or ${national})`;
+const district=`(${norm('sp.service_district')}=${norm('v.district')} or (nullif(trim(v.district),'') is not null and strpos(${area},${norm('v.district')})>0) or ${national} or (${norm('sp.service_province')}=${norm('v.province')} and ${area} in ('toda mi provincia','toda la provincia')))`;
+const corregimiento=`(nullif(trim(v.corregimiento),'') is null or ${norm('sp.service_corregimiento')}=${norm('v.corregimiento')} or strpos(${area},${norm('v.corregimiento')})>0 or (nullif(trim(v.district),'') is not null and strpos(${area},${norm('v.district')})>0) or ${national} or (${norm('sp.service_province')}=${norm('v.province')} and ${area} in ('toda mi provincia','toda la provincia')))`;
+const compatible=`nullif(trim(sp.service_trade),'') is not null and ${norm('sp.service_trade')}=${norm('v.position')} and ${province} and ${district} and ${corregimiento} and u.status='ACTIVE' and exists(select 1 from user_profiles up where up.user_id=sp.user_id and up.profile_type='CANDIDATO') and exists(select 1 from service_provider_verifications sv where sv.user_id=sp.user_id and sv.status='APPROVED')`;
 export async function serviceContactRoutes(app:FastifyInstance){
   app.get('/v1/company/vacancies/:code/service-matches',{preHandler:requireRoles('EMPRESA')},async(req:any,reply)=>{
     const code=String(req.params.code??'');
