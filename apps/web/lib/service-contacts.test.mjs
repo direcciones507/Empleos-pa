@@ -11,7 +11,7 @@ function harness(kind,api,initial={}){
   const values=[],effects=[];let cursor=0;
   Object.assign(values,initial);
   const hooks={...React,useState(v){const i=cursor++;if(!(i in values))values[i]=v;return [values[i],n=>values[i]=typeof n==='function'?n(values[i]):n];},useEffect(fn){effects.push(fn);}};
-  const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:n=>n==='react'?hooks:n==='react/jsx-runtime'?JSX:{api}});
+  const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:n=>n==='react'?hooks:n==='react/jsx-runtime'?JSX:n==='./YappyOperation'?{YappyOperation:()=>React.createElement('div',null,'Payment boundary')}:{api}});
   function tree(){cursor=0;return exports[kind]({code:'VAC-000001'});}
   return {tree,html:()=>renderToStaticMarkup(tree()),start:()=>effects[0]()};
 }
