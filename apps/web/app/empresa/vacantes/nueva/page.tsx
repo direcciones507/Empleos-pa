@@ -6,7 +6,7 @@ const steps = ["Empresa", "Vacante", "Requisitos", "Funciones", "Revisar"];
 export default function Nueva() {
   const [step, setStep] = useState(0),
     [company, setCompany] = useState<any>({}),
-    [v, setV] = useState<any>({ quantity: 1, request_type: "VACANTE" }),
+    [v, setV] = useState<any>({ quantity: 1, requested_candidates: 1, request_type: "VACANTE" }),
     [msg, setMsg] = useState(""),
     [occupations, setOccupations] = useState<any[]>([]);
   const set = (k: string, x: any) => setV((p: any) => ({ ...p, [k]: x }));
@@ -93,7 +93,7 @@ export default function Nueva() {
     }
     setMsg("Enviando…");
     try {
-      const payload = { ...v, quantity: Number(v.quantity || 1) };
+      const payload = { ...v, quantity: Number(v.quantity || 1), requested_candidates: Number(v.requested_candidates ?? 1) };
       await api("/v1/company/vacancies", {
         method: "POST",
         body: JSON.stringify(
@@ -323,6 +323,7 @@ export default function Nueva() {
         {step === 4 && (
           <>
             <h1>Revisa y envía</h1>
+            {v.request_type === "VACANTE" && <section className="infoBox"><label>Candidatos solicitados<input type="number" min="1" max="100" step="1" value={v.requested_candidates ?? 1} onChange={e => set("requested_candidates", e.target.value)} /></label><p>Precio unitario: $4.99 por candidato</p><strong>Total: ${(Number(v.requested_candidates ?? 1) * 499 / 100).toFixed(2)}</strong><p>El servidor confirma la cantidad y el total antes de registrar la solicitud.</p></section>}
             <div className="reviewBox">
               <strong>
                 {v.position ||
