@@ -71,7 +71,7 @@ La empresa solicita y verifica directamente esa documentación cuando correspond
 - FREE es el modo de lanzamiento: la solicitud puede quedar APROBADA y avanzar a búsqueda sin reportar pago.
 - MANUAL conserva el flujo de cobro: referencia de pago → revisión por ADMIN → aprobación → búsqueda/preselección.
 - En MANUAL, el pago no se considera aprobado únicamente porque el cliente envíe una referencia o comprobante.
-- Modelo comercial V1: 5 perfiles por $8.99; 10 por $10.99; 15 por $12.99; o $25 por todos los perfiles activos y compatibles disponibles al momento de la búsqueda. “Disponibles” no significa ilimitados ni garantiza una cantidad mínima.
+- Modelo comercial vigente: VACANTE $4.99 por cada candidato solicitado/entregado. La empresa elige la cantidad y ve el total antes de pagar.
 
 ## 8. Preselección y matching
 - Primero utilizar filtros estructurados y económicos.
@@ -123,7 +123,7 @@ Debe permitir como mínimo:
 - No es una plataforma separada ni un marketplace abierto de servicios.
 - Cubre necesidades puntuales o temporales, por ejemplo plomería, electricidad, reparación, mantenimiento u otros oficios.
 - Utiliza el mismo flujo central: solicitud → pago y revisión si aplica → aprobación → búsqueda/preselección → entrega de candidatos activos → aviso informativo al candidato → cierre.
-- Tarifa V1 aprobada para Servicios y trabajos eventuales: $3.99 por solicitud. Se mantiene separado de los paquetes de vacantes regulares.
+- Servicios y trabajos eventuales: $1.89 por conexión aceptada. El cliente solicita contacto con un prestador; el prestador debe aceptar. Solo entonces se habilita el pago. El contacto privado se revela después del pago confirmado. Si rechaza o no acepta, esa conexión no se cobra.
 - La portada debe explicar claramente la diferencia entre una vacante de personal y un trabajo eventual.
 
 ## 14. Profesionales destacados — módulo comercial posterior al MVP
