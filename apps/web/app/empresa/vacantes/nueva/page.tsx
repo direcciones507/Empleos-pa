@@ -6,7 +6,7 @@ const steps = ["Empresa", "Vacante", "Requisitos", "Funciones", "Revisar"];
 export default function Nueva() {
   const [step, setStep] = useState(0),
     [company, setCompany] = useState<any>({}),
-    [v, setV] = useState<any>({ quantity: 1, request_type: "VACANTE" }),
+    [v, setV] = useState<any>({ quantity: 1, requested_candidates: 1, request_type: "VACANTE" }),
     [msg, setMsg] = useState(""),
     [occupations, setOccupations] = useState<any[]>([]);
   const set = (k: string, x: any) => setV((p: any) => ({ ...p, [k]: x }));
@@ -93,7 +93,7 @@ export default function Nueva() {
     }
     setMsg("Enviando…");
     try {
-      const payload = { ...v, quantity: Number(v.quantity || 1) };
+      const payload = { ...v, quantity: Number(v.quantity || 1), requested_candidates: Number(v.requested_candidates || 1) };
       await api("/v1/company/vacancies", {
         method: "POST",
         body: JSON.stringify(
@@ -231,6 +231,12 @@ export default function Nueva() {
               v={v.quantity}
               f={(x: string) => set("quantity", x)}
             />
+            {v.request_type === "VACANTE" && (
+              <>
+                <F n="Candidatos que quieres recibir *" type="number" v={v.requested_candidates} f={(x: string) => set("requested_candidates", x)} />
+                <p className="fieldHint">$4.99 por candidato · Total: {`${(Number(v.requested_candidates || 1) * 4.99).toFixed(2)}`}</p>
+              </>
+            )}
             <F
               n="Provincia del trabajo *"
               v={v.province}
