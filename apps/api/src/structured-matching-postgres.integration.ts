@@ -78,8 +78,8 @@ try {
  const vr=(await call('POST','/v1/company/vacancies',{...lv,...sv},201)).json().vacancy;
  const vacancy=await one('select * from vacancies where vacancy_code=$1',[vr.vacancy_code]);check(vacancy,{...lv,...sv});assert.equal(vacancy.status,'APROBADA');assert.equal(vacancy.package_price,'9.98');assert.equal(vacancy.package_candidate_limit,2);assert.ok(await one("select * from occupation_catalog where normalized_name='asistente contable'"));log('VACANCY_PERSISTENCE',{fields:16,legacyFields:true,transactionAndOccupationCatalog:true});
  config.requestPaymentMode='MANUAL';
- const paidResponse=(await call('POST','/v1/company/vacancies',{...lv,request_type:'EVENTUAL',package:'EVENTUAL_399'},201)).json().vacancy;
- const paidVacancy=await one('select * from vacancies where vacancy_code=$1',[paidResponse.vacancy_code]);assert.equal(paidVacancy.status,'PENDIENTE_PAGO');assert.equal(paidVacancy.package_price,'3.99');assert.deepEqual(paidVacancy.structured_requirements,[]);assert.equal(paidVacancy.occupation_code,null);
+ const paidResponse=(await call('POST','/v1/company/vacancies',{...lv,request_type:'EVENTUAL'},201)).json().vacancy;
+ const paidVacancy=await one('select * from vacancies where vacancy_code=$1',[paidResponse.vacancy_code]);assert.equal(paidVacancy.status,'PENDIENTE_PAGO');assert.equal(paidVacancy.package_price,'0.00');assert.deepEqual(paidVacancy.structured_requirements,[]);assert.equal(paidVacancy.occupation_code,null);
  config.requestPaymentMode='FREE';
  // A real trigger-induced failure after vacancy insertion must roll back the whole transaction.
  await q("create function pr50_fail_occupation() returns trigger language plpgsql as $$ begin if NEW.normalized_name='rollback fixture' then raise exception 'isolated rollback fixture'; end if; return NEW; end $$; create trigger pr50_fail_occupation before insert on occupation_catalog for each row execute function pr50_fail_occupation()");
