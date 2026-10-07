@@ -187,9 +187,11 @@ export async function companyRoutes(app: FastifyInstance) {
       const packageKey =
         requestType === "EVENTUAL"
           ? "EVENTUAL_399"
-          : config.requestPaymentMode === "FREE"
-            ? "DISPONIBLES"
-            : requestedCandidates <= 5 ? "PERFILES_5" : requestedCandidates <= 10 ? "PERFILES_10" : "PERFILES_15";
+          : typeof b.package === "string" && ["PERFILES_5","PERFILES_10","PERFILES_15","DISPONIBLES"].includes(b.package)
+            ? b.package
+            : config.requestPaymentMode === "FREE"
+              ? "DISPONIBLES"
+              : requestedCandidates <= 5 ? "PERFILES_5" : requestedCandidates <= 10 ? "PERFILES_10" : "PERFILES_15";
       const selectedPackage =
         requestType === "VACANTE"
           ? { ...packages[packageKey], limit: requestedCandidates, price: Number((requestedCandidates * 4.99).toFixed(2)) }
