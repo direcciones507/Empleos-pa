@@ -314,6 +314,7 @@ export async function companyRoutes(app: FastifyInstance) {
               terms: true,
               scope: true,
               accepted_at: new Date().toISOString(),
+              requested_candidates: requestedCandidates,
             }),
             VACANCY_CONSENT_VERSION,
             requestType === "EVENTUAL" ? packageKey : null,
