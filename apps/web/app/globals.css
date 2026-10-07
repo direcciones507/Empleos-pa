@@ -49,3 +49,8 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 @media(max-width:600px){.homeHeroBanner{height:58vw;min-height:210px;background-size:190% auto;background-position:center 80%}}
 
 .returnButton{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:20px 0;padding:12px 20px;border:1px solid #ccd8e3;border-radius:13px;box-sizing:border-box;background:#fff;color:#12385c;font:inherit;font-weight:800;text-decoration:none;cursor:pointer;box-shadow:0 2px 8px rgba(15,35,60,.06)}.returnButton:hover{background:#edf7f5;border-color:#7bc6b4}.returnButton:focus-visible{outline:3px solid #087b68;outline-offset:3px}
+
+.launchOffer{background:linear-gradient(135deg,#f0fff8,#e5f8f1);border:1px solid #8bd6bd;padding:24px 26px;box-shadow:0 10px 28px rgba(8,123,104,.08)}
+.launchOffer span{display:block;color:#087b68;font-size:.76rem;font-weight:900;letter-spacing:.1em;margin-bottom:8px}
+.launchOffer strong{display:block;color:#12385c;font-size:clamp(1.35rem,3vw,1.8rem);line-height:1.2}
+.launchOffer p{color:#31556c!important;font-size:1rem;line-height:1.55;margin:9px 0 0}
