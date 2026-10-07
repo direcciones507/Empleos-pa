@@ -47,6 +47,7 @@ try {
  const snapshot=async()=>({candidates:(await q('select * from candidate_profiles order by candidate_id')).rows,vacancies:(await q('select * from vacancies order by vacancy_id')).rows});
  const legacyBefore=await snapshot();await q(readFileSync(new URL('0032_structured_matching_legacy_backfill.sql',migrationDir),'utf8'));assert.deepEqual(await snapshot(),legacyBefore);
  await q(readFileSync(new URL('0033_candidate_notification_lifecycle.sql',migrationDir),'utf8'));
+ for(const n of migrations.filter(n=>n>='0034')) {await q(readFileSync(new URL(n,migrationDir),'utf8'));console.log('POST-STRUCTURED MIGRATION',n,'PASS');}
  for(const row of [await one('select * from candidate_profiles where candidate_id=$1',[legacyCandidateId]),await one('select * from vacancies where vacancy_id=$1',[legacyVacancyId])])for(const col of ['structured_skills','structured_languages','structured_licenses'])assert.deepEqual(row[col],[]);
  assert.deepEqual((await one('select structured_requirements from vacancies where vacancy_id=$1',[legacyVacancyId])).structured_requirements,[]);
  log('0032_LEGACY',{rowsChecked:4,fullRowsUnchanged:true,emptyArraysUnchanged:true,preexistingStructuresUnchanged:true});
