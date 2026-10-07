@@ -324,6 +324,7 @@ export default function Nueva() {
           <>
             <h1>Revisa y envía</h1>
             {v.request_type === "VACANTE" && <section className="infoBox"><label>Candidatos solicitados<input type="number" min="1" max="100" step="1" value={v.requested_candidates ?? 1} onChange={e => set("requested_candidates", e.target.value)} /></label><p>Precio unitario: $4.99 por candidato</p><strong>Total: ${(Number(v.requested_candidates ?? 1) * 499 / 100).toFixed(2)}</strong><p>El servidor confirma la cantidad y el total antes de registrar la solicitud.</p></section>}
+            {v.request_type === "EVENTUAL" && <div className="infoBox"><strong>$1.89 por conexión aceptada</strong><p>Crear la solicitud no tiene costo. El prestador debe aceptar; después la conexión queda pendiente de pago. El contacto se desbloquea únicamente tras confirmar el pago.</p></div>}
             <div className="reviewBox">
               <strong>
                 {v.position ||
