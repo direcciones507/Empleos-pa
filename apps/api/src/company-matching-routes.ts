@@ -24,7 +24,7 @@ export async function companyMatchingRoutes(app:FastifyInstance){
     }catch{req.log.warn('Optional descriptive analysis unavailable');}
     const descriptions=new Map(analyses.map(a=>[a.candidate_id,a]));
     // Membership never depends on AI availability or the IDs it returns.
-    const items=q.rows.map((r:any)=>({candidate_id:r.candidate_id,...(descriptions.get(r.candidate_id)??{summary:'Perfil compatible según puesto, ubicación, habilidades y disponibilidad declarados.',strengths:[],gaps:[],considerations:[]}),
+    const items=q.rows.map((r:any)=>({candidate_id:r.candidate_id,...(descriptions.get(r.candidate_id)??{summary:'Perfil encontrado por coincidencia de puesto, ubicación o habilidades declaradas; disponibilidad y requisitos por verificar.',strengths:[],gaps:[],considerations:[]}),
       facts:{job_area:r.primary_job_area,province:r.province,district:r.district,skills:r.skills||r.structured_skills?.map((s:any)=>s.name??s.value).filter(Boolean).join(', ')},match_trace:r.match_trace}));
     return {vacancy:{code:x.vacancy_code,position:x.position},count:items.length,pricing,quote:items.length?candidateQuote(items.length):{quantity:0,total:0},ai_available:aiAvailable,analyses:items};
   });
