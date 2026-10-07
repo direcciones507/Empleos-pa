@@ -174,36 +174,26 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "INVALID_REQUEST_TYPE" });
       const requestType =
         b.request_type === "EVENTUAL" ? "EVENTUAL" : "VACANTE";
+      const requestedCandidates = Number(b.requested_candidates ?? 1);
+      if (!Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100)
+        return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES" });
       const packages: any = {
-        PERFILES_5: { limit: 5, price: 8.99 },
-        PERFILES_10: { limit: 10, price: 10.99 },
-        PERFILES_15: { limit: 15, price: 12.99 },
-        DISPONIBLES: { limit: null, price: 25 },
+        PERFILES_5: { limit: 5, price: 24.95 },
+        PERFILES_10: { limit: 10, price: 49.90 },
+        PERFILES_15: { limit: 15, price: 74.85 },
+        DISPONIBLES: { limit: requestedCandidates, price: Number((requestedCandidates * 4.99).toFixed(2)) },
         EVENTUAL_399: { limit: null, price: 3.99 },
       };
       const packageKey =
         requestType === "EVENTUAL"
           ? "EVENTUAL_399"
-          : typeof b.package === "string"
-            ? b.package
-            : config.requestPaymentMode === "FREE"
-              ? "DISPONIBLES"
-              : undefined;
-      if (
-        requestType === "EVENTUAL" &&
-        b.package !== undefined &&
-        b.package !== "EVENTUAL_399"
-      )
-        return reply.code(400).send({ error: "INVALID_EVENTUAL_PACKAGE" });
-      if (
-        requestType === "VACANTE" &&
-        config.requestPaymentMode !== "FREE" &&
-        typeof b.package !== "string"
-      )
-        return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
-      const selectedPackage = packages[packageKey];
-      if (!selectedPackage)
-        return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
+          : config.requestPaymentMode === "FREE"
+            ? "DISPONIBLES"
+            : requestedCandidates <= 5 ? "PERFILES_5" : requestedCandidates <= 10 ? "PERFILES_10" : "PERFILES_15";
+      const selectedPackage =
+        requestType === "VACANTE"
+          ? { ...packages[packageKey], limit: requestedCandidates, price: Number((requestedCandidates * 4.99).toFixed(2)) }
+          : packages[packageKey];
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
         if (b[k] !== undefined && typeof b[k] !== "boolean")
           return reply
