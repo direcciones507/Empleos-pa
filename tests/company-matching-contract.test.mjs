@@ -30,3 +30,9 @@ test("acceptance enforces candidate limits and price confirmation",()=>{
   assert.match(routes,/PRICE_CONFIRMATION_REQUIRED/);
   assert.match(routes,/CANDIDATE_SET_CHANGED/);
 });
+
+test("matching quote and vacancy UI use the approved 4.99 unit",()=>{
+ assert.match(routes,/CANDIDATE_UNIT_PRICE_CENTS=499/);
+ const page=fs.readFileSync(new URL("../apps/web/app/empresa/vacantes/[code]/page.tsx",import.meta.url),"utf8");
+ assert.match(page,/UNIT_PRICE=4.99/);
+});
