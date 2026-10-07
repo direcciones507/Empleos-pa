@@ -5,10 +5,10 @@ import {db} from './db.js';
 import {config} from './config.js';
 export async function yappyOperationIntegration(app:FastifyInstance,f:any){
   const q=(sql:string,p:any[]=[])=>db.query(sql,p),one=async(sql:string,p:any[]=[]) => (await q(sql,p)).rows[0];
-  const saved={requestPaymentMode:config.requestPaymentMode,yappyApiBase:config.yappyApiBase,yappyMerchantId:config.yappyMerchantId,yappySecretKey:config.yappySecretKey};
+  const saved={yappyPaymentsEnabled:config.yappyPaymentsEnabled,requestPaymentMode:config.requestPaymentMode,yappyApiBase:config.yappyApiBase,yappyMerchantId:config.yappyMerchantId,yappySecretKey:config.yappySecretKey};
   const originalFetch=globalThis.fetch;let providerOrders=0;const totals:string[]=[];
   try{
-    config.requestPaymentMode='FREE';
+    config.yappyPaymentsEnabled=false;config.requestPaymentMode='FREE';
     config.yappyApiBase='https://yappy.fixture.invalid';config.yappyMerchantId='isolated-merchant';config.yappySecretKey=Buffer.from('isolated-signature.fixture').toString('base64');
     globalThis.fetch=async(input:any,init:any)=>{
       const url=String(input);assert.ok(url.startsWith(config.yappyApiBase),'External payment network is forbidden in this test');
@@ -29,6 +29,9 @@ export async function yappyOperationIntegration(app:FastifyInstance,f:any){
     await f.call(f.provider,'POST',`/v1/service-provider/contact-requests/${r.contact_request_id}/respond`,{action:'ACCEPT'});
     await f.call(f.company,'POST',endpoint,payload,409);assert.equal(providerOrders,0);
     config.requestPaymentMode='MANUAL';
+    await f.call(f.company,'POST',endpoint,payload,409);assert.equal(providerOrders,0);
+    assert.equal((await f.call(f.company,'GET','/v1/company/payments/yappy/config')).enabled,false);
+    config.yappyPaymentsEnabled=true;
     const raw=()=>app.inject({method:'POST',url:endpoint,headers:{cookie:`empleos_session=${f.company.token}`},payload});
     const simultaneous=await Promise.all([raw(),raw()]);assert.ok(simultaneous.some(x=>x.statusCode===200));
     for(const x of simultaneous){assert.ok([200,409].includes(x.statusCode),x.body);if(x.statusCode===409)assert.equal(x.json().error,'PAYMENT_INITIALIZING');}

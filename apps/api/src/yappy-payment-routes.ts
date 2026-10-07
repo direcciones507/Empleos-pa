@@ -14,7 +14,7 @@ async function yappyPost(path:string,body:any,authorization?:string){
  return data;
 }
 async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,contactRequestId}:{amount:number;purpose:"TEST"|"VACANCY"|"SERVICE_CONTACT";vacancyId?:string;contactRequestId?:string}){
- if(config.requestPaymentMode!=="MANUAL")return reply.code(409).send({error:"PAYMENTS_DISABLED"});
+ if(!config.yappyPaymentsEnabled||config.requestPaymentMode!=="MANUAL")return reply.code(409).send({error:"PAYMENTS_DISABLED"});
  if(!config.yappyMerchantId||!config.yappySecretKey)return reply.code(503).send({error:"YAPPY_NOT_CONFIGURED"});
  const alias=String(req.body?.aliasYappy??"").replace(/\D/g,"");
  if(!/^6\d{7}$/.test(alias))return reply.code(400).send({error:"YAPPY_ALIAS_INVALID"});
@@ -48,7 +48,7 @@ async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,c
 }
 
 export async function yappyPaymentRoutes(app:FastifyInstance){
- app.get("/v1/company/payments/yappy/config",{preHandler:requireRoles("EMPRESA")},async()=>({enabled:config.requestPaymentMode==="MANUAL"&&Boolean(config.yappyMerchantId&&config.yappySecretKey)}));
+ app.get("/v1/company/payments/yappy/config",{preHandler:requireRoles("EMPRESA")},async()=>({enabled:config.yappyPaymentsEnabled&&config.requestPaymentMode==="MANUAL"&&Boolean(config.yappyMerchantId&&config.yappySecretKey)}));
  app.post("/v1/company/payments/yappy/test",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>createProviderOrder(req,reply,{amount:0.01,purpose:"TEST"}));
  app.post("/v1/company/vacancies/:code/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
   const code=String(req.params.code??"").trim();if(!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
