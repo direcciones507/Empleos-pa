@@ -6,7 +6,7 @@ const steps = ["Empresa", "Vacante", "Requisitos", "Funciones", "Revisar"];
 export default function Nueva() {
   const [step, setStep] = useState(0),
     [company, setCompany] = useState<any>({}),
-    [v, setV] = useState<any>({ quantity: 1, request_type: "VACANTE" }),
+    [v, setV] = useState<any>({ quantity: 1, requested_candidates: 1, request_type: "VACANTE" }),
     [msg, setMsg] = useState(""),
     [occupations, setOccupations] = useState<any[]>([]);
   const set = (k: string, x: any) => setV((p: any) => ({ ...p, [k]: x }));
@@ -93,15 +93,8 @@ export default function Nueva() {
     }
     setMsg("Enviando…");
     try {
-      const payload = { ...v, quantity: Number(v.quantity || 1) };
-      await api("/v1/company/vacancies", {
-        method: "POST",
-        body: JSON.stringify(
-          v.request_type === "EVENTUAL"
-            ? { ...payload, package: "EVENTUAL_399" }
-            : payload,
-        ),
-      });
+      const payload = { ...v, quantity: Number(v.quantity || 1), requested_candidates: Number(v.requested_candidates || 1) };
+      await api("/v1/company/vacancies", { method: "POST", body: JSON.stringify(payload) });
       location.href = "/empresa";
     } catch (e: any) {
       const field = e?.body?.field;
@@ -225,12 +218,11 @@ export default function Nueva() {
               profesión. Puedes elegir una sugerencia o escribir uno nuevo si no
               aparece.
             </p>
-            <F
-              n="Cantidad *"
-              type="number"
-              v={v.quantity}
-              f={(x: string) => set("quantity", x)}
-            />
+            <F n="Cantidad de puestos *" type="number" v={v.quantity} f={(x: string) => set("quantity", x)} />
+            {v.request_type === "VACANTE" && <>
+              <F n="Candidatos que quieres recibir *" type="number" v={v.requested_candidates} f={(x:string)=>set("requested_candidates",x)} />
+              <p className="fieldHint">$4.99 por candidato · Total: {`${(Number(v.requested_candidates||1)*4.99).toFixed(2)}`}</p>
+            </>}
             <F
               n="Provincia del trabajo *"
               v={v.province}
@@ -343,8 +335,7 @@ export default function Nueva() {
             <div className="infoBox">
               <strong>Promoción de lanzamiento</strong>
               <p>
-                Durante el lanzamiento, la solicitud puede continuar sin pago.
-                Al registrarla verás inmediatamente el estado asignado.
+                Vacantes: $4.99 por candidato solicitado. Servicios: $1.89 únicamente por cada conexión que el prestador acepte. Si un prestador no acepta, esa conexión no se cobra.
               </p>
             </div>
             <Check
