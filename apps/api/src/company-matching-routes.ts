@@ -24,7 +24,11 @@ export async function companyMatchingRoutes(app:FastifyInstance){
       return {vacancy:{code:x.vacancy_code,position:x.position},count:items.length,pricing,quote:{quantity:x.confirmations.candidate_purchase.quantity,total:x.confirmations.candidate_purchase.total},ai_available:false,selection_locked:true,analyses:items};
     }
     if(x.request_type==='EVENTUAL'||!['APROBADA','EN_BUSQUEDA'].includes(x.status))return reply.code(409).send({error:'VACANCY_NOT_READY_FOR_MATCHING'});
+    const requested=Number(x.confirmations?.requested_candidates ?? 15);
+    const maxProfiles=Number.isInteger(requested)&&requested>=1&&requested<=15?requested:15;
     const q=await compatibleCandidates(db,x.vacancy_id);
+    q.rows.splice(maxProfiles);
+    q.rowCount=q.rows.length;
     let analyses:any[]=[],aiAvailable=false;
     if(q.rowCount&&deepSeekConfigured())try{
       analyses=(await analyzeFilteredCandidates(x,q.rows,AbortSignal.timeout(config.deepSeekTimeoutMs))).analyses;aiAvailable=true;
@@ -39,7 +43,7 @@ export async function companyMatchingRoutes(app:FastifyInstance){
     const code=String(req.params.code??'').trim();if(!vacancyCode.test(code))return reply.code(400).send({error:'INVALID_VACANCY_CODE'});
     const ids=Array.isArray(req.body?.candidate_ids)?req.body.candidate_ids.map((x:any)=>String(x).trim()):[];
     if(!ids.length)return reply.code(400).send({error:'CANDIDATES_REQUIRED'});
-    const unique=[...new Set<string>(ids)];if(unique.length>40)return reply.code(400).send({error:'TOO_MANY_CANDIDATES'});
+    const unique=[...new Set<string>(ids)];if(unique.length>15)return reply.code(400).send({error:'TOO_MANY_CANDIDATES'});
     if(unique.some(id=>!uuid.test(id)))return reply.code(400).send({error:'INVALID_CANDIDATE_ID'});
     const quote=candidateQuote(unique.length);
     if(req.body?.confirm_price!==true)return reply.code(409).send({error:'PRICE_CONFIRMATION_REQUIRED',pricing,quote});
@@ -49,6 +53,9 @@ export async function companyMatchingRoutes(app:FastifyInstance){
       const v=await c.query('select v.* from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_code=$1 and co.owner_user_id=$2 for update of v',[code,req.authUser!.user_id]);
       if(!v.rowCount){await c.query('rollback');return reply.code(404).send({error:'VACANCY_NOT_FOUND'});}
       const x=v.rows[0],prior=x.confirmations?.candidate_purchase;
+      const requested=Number(x.confirmations?.requested_candidates ?? 15);
+      const maxProfiles=Number.isInteger(requested)&&requested>=1&&requested<=15?requested:15;
+      if(unique.length>maxProfiles){await c.query('rollback');return reply.code(400).send({error:'REQUESTED_CANDIDATE_LIMIT'});}
       if(prior){
         if(JSON.stringify([...prior.candidate_ids].sort())!==JSON.stringify([...unique].sort())){await c.query('rollback');return reply.code(409).send({error:'CANDIDATE_SELECTION_LOCKED'});}
         await c.query('commit');return {ok:true,reused:true,accepted:unique.length,status:x.status,payment_required:x.status==='PENDIENTE_PAGO',pricing,quote:{quantity:prior.quantity,total:prior.total}};
