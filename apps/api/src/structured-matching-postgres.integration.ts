@@ -8,6 +8,7 @@ import {candidateRoutes} from './candidate-routes.js';
 import {companyRoutes} from './company-routes.js';
 import {companyMatchingRoutes} from './company-matching-routes.js';
 import {yappyPaymentRoutes} from './yappy-payment-routes.js';
+import {deliveryRoutes} from './delivery-routes.js';
 import {launchMatchingPaymentIntegration} from './launch-matching-payment-postgres.integration.js';
 import {yappyOperationIntegration} from './yappy-operation-postgres.integration.js';
 import {serviceContactIntegration} from './service-contact-postgres.integration.js';
@@ -71,6 +72,7 @@ try {
  app=Fastify();await app.register(cookie);await app.register(authRoutes);await app.register(candidateRoutes);await app.register(companyRoutes);
  await app.register(companyMatchingRoutes);
  await app.register(yappyPaymentRoutes);
+ await app.register(deliveryRoutes);
  const serviceFixture=await serviceContactIntegration(app);
  await yappyOperationIntegration(app,serviceFixture);
  await launchMatchingPaymentIntegration(app,serviceFixture);

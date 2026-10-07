@@ -4,10 +4,8 @@ import type {FastifyInstance} from 'fastify';
 import {db} from './db.js';
 import {config} from './config.js';
 import {enableProfile,createSession} from './auth.js';
-import {deliveryRoutes} from './delivery-routes.js';
 import {processFreeVacancy} from './free-matching-engine.js';
 export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any){
-  await app.register(deliveryRoutes);
   const q=(sql:string,p:any[]=[])=>db.query(sql,p),one=async(sql:string,p:any[]=[]) => (await q(sql,p)).rows[0];
   const saved={...config},originalFetch=globalThis.fetch;
   try{
