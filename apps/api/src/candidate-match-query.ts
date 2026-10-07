@@ -7,7 +7,7 @@ export const candidateCompatibility = `
   and exists(select 1 from user_profiles up where up.user_id=cp.user_id and up.profile_type='CANDIDATO')
   and (cp.available_from is null or cp.available_from<=coalesce(v.estimated_start,current_date))
   and (${n('cp.primary_job_area')}=${n('v.position')}
-    or ${n('cp.primary_job_area')}=${n('v.occupation_code')}
+    or (nullif(trim(v.occupation_code),'') is not null and ${n('cp.primary_job_area')}=${n('v.occupation_code')})
     or ${n('v.position')}=any(regexp_split_to_array(${n('cp.other_job_areas')},'[,;]\\s*')))
   and (case when nullif(trim(v.province),'') is not null then
     (${n('cp.province')}=${n('v.province')} or strpos(${n('cp.work_locations')},${n('v.province')})>0 or ${n('cp.work_locations')} in ('todo panama','todo el pais','a nivel nacional'))

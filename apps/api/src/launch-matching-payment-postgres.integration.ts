@@ -15,8 +15,10 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     // A Persona with both profiles must still match. Structured Excel + accented/spaced role.
     const cp=await one(`insert into candidate_profiles(user_id,candidate_code,full_name,phone,province,district,work_locations,primary_job_area,skills,structured_skills,status,valid_until,available_from)
       values($1,'CAN-LAUNCH','Private launch name','60000000','Veraguas','Santiago','Toda mi provincia','  ASISTÉNTE   CONTABLE  ','','[{"name":"Excel"}]','ACTIVO',current_date+45,current_date) returning candidate_id`,[user.user_id]);
+    const wrongProvider=await one("insert into users(email,normalized_email,password_hash,role) values('launch-incompatible@example.test','launch-incompatible@example.test','isolated','CANDIDATO') returning user_id id");
+    await enableProfile(wrongProvider.id,'CANDIDATO');
     const negative=await one(`insert into candidate_profiles(user_id,candidate_code,full_name,province,district,work_locations,primary_job_area,skills,status,valid_until)
-      values($1,'CAN-INCOMPATIBLE','Private mismatch','Veraguas','Santiago','Santiago','Electricista','Excel','ACTIVO',current_date+45) returning candidate_id`,[f.wrongProvider.id]);
+      values($1,'CAN-INCOMPATIBLE','Private mismatch','Veraguas','Santiago','Santiago','Electricista','Excel','ACTIVO',current_date+45) returning candidate_id`,[wrongProvider.id]);
     const vacancy=(await f.call(f.company,'POST','/v1/company/vacancies',{position:'Asistente contable',quantity:1,work_location:'Santiago / Veraguas',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',schedule:'Diurno',skills:'Excel',main_functions:'Registrar cuentas',confirm_correct:true,confirm_terms:true,confirm_scope:true,package_price:0.01,total:0.01},201)).vacancy;
     const base=`/v1/company/vacancies/${vacancy.vacancy_code}`;
     const row=await one('select * from vacancies where vacancy_code=$1',[vacancy.vacancy_code]);assert.equal(row.status,'APROBADA');assert.equal(Number(row.package_price),0);
@@ -72,7 +74,9 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     // Services honor declared Santiago coverage while preserving verification and pricing.
     await q("update service_provider_profiles set service_district='Atalaya',service_corregimiento='Atalaya',service_areas='Santiago / Veraguas',service_trade='  ELECTRÍCISTA   ' where user_id=$1",[f.provider.id]);
     const service=(await f.call(f.company,'POST','/v1/company/vacancies',{request_type:'EVENTUAL',position:'Electricista',work_location:'Santiago',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',schedule:'Diurno',skills:'Electricidad',main_functions:'Reparar',confirm_correct:true,confirm_terms:true,confirm_scope:true},201)).vacancy;
-    const sm=await f.call(f.company,'GET',`/v1/company/vacancies/${service.vacancy_code}/service-matches`);assert.ok(sm.items.some((i:any)=>i.provider_id===f.provider.id));assert.ok(!sm.items.some((i:any)=>i.provider_id===f.wrongProvider.id));assert.equal(sm.pricing.unit_price,1.89);
+    await q("insert into service_provider_profiles(user_id,full_name,service_trade,service_province,service_district,service_corregimiento) values($1,'Wrong verified trade','Plomero','Veraguas','Santiago','Santiago') on conflict(user_id) do update set service_trade='Plomero'",[wrongProvider.id]);
+    await q("insert into service_provider_verifications(user_id,provider,provider_session_id,status) values($1,'DIDIT','launch-wrong-trade','APPROVED')",[wrongProvider.id]);
+    const sm=await f.call(f.company,'GET',`/v1/company/vacancies/${service.vacancy_code}/service-matches`);assert.ok(sm.items.some((i:any)=>i.provider_id===f.provider.id));assert.ok(!sm.items.some((i:any)=>i.provider_id===wrongProvider.id));assert.equal(sm.pricing.unit_price,1.89);
     await q("update service_provider_profiles set service_trade='Plomero' where user_id=$1",[f.provider.id]);assert.equal((await f.call(f.company,'GET',`/v1/company/vacancies/${service.vacancy_code}/service-matches`)).items.length,0);
     console.log('LAUNCH_MATCHING_PAYMENT PASS accounting-positive/negative/structured/normalization/persona/AI-outage/FREE-block/server-250/spoof-resistant/private-before-pay/signed-IPN/one-delivery/history/verified-service-coverage');
   }finally{globalThis.fetch=originalFetch;Object.assign(config,saved);}
