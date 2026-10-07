@@ -174,36 +174,15 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "INVALID_REQUEST_TYPE" });
       const requestType =
         b.request_type === "EVENTUAL" ? "EVENTUAL" : "VACANTE";
-      const packages: any = {
-        PERFILES_5: { limit: 5, price: 8.99 },
-        PERFILES_10: { limit: 10, price: 10.99 },
-        PERFILES_15: { limit: 15, price: 12.99 },
-        DISPONIBLES: { limit: null, price: 25 },
-        EVENTUAL_399: { limit: null, price: 3.99 },
-      };
-      const packageKey =
+      const requestedCandidates = Number(b.requested_candidates ?? 1);
+      if (!Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100)
+        return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES" });
+      const packageKey = requestType === "EVENTUAL" ? "EVENTUAL_CONTACT_189" : "PER_CANDIDATE_499";
+      const selectedPackage =
         requestType === "EVENTUAL"
-          ? "EVENTUAL_399"
-          : typeof b.package === "string"
-            ? b.package
-            : config.requestPaymentMode === "FREE"
-              ? "DISPONIBLES"
-              : undefined;
-      if (
-        requestType === "EVENTUAL" &&
-        b.package !== undefined &&
-        b.package !== "EVENTUAL_399"
-      )
-        return reply.code(400).send({ error: "INVALID_EVENTUAL_PACKAGE" });
-      if (
-        requestType === "VACANTE" &&
-        config.requestPaymentMode !== "FREE" &&
-        typeof b.package !== "string"
-      )
-        return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
-      const selectedPackage = packages[packageKey];
-      if (!selectedPackage)
-        return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
+          ? { limit: null, price: 0 }
+          : { limit: requestedCandidates, price: Number((requestedCandidates * 4.99).toFixed(2)) };
+      // Pricing is server-authoritative. Clients cannot submit or override a price.
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
         if (b[k] !== undefined && typeof b[k] !== "boolean")
           return reply
