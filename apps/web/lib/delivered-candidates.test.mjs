@@ -19,7 +19,7 @@ function harness(api, initial = {}) {
   const react = {...React,useState(value){const i=cursor++;if(!(i in values))values[i]=value;return [values[i],next=>{values[i]=typeof next==="function"?next(values[i]):next}]},useEffect(fn){effects.push(fn)}};
   Object.assign(values, initial);
   const exports = {};
-  vm.runInNewContext(compiled,{exports,require(name){if(name==="react")return react;if(name.endsWith("/lib/api"))return {api};if(name==="react/jsx-runtime")return ReactJSX;if(name.endsWith("/components/ServiceContacts"))return {ServiceContacts:()=>{throw Error("Service contacts must not render in formal vacancy regression fixtures")}};throw Error(name)}});
+  vm.runInNewContext(compiled,{exports,require(name){if(name==="react")return react;if(name.endsWith("/lib/api"))return {api};if(name==="react/jsx-runtime")return ReactJSX;if(name.endsWith("/components/YappyOperation"))return {YappyOperation:()=>{throw Error("Payment must not render in approved/delivered formal fixtures")}};if(name.endsWith("/components/ServiceContacts"))return {ServiceContacts:()=>{throw Error("Service contacts must not render in formal vacancy regression fixtures")}};throw Error(name)}});
   function tree(){cursor=0;return exports.default({params:{code}})}
   return {tree,html:()=>renderToStaticMarkup(tree()),start:()=>effects[0](),values};
 }

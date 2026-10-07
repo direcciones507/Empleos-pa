@@ -6,6 +6,9 @@ import {db} from './db.js';
 import {config} from './config.js';
 import {candidateRoutes} from './candidate-routes.js';
 import {companyRoutes} from './company-routes.js';
+import {companyMatchingRoutes} from './company-matching-routes.js';
+import {yappyPaymentRoutes} from './yappy-payment-routes.js';
+import {yappyOperationIntegration} from './yappy-operation-postgres.integration.js';
 import {serviceContactIntegration} from './service-contact-postgres.integration.js';
 import {authRoutes} from './auth-routes.js';
 import {createSession,sessionUser,enableProfile} from './auth.js';
@@ -65,7 +68,10 @@ try {
  log('AUTH_REAL',{sessions:true,roleBackfill:true,idempotent:true,invalidPublicRoleRejected:true});
  for(const n of migrations.filter(n=>n>'0033')) {await q(readFileSync(new URL(n,migrationDir),'utf8'));console.log('LATER MIGRATION',n,'PASS');}
  app=Fastify();await app.register(cookie);await app.register(authRoutes);await app.register(candidateRoutes);await app.register(companyRoutes);
- await serviceContactIntegration(app);
+ await app.register(companyMatchingRoutes);
+ await app.register(yappyPaymentRoutes);
+ const serviceFixture=await serviceContactIntegration(app);
+ await yappyOperationIntegration(app,serviceFixture);
  const call=async(method:string,path:string,payload?:any,status=200)=>{const raw=path.startsWith('/v1/company')?companySession:candidateSession;const r=await app.inject({method,url:path,headers:{cookie:`empleos_session=${raw}`},...(payload===undefined?{}:{payload})});assert.equal(r.statusCode,status,`${method} ${path}: ${r.body}`);return r;};
  const unauthorized=await app.inject({method:'GET',url:'/v1/candidate/profile'});assert.equal(unauthorized.statusCode,401);
  const lc={full_name:'Ana Pérez',contact_email:'ana@example.test',mobile_whatsapp:'60000000',identity_document_type:'Cédula',identity_document_number:'8-1-1',landline_phone:'',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',address_reference:'Casa azul',work_profile:'Contadora',primary_job_area:'Contabilidad',other_job_areas:'Administración',currently_working:false,available_from:'2099-01-01',availability_notes:'Diurno',work_locations:'Toda mi provincia',salary_expectation:'850',education:[{level:'Universitario'}],has_experience:true,experience:[{position:'Auxiliar',duties:'Registro contable'}],skills:'Excel, contabilidad',languages:'Español e inglés',computer_skills:'Office',driver_license:'D',contact_preference:'WhatsApp',confirmations:{correct:true,data_processing:true,no_hiring_guarantee:true}};
