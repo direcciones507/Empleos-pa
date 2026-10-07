@@ -60,7 +60,7 @@ const legacyVacancy = {
   salary: "800 a 1000", minimum_education: "Universitario", experience_requirement: "Un año",
   skills: "Excel, contabilidad", languages: "Español", license_requirement: "Opcional",
   main_functions: "Gestionar cuentas", profile_notes: "Atención al detalle", additional_info: "Entrevista",
-  package: "PERFILES_10", confirm_correct: true, confirm_terms: true, confirm_scope: true,
+  requested_candidates: 2, confirm_correct: true, confirm_terms: true, confirm_scope: true,
 };
 const legacyCandidate = {
   full_name: " Ana Pérez ", contact_email: "ana@example.com", mobile_whatsapp: "60000000",
@@ -124,8 +124,8 @@ test("vacancy creation stores structured and legacy fields in the original trans
     const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
     for (const [key, value] of Object.entries({ ...legacyVacancy, ...structured }))
       if (!key.startsWith("confirm_")) assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
-    assert.equal(saved.package_candidate_limit, 10);
-    assert.equal(saved.package_price, 10.99);
+    assert.equal(saved.package_candidate_limit, 2);
+    assert.equal(saved.package_price, 9.98);
     assert.equal(saved.consent_version, "2026-09-25-v1");
     assert.ok(h.calls.some(call => call.sql.startsWith("insert into occupation_catalog")));
     assert.equal(h.calls.at(-1)!.sql, "commit");
@@ -135,13 +135,13 @@ test("legacy vacancy and EVENTUAL need no structured fields and retain package p
   for (const eventual of [false, true]) {
     const h = await harness("company");
     try {
-      const payload = eventual ? { ...legacyVacancy, request_type: "EVENTUAL", package: "EVENTUAL_399" } : legacyVacancy;
+      const payload = eventual ? { ...legacyVacancy, request_type: "EVENTUAL" } : legacyVacancy;
       const r = await h.app.inject({ method: "POST", url: "/v1/company/vacancies", payload });
       assert.equal(r.statusCode, 201);
       const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
       assert.equal(saved.skills, legacyVacancy.skills);
-      assert.equal(saved.package, eventual ? "EVENTUAL_399" : "PERFILES_10");
-      assert.equal(saved.package_price, eventual ? 3.99 : 10.99);
+      assert.equal(saved.package, eventual ? "EVENTUAL_CONTACT_189" : "PER_CANDIDATE_499");
+      assert.equal(saved.package_price, eventual ? 0 : 9.98);
       assert.equal(saved.salary_minimum, null);
       assert.deepEqual(saved.structured_requirements, []);
       assert.equal(saved.occupation_code, null, "do not invent occupation codes from free text");
