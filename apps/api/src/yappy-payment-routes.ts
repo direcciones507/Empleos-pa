@@ -13,7 +13,7 @@ async function yappyPost(path:string,body:any,authorization?:string){
  if(!r.ok||!data?.body)throw Object.assign(new Error("YAPPY_PROVIDER_ERROR"),{status:r.status,data});
  return data;
 }
-async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId}:{amount:number;purpose:"TEST"|"VACANCY";vacancyId?:string}){
+async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,serviceContactRequestId}:{amount:number;purpose:"TEST"|"VACANCY"|"SERVICE_CONTACT";vacancyId?:string;serviceContactRequestId?:string}){
  if(!config.yappyMerchantId||!config.yappySecretKey)return reply.code(503).send({error:"YAPPY_NOT_CONFIGURED"});
  const alias=String(req.body?.aliasYappy??"").replace(/\D/g,"");
  if(!/^6\d{7}$/.test(alias))return reply.code(400).send({error:"YAPPY_ALIAS_INVALID"});
@@ -25,7 +25,7 @@ async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId}:
  const created=await yappyPost("/payments/payment-wc",{merchantId:config.yappyMerchantId,orderId:id,domain,paymentDate:epoch,aliasYappy:alias,ipnUrl,discount:"0.00",taxes:"0.00",subtotal:money(amount),total:money(amount)},token);
  const body=created.body??{};
  if(!body.token||!body.documentName||!body.transactionId)return reply.code(502).send({error:"YAPPY_ORDER_INVALID"});
- await db.query("insert into yappy_payment_orders(yappy_order_id,user_id,vacancy_id,purpose,amount,provider_transaction_id) values($1,$2,$3,$4,$5,$6)",[id,req.authUser!.user_id,vacancyId??null,purpose,amount,String(body.transactionId)]);
+ await db.query("insert into yappy_payment_orders(yappy_order_id,user_id,vacancy_id,service_contact_request_id,purpose,amount,provider_transaction_id) values($1,$2,$3,$4,$5,$6,$7)",[id,req.authUser!.user_id,vacancyId??null,serviceContactRequestId??null,purpose,amount,String(body.transactionId)]);
  return {orderId:id,transactionId:body.transactionId,token:body.token,documentName:body.documentName,amount:money(amount)};
 }
 
@@ -38,6 +38,12 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
   if(q.rows[0].status!=="PENDIENTE_PAGO")return reply.code(409).send({error:"PAYMENT_NOT_ALLOWED"});
   const amount=Number(q.rows[0].package_price);if(!Number.isFinite(amount)||amount<=0)return reply.code(409).send({error:"PAYMENT_AMOUNT_INVALID"});
   return createProviderOrder(req,reply,{amount,purpose:"VACANCY",vacancyId:q.rows[0].vacancy_id});
+ });
+ app.post("/v1/company/service-contacts/:id/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
+  const id=String(req.params.id??"");const q=await db.query("select r.service_contact_request_id,r.status,r.unit_price from service_contact_requests r join companies c on c.company_id=r.company_id where r.service_contact_request_id=$1 and c.owner_user_id=$2",[id,req.authUser!.user_id]);
+  if(!q.rowCount)return reply.code(404).send({error:"SERVICE_CONTACT_NOT_FOUND"});
+  if(q.rows[0].status!=="ACCEPTED_AWAITING_PAYMENT")return reply.code(409).send({error:"PAYMENT_NOT_ALLOWED"});
+  return createProviderOrder(req,reply,{amount:Number(q.rows[0].unit_price),purpose:"SERVICE_CONTACT",serviceContactRequestId:q.rows[0].service_contact_request_id});
  });
  app.get("/v1/company/payments/yappy/:orderId",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
   const id=String(req.params.orderId??"");const q=await db.query("select yappy_order_id,purpose,amount,status,created_at,completed_at from yappy_payment_orders where yappy_order_id=$1 and user_id=$2",[id,req.authUser!.user_id]);
@@ -54,7 +60,8 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
   const map:any={E:"EXECUTED",R:"REJECTED",C:"CANCELLED",X:"EXPIRED"};const next=map[status];if(!next)return reply.code(400).send({success:false});
   const c=await db.connect();try{await c.query("begin");const q=await c.query("select * from yappy_payment_orders where yappy_order_id=$1 for update",[orderId]);if(!q.rowCount){await c.query("rollback");return reply.code(404).send({success:false});}
    if(q.rows[0].status!=="EXECUTED"){await c.query("update yappy_payment_orders set status=$1,provider_confirmation_number=coalesce($2,provider_confirmation_number),completed_at=case when $1='EXECUTED' then coalesce(completed_at,now()) else completed_at end,updated_at=now() where yappy_order_id=$3",[next,String(req.query?.confirmationNumber??"")||null,orderId]);
-    if(next==="EXECUTED"&&q.rows[0].vacancy_id){await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[q.rows[0].vacancy_id]);await c.query("insert into vacancy_payments(vacancy_id,status,amount,reference,submitted_at,reviewed_at) values($1,'APROBADO',$2,$3,now(),now()) on conflict do nothing",[q.rows[0].vacancy_id,q.rows[0].amount,"YAPPY:"+orderId]);}}
+    if(next==="EXECUTED"&&q.rows[0].vacancy_id){await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[q.rows[0].vacancy_id]);await c.query("insert into vacancy_payments(vacancy_id,status,amount,reference,submitted_at,reviewed_at) values($1,'APROBADO',$2,$3,now(),now()) on conflict do nothing",[q.rows[0].vacancy_id,q.rows[0].amount,"YAPPY:"+orderId]);}
+    if(next==="EXECUTED"&&q.rows[0].service_contact_request_id){await c.query("update service_contact_requests set status='PAID',paid_at=coalesce(paid_at,now()),updated_at=now() where service_contact_request_id=$1 and status='ACCEPTED_AWAITING_PAYMENT'",[q.rows[0].service_contact_request_id]);}}
    await c.query("commit");return {success:true};
   }catch(e){await c.query("rollback").catch(()=>{});throw e;}finally{c.release();}
  });
