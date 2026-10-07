@@ -182,7 +182,7 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
       // quantity is the number of positions; requested_candidates is independently chosen.
       const requestedCandidates = b.requested_candidates === undefined ? (historicalLimits[packageKey] ?? 1) : Number(b.requested_candidates);
-      if (requestType === "VACANTE" && ((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100))
+      if ((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 15)
         return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES", field: "requested_candidates" });
       const selectedPackage = { limit: null, price: 0 };
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
