@@ -61,6 +61,9 @@ test("analysis still loading or failed is never described as missing historical 
 
 test("delivered analysis keeps three horizontal columns on tablet and desktop and stacks on mobile",()=>{
   const tree=harness(()=>Promise.resolve({}),ready()).tree();const css=nodes(tree,n=>n.type==="style")[0].props.children;
+  assert.equal(tree.props.className,"portal matchingView");
+  assert.match(css,/\.portal\.matchingView>section\{max-width:1600px;box-sizing:border-box\}/);
+  assert.match(css,/\.candidateCompare\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(360px,1fr\)\)/);
   assert.match(css,/\.deliveredCandidateCard\{display:block;min-width:0/);
   assert.match(css,/\.deliveredAnalysis\{width:100%;min-width:0/);
   assert.match(css,/\.deliveredGrid\{display:grid;grid-template-columns:minmax\(0,1\.35fr\) minmax\(0,1fr\) minmax\(0,1fr\)/);
@@ -68,6 +71,21 @@ test("delivered analysis keeps three horizontal columns on tablet and desktop an
   assert.ok(tabletRules.includes(".candidateGrid{grid-template-columns:1fr 1fr}"));
   assert.ok(!tabletRules.includes(".deliveredGrid"));
   assert.match(css,/@media\(max-width:620px\)\{\.candidateCompare,\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
+});
+
+test("service matching reuses horizontal cards with mobile stacking and keeps the contact actions",()=>{
+  const serviceSource=fs.readFileSync(new URL("../components/ServiceContacts.tsx",import.meta.url),"utf8");
+  const output=ts.transpileModule(serviceSource,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}}).outputText;
+  let index=0;
+  const values=[[{provider_id:"1",service_trade:"Electricista",service_province:"Chiriquí",service_district:"David"}],[],{},"",false];
+  const exports={};
+  vm.runInNewContext(output,{exports,require(name){if(name==="react")return {...React,useState:()=>[values[index++],()=>{}],useEffect:()=>{}};if(name==="react/jsx-runtime")return ReactJSX;if(name.endsWith("/lib/api"))return {api:()=>{throw Error("no network")}};if(name.endsWith("/YappyOperation"))return {YappyOperation:()=>null};throw Error(name)}});
+  const tree=exports.ServiceContacts({code});
+  const css=nodes(tree,n=>n.type==="style")[0].props.children;
+  assert.match(css,/\.serviceCompare\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(360px,1fr\)\)/);
+  assert.match(css,/@media\(max-width:620px\)\{\.serviceCompare\{grid-template-columns:1fr\}\}/);
+  assert.equal(nodes(tree,n=>n.props?.className==="serviceCompare").length,2);
+  const html=renderToStaticMarkup(tree);assert.ok(html.includes("Electricista"));assert.ok(html.includes("Solicitar contacto"));
 });
 
 test("search, selection and acceptance still send selected analyses and reload delivery",async()=>{
