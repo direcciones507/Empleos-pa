@@ -125,13 +125,13 @@ test("vacancy creation stores structured and legacy fields in the original trans
     for (const [key, value] of Object.entries({ ...legacyVacancy, ...structured }))
       if (!key.startsWith("confirm_")) assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
     assert.equal(saved.package_candidate_limit, 10);
-    assert.equal(saved.package_price, 10.99);
+    assert.equal(saved.package_price, 49.9);
     assert.equal(saved.consent_version, "2026-09-25-v1");
     assert.ok(h.calls.some(call => call.sql.startsWith("insert into occupation_catalog")));
     assert.equal(h.calls.at(-1)!.sql, "commit");
   } finally { await h.app.close(); }
 });
-test("legacy vacancy and EVENTUAL need no structured fields and retain package prices", async () => {
+test("legacy package identifiers remain accepted; new formal vacancies use per-candidate pricing", async () => {
   for (const eventual of [false, true]) {
     const h = await harness("company");
     try {
@@ -141,7 +141,7 @@ test("legacy vacancy and EVENTUAL need no structured fields and retain package p
       const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
       assert.equal(saved.skills, legacyVacancy.skills);
       assert.equal(saved.package, eventual ? "EVENTUAL_399" : "PERFILES_10");
-      assert.equal(saved.package_price, eventual ? 3.99 : 10.99);
+      assert.equal(saved.package_price, eventual ? 3.99 : 49.9);
       assert.equal(saved.salary_minimum, null);
       assert.deepEqual(saved.structured_requirements, []);
       assert.equal(saved.occupation_code, null, "do not invent occupation codes from free text");
@@ -226,4 +226,20 @@ test("0031 remains additive and 0032 does not turn ambiguous legacy text into ex
   assert.doesNotMatch(executable(backfill), /\b(update|insert|delete|truncate|drop|alter)\b/i);
   for (const column of ["salary_minimum", "structured_skills", "structured_languages", "structured_licenses"])
     assert.ok(schema.includes(`add column if not exists ${column}`));
+});
+
+test("formal vacancy price ignores client totals and persists independently requested count", async () => {
+  const h = await harness("company");
+  try {
+    const r = await h.app.inject({ method: "POST", url: "/v1/company/vacancies", payload: { ...legacyVacancy, requested_candidates: 3, package_price: 0.01, total: 0.01, quantity: 2 } });
+    assert.equal(r.statusCode, 201);
+    const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
+    assert.equal(saved.quantity, 2); assert.equal(saved.package_candidate_limit, 3); assert.equal(saved.package_price, 14.97);
+  } finally { await h.app.close(); }
+});
+test("invalid requested candidate counts never enter the vacancy transaction", async () => {
+  for (const count of [0, -1, 101, 1.5, "NaN", null, true]) {
+    const h = await harness("company");
+    try { const r = await h.app.inject({ method: "POST", url: "/v1/company/vacancies", payload: { ...legacyVacancy, requested_candidates: count } }); assert.equal(r.statusCode, 400); assert.ok(!h.calls.some(c => c.sql === "begin")); } finally { await h.app.close(); }
+  }
 });

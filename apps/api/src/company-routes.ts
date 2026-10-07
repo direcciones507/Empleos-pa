@@ -174,36 +174,17 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "INVALID_REQUEST_TYPE" });
       const requestType =
         b.request_type === "EVENTUAL" ? "EVENTUAL" : "VACANTE";
-      const packages: any = {
-        PERFILES_5: { limit: 5, price: 8.99 },
-        PERFILES_10: { limit: 10, price: 10.99 },
-        PERFILES_15: { limit: 15, price: 12.99 },
-        DISPONIBLES: { limit: null, price: 25 },
-        EVENTUAL_399: { limit: null, price: 3.99 },
-      };
-      const packageKey =
-        requestType === "EVENTUAL"
-          ? "EVENTUAL_399"
-          : typeof b.package === "string"
-            ? b.package
-            : config.requestPaymentMode === "FREE"
-              ? "DISPONIBLES"
-              : undefined;
-      if (
-        requestType === "EVENTUAL" &&
-        b.package !== undefined &&
-        b.package !== "EVENTUAL_399"
-      )
+      const historicalLimits: Record<string, number> = { PERFILES_5: 5, PERFILES_10: 10, PERFILES_15: 15 };
+      const packageKey = requestType === "EVENTUAL" ? "EVENTUAL_399" : (b.package ?? "DISPONIBLES");
+      if (requestType === "EVENTUAL" && b.package !== undefined && b.package !== "EVENTUAL_399")
         return reply.code(400).send({ error: "INVALID_EVENTUAL_PACKAGE" });
-      if (
-        requestType === "VACANTE" &&
-        config.requestPaymentMode !== "FREE" &&
-        typeof b.package !== "string"
-      )
+      if (requestType === "VACANTE" && !["PERFILES_5", "PERFILES_10", "PERFILES_15", "DISPONIBLES"].includes(packageKey))
         return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
-      const selectedPackage = packages[packageKey];
-      if (!selectedPackage)
-        return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
+      // quantity is the number of positions; requested_candidates is independently chosen.
+      const requestedCandidates = b.requested_candidates === undefined ? (historicalLimits[packageKey] ?? 1) : Number(b.requested_candidates);
+      if (requestType === "VACANTE" && ((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100))
+        return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES", field: "requested_candidates" });
+      const selectedPackage = requestType === "EVENTUAL" ? { limit: null, price: 3.99 } : { limit: requestedCandidates, price: requestedCandidates * 499 / 100 };
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
         if (b[k] !== undefined && typeof b[k] !== "boolean")
           return reply
