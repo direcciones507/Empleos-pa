@@ -86,7 +86,7 @@ test("candidate structured fields use the existing hydration, autosave and next-
 test("new vacancy keeps company validation and structured submission without legacy package pricing UI", async () => {
   const calls = [];
   const company = { name: "Empresa", contact_name: "Ana", email: "ana@example.com", mobile_whatsapp: "60000000", province: "Veraguas", district: "Santiago", corregimiento: "Santiago" };
-  const vacancy = { request_type: "VACANTE", quantity: "2", package: "PERFILES_10", skills: "Excel, contabilidad", salary: "800", salary_minimum: 850, employment_type: "INDEFINIDO", confirm_correct: true, confirm_terms: true, confirm_scope: true };
+  const vacancy = { request_type: "VACANTE", quantity: "2", requested_candidates: "2", skills: "Excel, contabilidad", salary: "800", salary_minimum: 850, employment_type: "INDEFINIDO", confirm_correct: true, confirm_terms: true, confirm_scope: true };
   const h = harness("../app/empresa/vacantes/nueva/page.tsx", [0, company, vacancy, "", []], async (url, options) => { calls.push({ url, options }); return {}; });
   let next = nodes(h.tree(), node => node.type === "button" && node.props.children === "Siguiente")[0];
   await next.props.onClick();
@@ -114,7 +114,7 @@ test("new vacancy keeps company validation and structured submission without leg
   const call = calls.find(call => call.url === "/v1/company/vacancies");
   const payload = JSON.parse(call.options.body);
   assert.equal(payload.quantity, 2);
-  assert.equal(payload.package, "PERFILES_10");
+  assert.equal(payload.requested_candidates, 2);
   assert.equal(payload.skills, vacancy.skills);
   assert.equal(payload.salary, vacancy.salary);
   assert.equal(payload.salary_minimum, 950);
