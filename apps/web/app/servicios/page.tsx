@@ -2,6 +2,7 @@
 
 import {useEffect,useState} from "react";
 import {api} from "../../lib/api";
+import {ServiceContactInbox} from "../../components/ServiceContacts";
 import {LogoutButton} from "../../components/LogoutButton";
 
 export default function ServiciosPortal(){
@@ -19,5 +20,6 @@ export default function ServiciosPortal(){
         <a className="portalAction secondaryPortal" href="/candidato">Mi perfil de candidato</a>
       </div>
     </section>
+    <ServiceContactInbox/>
   </main>;
 }

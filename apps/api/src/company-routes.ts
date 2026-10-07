@@ -184,7 +184,7 @@ export async function companyRoutes(app: FastifyInstance) {
       const requestedCandidates = b.requested_candidates === undefined ? (historicalLimits[packageKey] ?? 1) : Number(b.requested_candidates);
       if (requestType === "VACANTE" && ((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100))
         return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES", field: "requested_candidates" });
-      const selectedPackage = requestType === "EVENTUAL" ? { limit: null, price: 3.99 } : { limit: requestedCandidates, price: requestedCandidates * 499 / 100 };
+      const selectedPackage = requestType === "EVENTUAL" ? { limit: null, price: 0 } : { limit: requestedCandidates, price: requestedCandidates * 499 / 100 };
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
         if (b[k] !== undefined && typeof b[k] !== "boolean")
           return reply
@@ -319,7 +319,7 @@ export async function companyRoutes(app: FastifyInstance) {
             packageKey,
             selectedPackage.limit,
             selectedPackage.price,
-            config.requestPaymentMode === "FREE"
+            requestType === "EVENTUAL" || config.requestPaymentMode === "FREE"
               ? "APROBADA"
               : "PENDIENTE_PAGO",
             structured.employment_type,

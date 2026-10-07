@@ -141,7 +141,7 @@ test("legacy package identifiers remain accepted; new formal vacancies use per-c
       const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
       assert.equal(saved.skills, legacyVacancy.skills);
       assert.equal(saved.package, eventual ? "EVENTUAL_399" : "PERFILES_10");
-      assert.equal(saved.package_price, eventual ? 3.99 : 49.9);
+      assert.equal(saved.package_price, eventual ? 0 : 49.9);
       assert.equal(saved.salary_minimum, null);
       assert.deepEqual(saved.structured_requirements, []);
       assert.equal(saved.occupation_code, null, "do not invent occupation codes from free text");
