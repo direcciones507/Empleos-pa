@@ -47,3 +47,5 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
    Zoom it on phone/tablet so only the Panama panorama is visible. */
 @media(max-width:1024px){.homeHeroBanner{height:clamp(220px,45vw,390px);background-size:165% auto;background-position:center 78%}}
 @media(max-width:600px){.homeHeroBanner{height:58vw;min-height:210px;background-size:190% auto;background-position:center 80%}}
+
+.returnButton{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:20px 0;padding:12px 20px;border:1px solid #ccd8e3;border-radius:13px;box-sizing:border-box;background:#fff;color:#12385c;font:inherit;font-weight:800;text-decoration:none;cursor:pointer;box-shadow:0 2px 8px rgba(15,35,60,.06)}.returnButton:hover{background:#edf7f5;border-color:#7bc6b4}.returnButton:focus-visible{outline:3px solid #087b68;outline-offset:3px}
