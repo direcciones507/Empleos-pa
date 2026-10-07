@@ -7,9 +7,9 @@ const cleanList=(v:any)=>Array.isArray(v)?v.filter((x:any)=>typeof x==="string")
 function cleanAnalysis(x:any){return {candidate_id:String(x?.candidate_id??""),summary:typeof x?.summary==="string"?x.summary.trim().slice(0,1200):"",strengths:cleanList(x?.strengths),gaps:cleanList(x?.gaps),considerations:cleanList(x?.considerations)};}
 
 export async function processFreeVacancy(vacancyCode:string,log:any){
-  if(config.requestPaymentMode!=="FREE")return {status:"SKIPPED_PAYMENT_MODE"};
-  const v=await db.query(`select vacancy_id,vacancy_code,position,work_location,skills,minimum_education,experience_requirement,schedule,status from vacancies where vacancy_code=$1`,[vacancyCode]);
-  if(!v.rowCount||v.rows[0].status!=="APROBADA")return {status:"SKIPPED_STATE"};
+  if((config.nodeEnv==="production"||config.requestPaymentMode!=="FREE"))return {status:"SKIPPED_PAYMENT_MODE"};
+  const v=await db.query(`select vacancy_id,vacancy_code,package_price,confirmations,position,work_location,skills,minimum_education,experience_requirement,schedule,status from vacancies where vacancy_code=$1`,[vacancyCode]);
+  if(!v.rowCount||Number(v.rows[0].package_price)>0||v.rows[0].confirmations?.candidate_purchase||v.rows[0].status!=="APROBADA")return {status:"SKIPPED_STATE"};
   const x=v.rows[0];
   const q=await db.query(`select candidate_id,candidate_code,primary_job_area,province,district,work_profile,skills,education,experience,availability_notes,
     jsonb_build_object('role',lower(translate(coalesce(primary_job_area,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))=lower(translate(coalesce($1,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')),'location',lower(translate(coalesce(work_locations,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(coalesce($2,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%','skills',coalesce((select array_agg(trim(s)) from unnest(string_to_array(coalesce($3,''),',')) s where trim(s)<>'' and lower(translate(coalesce(skills,''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')) like '%'||lower(translate(trim(s),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun'))||'%'),'{}'::text[]),'availability',(available_from is null or available_from<=current_date)) match_trace
@@ -48,7 +48,7 @@ export async function processFreeVacancy(vacancyCode:string,log:any){
 }
 
 export async function processWaitingFreeVacancies(log:any){
-  if(config.requestPaymentMode!=="FREE")return;
+  if((config.nodeEnv==="production"||config.requestPaymentMode!=="FREE"))return;
   const waiting=await db.query("select vacancy_code from vacancies where status='APROBADA' order by created_at asc limit 50");
   for(const row of waiting.rows){
     try{await processFreeVacancy(String(row.vacancy_code),log);}catch(error){log.error({err:error,vacancy_code:row.vacancy_code},"candidate-triggered free rematch failed");}
