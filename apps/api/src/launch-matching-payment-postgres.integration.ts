@@ -18,7 +18,7 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     const wrongProvider=await one("insert into users(email,normalized_email,password_hash,role) values('launch-incompatible@example.test','launch-incompatible@example.test','isolated','CANDIDATO') returning user_id id");
     await enableProfile(wrongProvider.id,'CANDIDATO');
     const negative=await one(`insert into candidate_profiles(user_id,candidate_code,full_name,province,district,work_locations,primary_job_area,skills,status,valid_until)
-      values($1,'CAN-INCOMPATIBLE','Private mismatch','Veraguas','Santiago','Santiago','Electricista','Excel','ACTIVO',current_date+45) returning candidate_id`,[wrongProvider.id]);
+      values($1,'CAN-INCOMPATIBLE','Private mismatch','Chiriquí','David','David','Electricista','Cableado','ACTIVO',current_date+45) returning candidate_id`,[wrongProvider.id]);
     const vacancy=(await f.call(f.company,'POST','/v1/company/vacancies',{position:'Asistente contable',quantity:1,work_location:'Santiago / Veraguas',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',schedule:'Diurno',skills:'Excel',main_functions:'Registrar cuentas',confirm_correct:true,confirm_terms:true,confirm_scope:true,package_price:0.01,total:0.01},201)).vacancy;
     const base=`/v1/company/vacancies/${vacancy.vacancy_code}`;
     const row=await one('select * from vacancies where vacancy_code=$1',[vacancy.vacancy_code]);assert.equal(row.status,'APROBADA');assert.equal(Number(row.package_price),0);
@@ -64,6 +64,7 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     assert.equal((await one("select count(*)::int n from vacancy_deliveries where vacancy_id=$1 and status='ENVIADA'",[row.vacancy_id])).n,1);
     assert.equal((await one("select count(*)::int n from vacancy_payments where vacancy_id=$1 and status='APROBADO'",[row.vacancy_id])).n,1);
     assert.equal((await one('select match_analysis from vacancy_delivery_candidates where candidate_id=$1',[cp.candidate_id])).match_analysis.summary,'Descripción conservada');
+    const retained=await f.call(f.company,'GET',base+'/delivery-analysis');assert.equal(retained.analyses[0].summary,'Descripción conservada');assert.deepEqual(retained.analyses[0].strengths,['Excel']);
     assert.equal((await f.call(f.company,'POST',base+'/candidates/accept',payload)).reused,true);
     assert.equal((await f.call(f.company,'POST',endpoint,{aliasYappy:'60000000'})).orderId,order.orderId);assert.equal(providerOrders,1);
     // Existing pending operations retain their original amount and cannot be repriced by selection.
