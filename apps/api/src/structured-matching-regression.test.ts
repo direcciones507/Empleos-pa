@@ -123,15 +123,15 @@ test("vacancy creation stores structured and legacy fields in the original trans
     assert.deepEqual(r.json(), { vacancy: { vacancy_code: "VAC-000001", status: "APROBADA" } });
     const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
     for (const [key, value] of Object.entries({ ...legacyVacancy, ...structured }))
-      if (!key.startsWith("confirm_")) assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
-    assert.equal(saved.package_candidate_limit, 10);
-    assert.equal(saved.package_price, 49.9);
+      if (!key.startsWith("confirm_") && key!=="package") assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
+    assert.equal(saved.package_candidate_limit, null);
+    assert.equal(saved.package_price, 0);
     assert.equal(saved.consent_version, "2026-09-25-v1");
     assert.ok(h.calls.some(call => call.sql.startsWith("insert into occupation_catalog")));
     assert.equal(h.calls.at(-1)!.sql, "commit");
   } finally { await h.app.close(); }
 });
-test("legacy package identifiers remain accepted; new formal vacancies use per-candidate pricing", async () => {
+test("legacy package input remains accepted; new formal vacancies defer payment until selection", async () => {
   for (const eventual of [false, true]) {
     const h = await harness("company");
     try {
@@ -140,8 +140,8 @@ test("legacy package identifiers remain accepted; new formal vacancies use per-c
       assert.equal(r.statusCode, 201);
       const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
       assert.equal(saved.skills, legacyVacancy.skills);
-      assert.equal(saved.package, eventual ? "EVENTUAL_399" : "PERFILES_10");
-      assert.equal(saved.package_price, eventual ? 0 : 49.9);
+      assert.equal(saved.package, eventual ? "EVENTUAL_399" : null);
+      assert.equal(saved.package_price, 0);
       assert.equal(saved.salary_minimum, null);
       assert.deepEqual(saved.structured_requirements, []);
       assert.equal(saved.occupation_code, null, "do not invent occupation codes from free text");
@@ -228,13 +228,13 @@ test("0031 remains additive and 0032 does not turn ambiguous legacy text into ex
     assert.ok(schema.includes(`add column if not exists ${column}`));
 });
 
-test("formal vacancy price ignores client totals and persists independently requested count", async () => {
+test("formal vacancy creation ignores client totals and defers paid quantity until selection", async () => {
   const h = await harness("company");
   try {
     const r = await h.app.inject({ method: "POST", url: "/v1/company/vacancies", payload: { ...legacyVacancy, requested_candidates: 3, package_price: 0.01, total: 0.01, quantity: 2 } });
     assert.equal(r.statusCode, 201);
     const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
-    assert.equal(saved.quantity, 2); assert.equal(saved.package_candidate_limit, 3); assert.equal(saved.package_price, 14.97);
+    assert.equal(saved.quantity, 2); assert.equal(saved.package_candidate_limit, null); assert.equal(saved.package_price, 0);
   } finally { await h.app.close(); }
 });
 test("invalid requested candidate counts never enter the vacancy transaction", async () => {

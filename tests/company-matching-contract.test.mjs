@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const routes=fs.readFileSync(new URL("../apps/api/src/company-matching-routes.ts",import.meta.url),"utf8");
+const matching=fs.readFileSync(new URL("../apps/api/src/candidate-match-query.ts",import.meta.url),"utf8");
 const ai=fs.readFileSync(new URL("../apps/api/src/ai-analysis.ts",import.meta.url),"utf8");
 
 test("company matching is restricted to EMPRESA and owned vacancies",()=>{
@@ -11,8 +12,8 @@ test("company matching is restricted to EMPRESA and owned vacancies",()=>{
 });
 
 test("company matching only considers active non-expired candidates",()=>{
-  assert.match(routes,/status='ACTIVO'/);
-  assert.match(routes,/valid_until>=current_date/);
+  assert.match(matching,/status='ACTIVO'/);
+  assert.match(matching,/valid_until>=current_date/);
 });
 
 test("provider key remains server side",()=>{
@@ -31,8 +32,9 @@ test("acceptance enforces candidate limits and price confirmation",()=>{
   assert.match(routes,/CANDIDATE_SET_CHANGED/);
 });
 
-test("matching quote and vacancy UI use the approved 4.99 unit",()=>{
- assert.match(routes,/CANDIDATE_UNIT_PRICE_CENTS=499/);
+test("matching quote and vacancy UI use the approved 2.50 promotional unit",()=>{
+ const pricing=fs.readFileSync(new URL("../apps/api/src/candidate-pricing.ts",import.meta.url),"utf8");
+ assert.match(pricing,/unit_price: 2.50/);
  const page=fs.readFileSync(new URL("../apps/web/app/empresa/vacantes/[code]/page.tsx",import.meta.url),"utf8");
- assert.match(page,/UNIT_PRICE=4.99/);
+ assert.match(page,/UNIT_PRICE=2.50/);
 });

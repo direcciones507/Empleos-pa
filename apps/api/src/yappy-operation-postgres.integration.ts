@@ -59,7 +59,7 @@ export async function yappyOperationIntegration(app:FastifyInstance,f:any){
     assert.equal((await one('select status from vacancies where vacancy_id=$1',[formal.vacancy_id])).status,'APROBADA');
     assert.equal((await one("select count(*)::int n from vacancy_payments where vacancy_id=$1 and status='APROBADO'",[formal.vacancy_id])).n,1);
     assert.equal((await f.call(f.company,'POST',formalEndpoint,payload)).orderId,vacancyOrder.orderId);assert.equal(providerOrders,2);
-    const cp=await one("insert into candidate_profiles(user_id,candidate_code,full_name,phone,status,valid_until,primary_job_area,work_profile,skills) values($1,'CAN-YAPPY-FIXTURE','Provider candidate','60000000','ACTIVO',current_date+45,'Asistente','Asistente','Office') returning candidate_id",[f.provider.id]);
+    const cp=await one("insert into candidate_profiles(user_id,candidate_code,full_name,phone,status,valid_until,primary_job_area,work_profile,skills,province,district,work_locations) values($1,'CAN-YAPPY-FIXTURE','Provider candidate','60000000','ACTIVO',current_date+45,'Asistente','Asistente','Office','Veraguas','Santiago','Santiago') returning candidate_id",[f.provider.id]);
     const delivered=await f.call(f.company,'POST',`/v1/company/vacancies/${formal.vacancy_code}/candidates/accept`,{candidate_ids:[cp.candidate_id],confirm_price:true});
     assert.equal(delivered.status,'ENTREGADA');assert.equal(delivered.payment_required,false);
     const preserved=await one('select package_candidate_limit,package_price from vacancies where vacancy_id=$1',[formal.vacancy_id]);assert.equal(preserved.package_candidate_limit,3);assert.equal(preserved.package_price,'14.97');
