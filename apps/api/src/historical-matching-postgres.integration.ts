@@ -37,11 +37,11 @@ export async function historicalMatchingIntegration(app:FastifyInstance,f:any){
     const path=`/v1/company/vacancies/${v.vacancy_code}/matches`;
     const includes=(r:any,id:string)=>r.analyses.some((a:any)=>a.candidate_id===id);
     let matches=await call(f.company,'GET',path);
-    for(const cp of [role,location,skill,structured,area,legacyZone])assert.ok(includes(matches,cp.candidate_id));
-    assert.ok(!includes(matches,negative.candidate_id));
+    for(const cp of [role,skill,structured,area])assert.ok(includes(matches,cp.candidate_id));
+    for(const cp of [negative,location,legacyZone])assert.ok(!includes(matches,cp.candidate_id));
     const trace=(cp:any)=>matches.analyses.find((a:any)=>a.candidate_id===cp.candidate_id).match_trace;
-    assert.deepEqual(trace(role),{role:true,location:false,skills:false,availability:false});
-    assert.equal(trace(location).location,true);assert.equal(trace(location).role,false);
+    assert.deepEqual(trace(role),{role:true,location:false,skills:false,experience:false,availability:false});
+
     assert.equal(trace(skill).skills,true);assert.equal(trace(skill).role,false);assert.equal(trace(skill).location,false);
     assert.equal(trace(structured).skills,true);
     // Legacy skill evidence still works alongside nonmatching structured fields.
@@ -51,6 +51,17 @@ export async function historicalMatchingIntegration(app:FastifyInstance,f:any){
     // occupation/location/skill evidence still excludes the unrelated profile.
     const onlyStructured=await vacancy({position:'Contador',province:'Panamá',district:'Chepo',work_location:'Chepo',skills:'SAP',structured_requirements:[{type:'SKILL',value:'Excel'}]});
     assert.ok(includes(await call(f.company,'GET',`/v1/company/vacancies/${onlyStructured.vacancy_code}/matches`),structured.candidate_id));
+    // Location, availability, generic words and a SERVICE trade cannot stand
+    // in for labor evidence in the CANDIDATO profile.
+    const teacher=await makeCandidate('surgical-teacher',{primary_job_area:'Maestro',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',work_locations:'Santiago',available_from:'2020-01-01',skills:'Proactivo, responsable, trabajador, dinámico'});
+    const experienced=await makeCandidate('surgical-sales-experience',{primary_job_area:'Maestro',has_experience:true,experience:[{position:'Asesor comercial',duties:'Ventas de productos y seguimiento a clientes'}]});
+    await call(teacher,'PUT','/v1/service-provider/profile',{full_name:'Separate service',identity_document_type:'CEDULA',identity_document_number:'fixture',service_trade:'Vendedor',service_province:'Veraguas',service_district:'Santiago',service_corregimiento:'Santiago'});
+    const sales=await vacancy({position:'Vendedor',skills:'Proactivo, responsable, trabajador, dinámico',structured_skills:[],structured_requirements:[]});
+    const salesMatches=await call(f.company,'GET',`/v1/company/vacancies/${sales.vacancy_code}/matches`);
+    assert.ok(!includes(salesMatches,teacher.candidate_id));
+    assert.ok(includes(salesMatches,experienced.candidate_id));
+    assert.equal(salesMatches.analyses.find((a:any)=>a.candidate_id===experienced.candidate_id).match_trace.experience,true);
+    matches=await call(f.company,'GET',path);
     const before=matches.analyses.map((a:any)=>a.candidate_id).sort();
     config.deepSeekApiKey='isolated-description';globalThis.fetch=async()=>{throw Error('simulated DeepSeek outage');};
     matches=await call(f.company,'GET',path);assert.deepEqual(matches.analyses.map((a:any)=>a.candidate_id).sort(),before);

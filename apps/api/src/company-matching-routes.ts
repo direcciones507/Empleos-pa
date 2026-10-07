@@ -16,6 +16,13 @@ export async function companyMatchingRoutes(app:FastifyInstance){
     const v=await db.query('select v.* from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2',[code,req.authUser!.user_id]);
     if(!v.rowCount)return reply.code(404).send({error:'VACANCY_NOT_FOUND'});
     const x=v.rows[0];
+    if(x.request_type==='VACANTE'&&x.status==='PENDIENTE_PAGO'&&x.confirmations?.candidate_purchase){
+      const snapshot=await db.query(`select dc.candidate_id,dc.primary_job_area,dc.province,dc.district,dc.skills,dc.match_analysis
+        from vacancy_deliveries d join vacancy_delivery_candidates dc on dc.delivery_id=d.delivery_id
+        where d.vacancy_id=$1 and d.status='LISTA' order by dc.candidate_id`,[x.vacancy_id]);
+      const items=snapshot.rows.map((r:any)=>({candidate_id:r.candidate_id,...(r.match_analysis??{summary:'Selección conservada pendiente de pago.',strengths:[],gaps:[],considerations:[]}),facts:{job_area:r.primary_job_area,province:r.province,district:r.district,skills:r.skills}}));
+      return {vacancy:{code:x.vacancy_code,position:x.position},count:items.length,pricing,quote:{quantity:x.confirmations.candidate_purchase.quantity,total:x.confirmations.candidate_purchase.total},ai_available:false,selection_locked:true,analyses:items};
+    }
     if(x.request_type==='EVENTUAL'||!['APROBADA','EN_BUSQUEDA'].includes(x.status))return reply.code(409).send({error:'VACANCY_NOT_READY_FOR_MATCHING'});
     const q=await compatibleCandidates(db,x.vacancy_id);
     let analyses:any[]=[],aiAvailable=false;
@@ -24,7 +31,7 @@ export async function companyMatchingRoutes(app:FastifyInstance){
     }catch{req.log.warn('Optional descriptive analysis unavailable');}
     const descriptions=new Map(analyses.map(a=>[a.candidate_id,a]));
     // Membership never depends on AI availability or the IDs it returns.
-    const items=q.rows.map((r:any)=>({candidate_id:r.candidate_id,...(descriptions.get(r.candidate_id)??{summary:'Perfil encontrado por coincidencia de puesto, ubicación o habilidades declaradas; disponibilidad y requisitos por verificar.',strengths:[],gaps:[],considerations:[]}),
+    const items=q.rows.map((r:any)=>({candidate_id:r.candidate_id,...(descriptions.get(r.candidate_id)??{summary:'Perfil encontrado por evidencia laboral de puesto, experiencia o habilidades pertinentes; disponibilidad y requisitos por verificar.',strengths:[],gaps:[],considerations:[]}),
       facts:{job_area:r.primary_job_area,province:r.province,district:r.district,skills:r.skills||r.structured_skills?.map((s:any)=>s.name??s.value).filter(Boolean).join(', ')},match_trace:r.match_trace}));
     return {vacancy:{code:x.vacancy_code,position:x.position},count:items.length,pricing,quote:items.length?candidateQuote(items.length):{quantity:0,total:0},ai_available:aiAvailable,analyses:items};
   });

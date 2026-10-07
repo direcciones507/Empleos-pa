@@ -152,7 +152,7 @@ export async function companyRoutes(app: FastifyInstance) {
       const x = await company(req.authUser!.user_id);
       if (!x) return { items: [] };
       const q = await db.query(
-        "select vacancy_code,status,request_type,position,quantity,work_location,package,package_candidate_limit,package_price,created_at from vacancies where company_id=$1 order by created_at desc",
+        "select vacancy_code,status,request_type,position,quantity,work_location,package,package_candidate_limit,package_price,confirmations ? 'candidate_purchase' as has_candidate_selection,created_at from vacancies where company_id=$1 order by created_at desc",
         [x.company_id],
       );
       return { items: q.rows };

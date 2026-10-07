@@ -35,6 +35,20 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     await f.call(f.company,'POST',base+'/candidates/accept',{candidate_ids:[negative.candidate_id],confirm_price:true},409);
     const payload={candidate_ids:[cp.candidate_id,cp.candidate_id],confirm_price:true,amount:0.01,total:0.01,unit_price:0.01,discount_percent:100,analyses:[{candidate_id:cp.candidate_id,summary:'Descripción conservada',strengths:['Excel']}]};
     const selected=await f.call(f.company,'POST',base+'/candidates/accept',payload);assert.equal(selected.status,'PENDIENTE_PAGO');assert.equal(selected.payment_required,true);assert.deepEqual(selected.quote,{quantity:1,total:2.50});
+    // Reopening pending payment returns only the persisted public selection,
+    // even when live profile data changes. No contacts and no fresh matching/AI.
+    await q("update candidate_profiles set primary_job_area='Changed after selection',skills='Changed' where candidate_id=$1",[cp.candidate_id]);
+    for(let i=0;i<2;i++){
+      const preview=await f.call(f.company,'GET',base+'/matches');
+      assert.equal(preview.selection_locked,true);assert.equal(preview.count,1);
+      assert.equal(preview.analyses[0].candidate_id,cp.candidate_id);
+      assert.equal(preview.analyses[0].summary,'Descripción conservada');
+      assert.equal(preview.analyses[0].facts.job_area,'  ASISTÉNTE   CONTABLE  ');
+      assert.ok(!JSON.stringify(preview).includes('Private launch name'));
+      assert.ok(!JSON.stringify(preview).includes('60000000'));
+    }
+    assert.equal((await one('select status from vacancies where vacancy_id=$1',[row.vacancy_id])).status,'PENDIENTE_PAGO');
+    await q("update candidate_profiles set primary_job_area='  ASISTÉNTE   CONTABLE  ',skills='' where candidate_id=$1",[cp.candidate_id]);
     const repeated=await f.call(f.company,'POST',base+'/candidates/accept',payload);assert.equal(repeated.reused,true);
     assert.equal((await one('select count(*)::int n from vacancy_deliveries where vacancy_id=$1',[row.vacancy_id])).n,1);
     const frozen=await one('select * from vacancies where vacancy_id=$1',[row.vacancy_id]);assert.equal(Number(frozen.package_price),2.50);assert.equal(frozen.package_candidate_limit,1);
@@ -56,6 +70,8 @@ export async function launchMatchingPaymentIntegration(app:FastifyInstance,f:any
     const endpoint=base+'/payments/yappy';
     const orders=await Promise.all([0,1].map(()=>app.inject({method:'POST',url:endpoint,headers:{cookie:`empleos_session=${f.company.token}`},payload:{aliasYappy:'60000000',amount:0.01}})));
     assert.ok(orders.every((r:any)=>[200,409].includes(r.statusCode)));const order=orders.find((r:any)=>r.statusCode===200)!.json();assert.equal(order.amount,'2.50');assert.equal(providerOrders,1);
+    assert.equal((await one('select status from vacancies where vacancy_id=$1',[row.vacancy_id])).status,'PENDIENTE_PAGO');
+    await f.call(f.company,'GET',base+'/matches');
     const ipn=async(valid=true)=>app.inject({method:'GET',url:'/v1/payments/yappy/ipn?'+new URLSearchParams({orderId:order.orderId,status:'E',domain:config.webUrl,hash:valid?crypto.createHmac('sha256','launch-signature').update(order.orderId+'E'+config.webUrl).digest('hex'):'invalid'})});
     assert.equal((await ipn(false)).statusCode,401);await f.call(f.company,'GET',base+'/delivery',undefined,404);
     assert.equal((await ipn()).statusCode,200);assert.equal((await ipn()).statusCode,200);
