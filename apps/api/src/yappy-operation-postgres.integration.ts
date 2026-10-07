@@ -61,6 +61,9 @@ export async function yappyOperationIntegration(app:FastifyInstance,f:any){
     assert.equal(delivered.status,'ENTREGADA');assert.equal(delivered.payment_required,false);
     const preserved=await one('select package_candidate_limit,package_price from vacancies where vacancy_id=$1',[formal.vacancy_id]);assert.equal(preserved.package_candidate_limit,3);assert.equal(preserved.package_price,'14.97');
     assert.equal((await one("select count(*)::int n from yappy_payment_orders where vacancy_id=$1",[formal.vacancy_id])).n,1);assert.equal(providerOrders,2);
+    const old=await one("insert into vacancies(company_id,request_type,position,work_location,schedule,skills,main_functions,package,package_candidate_limit,package_price,status) values($1,'VACANTE','Historical','Santiago','Diurno','Office','Asistir','PERFILES_5',5,8.99,'APROBADA') returning vacancy_id,vacancy_code",[companyId]);
+    await q("insert into yappy_payment_orders(yappy_order_id,user_id,vacancy_id,purpose,amount,status,operation_key) values('LEGACYSETTLED',$1,$2,'VACANCY',8.99,'EXECUTED',$3)",[f.company.id,old.vacancy_id,'VACANCY:'+old.vacancy_id]);
+    const historic=await f.call(f.company,'POST',`/v1/company/vacancies/${old.vacancy_code}/payments/yappy`,payload);assert.equal(historic.orderId,'LEGACYSETTLED');assert.equal(historic.status,'EXECUTED');assert.equal(providerOrders,2);
     assert.deepEqual(totals,['1.89','14.97']);
     const registration=await app.inject({method:'POST',url:'/v1/auth/register',payload:{email:'auth-roundtrip@example.test',password:'IsolatedFixture123',role:'CANDIDATO'}});assert.equal(registration.statusCode,200,registration.body);assert.deepEqual(registration.json().user.profiles,['CANDIDATO']);
     const session=String(registration.headers['set-cookie']).split(';')[0];

@@ -26,7 +26,8 @@ async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,c
   const existing=await db.query("select * from yappy_payment_orders where operation_key=$1 and user_id=$2",[key,req.authUser!.user_id]);
   const row=existing.rows[0];if(!row)return reply.code(409).send({error:"PAYMENT_OPERATION_CONFLICT"});
   if(Number(row.amount)!==amount)return reply.code(409).send({error:"PAYMENT_AMOUNT_CHANGED"});
-  if(row.provider_response&&["PENDING","EXECUTED"].includes(row.status))return {...row.provider_response,status:row.status,reused:true};
+  if(row.status==="EXECUTED")return {orderId:row.yappy_order_id,amount:money(Number(row.amount)),status:row.status,reused:true};
+  if(row.provider_response&&row.status==="PENDING")return {...row.provider_response,status:row.status,reused:true};
   return reply.code(409).send({error:row.status==="PENDING"?"PAYMENT_INITIALIZING":"PAYMENT_REQUIRES_REVIEW",orderId:row.yappy_order_id});
  }
  try{
