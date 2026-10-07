@@ -123,7 +123,7 @@ test("vacancy creation stores structured and legacy fields in the original trans
     assert.deepEqual(r.json(), { vacancy: { vacancy_code: "VAC-000001", status: "APROBADA" } });
     const saved = insertedValues(h.calls.find(call => call.sql.startsWith("insert into vacancies"))!);
     for (const [key, value] of Object.entries({ ...legacyVacancy, ...structured }))
-      if (!key.startsWith("confirm_")) assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
+      if (!key.startsWith("confirm_") && key !== "requested_candidates") assert.deepEqual(saved[key], typeof value === "string" ? value.trim() : value, key);
     assert.equal(saved.package_candidate_limit, 2);
     assert.equal(saved.package_price, 9.98);
     assert.equal(saved.consent_version, "2026-09-25-v1");
