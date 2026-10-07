@@ -16,8 +16,7 @@ export default function ServiciosPortal(){
       <p>{profile?"Administra la información con la que ofrecerás tus servicios, oficio o actividad profesional.":"Registra tus datos de servicio para que Empleos.pa pueda conectarte con solicitudes compatibles."}</p>
       <div className="portalActions">
         <a className="portalAction" href="/servicios/ofrecer">{profile?"Actualizar mi perfil de servicios":"Crear mi perfil de servicios"}</a>
-        <a className="portalAction secondaryPortal" href="/candidato">Ir al portal de candidato</a>
-        <a className="portalAction secondaryPortal" href="/empresa">Ir al portal de empresa</a>
+        <a className="portalAction secondaryPortal" href="/candidato">Mi perfil de candidato</a>
       </div>
     </section>
   </main>;
