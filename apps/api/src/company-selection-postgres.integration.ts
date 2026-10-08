@@ -49,11 +49,21 @@ export async function companySelectionIntegration(app:FastifyInstance,f:any){
   await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);await f.call(f.company,'POST',v.base+'/cancel',{confirm:true},409);await f.call(f.company,'DELETE',v.base,{confirm:true},409);
   assert.equal((await f.call(f.company,'GET',v.base+'/matches')).count,2);await f.call(f.company,'GET',v.base+'/delivery',undefined,404);
   const ipn=async(status:string)=>app.inject({method:'GET',url:'/v1/payments/yappy/ipn?'+new URLSearchParams({orderId:order.orderId,status,domain:config.webUrl,hash:crypto.createHmac('sha256','pr91-signature').update(order.orderId+status+config.webUrl).digest('hex')})});
+  assert.equal((await ipn('R')).statusCode,200);await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);
   for(const status of ['E','E','R','C','X'])assert.equal((await ipn(status)).statusCode,200);
   const delivery=await f.call(f.company,'GET',v.base+'/delivery');const snapshot=await q('select dc.candidate_id from vacancy_delivery_candidates dc join vacancy_deliveries d on d.delivery_id=dc.delivery_id where d.vacancy_id=$1',[v.vacancy_id]);assert.deepEqual(new Set(snapshot.rows.map((a:any)=>a.candidate_id)),new Set(picked));assert.equal(delivery.candidates.length,2);assert.ok(JSON.stringify(delivery).includes('Private PR91 name'));
   await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);await f.call(f.company,'POST',v.base+'/candidates/accept',{candidate_ids:[ids.find(x=>!picked.includes(x))],confirm_price:true},409);
   assert.equal((await f.call(f.company,'POST',v.base+'/payments/yappy',{aliasYappy:'60000000'})).orderId,order.orderId);assert.equal(providerCalls,1);
   assert.equal((await one("select count(*)::int n from vacancy_deliveries where vacancy_id=$1 and status='ENVIADA'",[v.vacancy_id])).n,1);
+  for(let i=0;i<3;i++){
+   const race=await fixture(5);await f.call(f.company,'POST',race.base+'/candidates/accept',{candidate_ids:ids.slice(0,2),confirm_price:true});
+   const [reset,payment]=await Promise.all([
+    app.inject({method:'POST',url:race.base+'/matches/refresh',headers:{cookie:`empleos_session=${f.company.token}`},payload:{}}),
+    app.inject({method:'POST',url:race.base+'/payments/yappy',headers:{cookie:`empleos_session=${f.company.token}`},payload:{aliasYappy:'60000000'}})
+   ]);
+   assert.ok((reset.statusCode===200&&payment.statusCode===409)||(reset.statusCode===409&&payment.statusCode===200),`refresh/payment race: ${reset.body} ${payment.body}`);
+   const orders=await one('select count(*)::int n from yappy_payment_orders where vacancy_id=$1',[race.vacancy_id]);assert.equal(orders.n,payment.statusCode===200?1:0);
+  }
   const safe=await fixture(5);await f.call(f.company,'POST',safe.base+'/cancel',{},400);await f.call(f.other,'POST',safe.base+'/cancel',{confirm:true},404);await f.call(f.company,'POST',safe.base+'/cancel',{confirm:true});await f.call(f.company,'GET',safe.base+'/matches',undefined,409);await f.call(f.company,'DELETE',safe.base,{confirm:true});
   // Separate provider profiles and acceptance flow retain $1.89 per connection.
   const providers=(await q('select user_id from candidate_profiles where candidate_id=any($1::uuid[]) order by candidate_id',[ids])).rows.map((r:any)=>r.user_id);

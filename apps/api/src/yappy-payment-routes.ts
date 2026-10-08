@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import {db} from "./db.js";
 import {requireRoles} from "./rbac.js";
 import {config} from "./config.js";
+import {requestedProfileLimit} from './company-selection-policy.js';
 import {candidateQuote,PROMOTION_VERSION} from "./candidate-pricing.js";
 import {sendPreparedCandidateDelivery} from "./paid-candidate-delivery.js";
 
@@ -75,7 +76,7 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
  app.post("/v1/company/payments/yappy/test",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>createProviderOrder(req,reply,{amount:0.01,purpose:"TEST"}));
  app.post("/v1/company/vacancies/:code/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
   const code=String(req.params.code??"").trim();if(!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
-  const q=await db.query("select v.vacancy_id,v.status,v.request_type,v.package_price,v.confirmations from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2",[code,req.authUser!.user_id]);
+  const q=await db.query("select v.vacancy_id,v.status,v.request_type,v.package_price,v.package_candidate_limit,v.confirmations from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2",[code,req.authUser!.user_id]);
   if(!q.rowCount)return reply.code(404).send({error:"VACANCY_NOT_FOUND"});
   if(q.rows[0].request_type!=="VACANTE")return reply.code(409).send({error:"SERVICE_CONNECTION_PAYMENT_REQUIRED"});
   const prior=await db.query("select yappy_order_id from yappy_payment_orders where operation_key=$1 and user_id=$2 and status='EXECUTED'",["VACANCY:"+q.rows[0].vacancy_id,req.authUser!.user_id]);
@@ -83,7 +84,7 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
   const purchase=q.rows[0].confirmations?.candidate_purchase;
   let amount=Number(q.rows[0].package_price);
   if(purchase?.version===PROMOTION_VERSION){
-   if(!Array.isArray(purchase.candidate_ids)||new Set(purchase.candidate_ids).size!==purchase.quantity||purchase.candidate_ids.length!==purchase.quantity||!Number.isInteger(purchase.quantity)||purchase.quantity<1||purchase.quantity>15)return reply.code(409).send({error:"PAYMENT_SELECTION_INVALID"});
+   if(!Array.isArray(purchase.candidate_ids)||new Set(purchase.candidate_ids).size!==purchase.quantity||purchase.candidate_ids.length!==purchase.quantity||!Number.isInteger(purchase.quantity)||purchase.quantity<1||purchase.quantity>requestedProfileLimit(q.rows[0]))return reply.code(409).send({error:"PAYMENT_SELECTION_INVALID"});
    const total=candidateQuote(purchase.quantity).total;
    if(total!==amount||total!==purchase.total)return reply.code(409).send({error:"PAYMENT_AMOUNT_CHANGED"});
    amount=total;
@@ -115,7 +116,9 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
    if(binding.rows[0]?.vacancy_id)await c.query('select vacancy_id from vacancies where vacancy_id=$1 for update',[binding.rows[0].vacancy_id]);
    const q=await c.query("select * from yappy_payment_orders where yappy_order_id=$1 for update",[orderId]);if(!q.rowCount){await c.query("rollback");return reply.code(404).send({success:false});}
    const order=q.rows[0];
-   if(order.status==="PENDING"){
+   // A valid late execution settles the original immutable selection, even
+   // after an earlier rejection/expiry. Refresh never replaces that snapshot.
+   if(order.status==="PENDING"||(next==="EXECUTED"&&order.status!=="EXECUTED")){
     if(next==="EXECUTED"&&order.purpose==="SERVICE_CONTACT"){
      const contact=await c.query("select r.*,co.owner_user_id from service_contact_requests r join vacancies v on v.vacancy_id=r.vacancy_id join companies co on co.company_id=v.company_id where r.contact_request_id=$1 for update of r,v",[order.contact_request_id]);
      const r=contact.rows[0];
