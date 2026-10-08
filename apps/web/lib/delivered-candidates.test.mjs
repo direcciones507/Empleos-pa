@@ -59,18 +59,13 @@ test("analysis still loading or failed is never described as missing historical 
   for(const state of ["loading","error"]){const html=harness(()=>Promise.resolve({}),ready([],state)).html();assert.ok(html.includes(state==="loading"?"Cargando análisis conservado…":"No se pudo cargar el análisis conservado."));assert.ok(!html.includes("no conserva un análisis descriptivo histórico"))}
 });
 
-test("delivered analysis keeps three horizontal columns including horizontally scrollable mobile",()=>{
+test("candidate analysis uses horizontal label-and-content rows at every screen width",()=>{
   const tree=harness(()=>Promise.resolve({}),ready()).tree();const css=nodes(tree,n=>n.type==="style")[0].props.children;
   assert.equal(tree.props.className,"portal matchingView");
-  assert.match(css,/\.portal\.matchingView>section\{max-width:1600px;box-sizing:border-box\}/);
-  assert.match(css,/\.candidateCompare\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(360px,1fr\)\)/);
-  assert.match(css,/\.deliveredCandidateCard\{display:block;min-width:0/);
-  assert.match(css,/\.deliveredAnalysis\{width:100%;min-width:0/);
-  assert.match(css,/\.deliveredGrid\{display:grid;grid-template-columns:minmax\(0,1\.35fr\) minmax\(0,1fr\) minmax\(0,1fr\)/);
-  const tabletRules = css.slice(css.indexOf("@media(max-width:900px)"), css.indexOf("@media(max-width:620px)"));
-  assert.ok(tabletRules.includes(".candidateGrid{grid-template-columns:1fr 1fr}"));
-  assert.ok(!tabletRules.includes(".deliveredGrid"));
-  assert.match(css,/@media\(max-width:620px\).*?\.candidateGrid,\.deliveredGrid\{grid-template-columns:repeat\(3,minmax\(240px,1fr\)\);overflow-x:auto/);
+  assert.match(css,/\\.candidateGrid>div\\{display:grid;grid-template-columns:minmax\\(130px,28%\\) minmax\\(0,1fr\\)/);
+  assert.match(css,/\\.deliveredGrid>div\\{display:grid;grid-template-columns:minmax\\(130px,28%\\) minmax\\(0,1fr\\)/);
+  assert.match(css,/@media\\(max-width:620px\\).*?\\.candidateGrid>div,\\.deliveredGrid>div\\{grid-template-columns:minmax\\(105px,34%\\) minmax\\(0,1fr\\)/);
+  assert.ok(!css.includes("overflow-x:auto"));
 });
 
 test("service matching reuses horizontal cards with mobile stacking and keeps the contact actions",()=>{
