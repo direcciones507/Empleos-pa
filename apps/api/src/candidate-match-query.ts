@@ -41,5 +41,5 @@ export async function compatibleCandidates(queryable: any, vacancyId: string, id
     jsonb_build_object('role',${occupation},'location',${location},'skills',${skills},'experience',${experience},'availability',(cp.available_from is null or cp.available_from<=current_date)) match_trace
     from vacancies v cross join candidate_profiles cp join users u on u.user_id=cp.user_id
     where v.vacancy_id=$1 and ${candidateCompatibility} ${ids ? 'and cp.candidate_id=any($2::uuid[])' : ''}
-    order by cp.updated_at desc,cp.candidate_id limit 40 ${lock ? 'for update of cp' : ''}`, ids ? [vacancyId,ids] : [vacancyId]);
+    order by cp.updated_at desc,cp.candidate_id limit (select least(15,greatest(1,coalesce((bounds.confirmations->>'requested_candidates')::int,bounds.package_candidate_limit,15))) from vacancies bounds where bounds.vacancy_id=$1) ${lock ? 'for update of cp' : ''}`, ids ? [vacancyId,ids] : [vacancyId]);
 }

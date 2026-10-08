@@ -6,6 +6,7 @@ import {config} from './config.js';
 import {compatibleCandidates} from './candidate-match-query.js';
 import {candidatePricing as pricing,candidateQuote,PROMOTION_VERSION} from './candidate-pricing.js';
 import {hasApprovedVacancyPayment,sendPreparedCandidateDelivery} from './paid-candidate-delivery.js';
+import {selectionObligation,requestedProfileLimit} from './company-selection-policy.js';
 const vacancyCode=/^VAC-\d{6}$/;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const cleanList=(v:any)=>Array.isArray(v)?v.filter((x:any)=>typeof x==='string').map((x:string)=>x.trim().slice(0,500)).filter(Boolean).slice(0,10):[];
@@ -35,11 +36,34 @@ export async function companyMatchingRoutes(app:FastifyInstance){
       facts:{job_area:r.primary_job_area,province:r.province,district:r.district,skills:r.skills||r.structured_skills?.map((s:any)=>s.name??s.value).filter(Boolean).join(', ')},match_trace:r.match_trace}));
     return {vacancy:{code:x.vacancy_code,position:x.position},count:items.length,pricing,quote:items.length?candidateQuote(items.length):{quantity:0,total:0},ai_available:aiAvailable,analyses:items};
   });
+  app.post('/v1/company/vacancies/:code/matches/refresh',{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
+    const code=String(req.params.code??'');if(!vacancyCode.test(code))return reply.code(400).send({error:'INVALID_VACANCY_CODE'});
+    const c=await db.connect();try{
+      await c.query('begin');
+      const own=await c.query('select v.* from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_code=$1 and co.owner_user_id=$2 for update of v',[code,req.authUser!.user_id]);
+      const v=own.rows[0];if(!v){await c.query('rollback');return reply.code(404).send({error:'VACANCY_NOT_FOUND'});}
+      if(v.request_type!=='VACANTE'||!['APROBADA','EN_BUSQUEDA','PENDIENTE_PAGO'].includes(v.status)|| (v.status==='PENDIENTE_PAGO'&&!v.confirmations?.candidate_purchase)){
+        await c.query('rollback');return reply.code(409).send({error:'SEARCH_NOT_ALLOWED'});
+      }
+      if(await selectionObligation(c,v.vacancy_id)){
+        await c.query('rollback');return reply.code(409).send({error:'PAYMENT_OPERATION_REQUIRES_REVIEW',message:'La operación de pago debe resolverse antes de cambiar la selección. Se conserva la selección original.'});
+      }
+      const selected=v.confirmations?.candidate_purchase?.candidate_ids??[];
+      // Only an uncharged prepared snapshot is discarded. External operations,
+      // paid deliveries and audit records are never removed by this endpoint.
+      if(v.confirmations?.candidate_purchase){
+        await c.query("delete from vacancy_deliveries where vacancy_id=$1 and status='LISTA'",[v.vacancy_id]);
+        await c.query('delete from vacancy_candidates where vacancy_id=$1',[v.vacancy_id]);
+        await c.query("update vacancies set confirmations=confirmations-'candidate_purchase',package_candidate_limit=null,package_price=0,status='APROBADA',updated_at=now() where vacancy_id=$1",[v.vacancy_id]);
+      }
+      await c.query('commit');return {ok:true,selected_candidate_ids:selected};
+    }catch(e){await c.query('rollback').catch(()=>{});throw e;}finally{c.release();}
+  });
   app.post('/v1/company/vacancies/:code/candidates/accept',{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
     const code=String(req.params.code??'').trim();if(!vacancyCode.test(code))return reply.code(400).send({error:'INVALID_VACANCY_CODE'});
     const ids=Array.isArray(req.body?.candidate_ids)?req.body.candidate_ids.map((x:any)=>String(x).trim()):[];
     if(!ids.length)return reply.code(400).send({error:'CANDIDATES_REQUIRED'});
-    const unique=[...new Set<string>(ids)];if(unique.length>40)return reply.code(400).send({error:'TOO_MANY_CANDIDATES'});
+    const unique=[...new Set<string>(ids)];if(unique.length>15)return reply.code(400).send({error:'TOO_MANY_CANDIDATES'});
     if(unique.some(id=>!uuid.test(id)))return reply.code(400).send({error:'INVALID_CANDIDATE_ID'});
     const quote=candidateQuote(unique.length);
     if(req.body?.confirm_price!==true)return reply.code(409).send({error:'PRICE_CONFIRMATION_REQUIRED',pricing,quote});
@@ -59,6 +83,7 @@ export async function companyMatchingRoutes(app:FastifyInstance){
       const historicalPaid=await hasApprovedVacancyPayment(c,x);
       if(history.rowCount||orders.rows.some((o:any)=>o.status!=='EXECUTED')){await c.query('rollback');return reply.code(409).send({error:'PAYMENT_OPERATION_REQUIRES_REVIEW'});}
       if(historicalPaid&&unique.length>Number(x.package_candidate_limit??40)){await c.query('rollback');return reply.code(409).send({error:'PACKAGE_CANDIDATE_LIMIT'});}
+      if(unique.length>requestedProfileLimit(x)){await c.query('rollback');return reply.code(409).send({error:'TOO_MANY_CANDIDATES'});}
       const eligible=await compatibleCandidates(c,x.vacancy_id,unique,true);
       if(eligible.rowCount!==unique.length){await c.query('rollback');return reply.code(409).send({error:'CANDIDATE_SET_CHANGED'});}
       await c.query('delete from vacancy_candidates where vacancy_id=$1',[x.vacancy_id]);
