@@ -78,3 +78,38 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .homeChoices article:first-child{background:linear-gradient(145deg,#f8fcf8,#edf7ef);border-color:#bddcc7}
 .homeChoices .choiceIcon{background:#e2f2e6;color:var(--ep-olive)}
 .requestTypeGrid article:last-child{background:linear-gradient(145deg,#f8fcf8,#edf7ef);border-color:#bddcc7}
+
+
+/* Form and account visual polish: presentation only, no layout or behavior changes. */
+:root{--form-olive:#217847;--form-olive-deep:#245e42;--form-ink:#17231d;--form-edge:#d5e3d8}
+.wizard .wfield input,.wizard .wfield textarea,.wizard .wfield select,
+.accountCard input,.login input{
+  border-color:var(--form-edge);background:#fff;
+  box-shadow:0 2px 9px rgba(23,35,29,.035);
+  transition:border-color .16s ease,box-shadow .16s ease
+}
+.wizard .wfield input:focus-visible,.wizard .wfield textarea:focus-visible,
+.wizard .wfield select:focus-visible,.accountCard input:focus-visible,.login input:focus-visible{
+  outline:2px solid rgba(33,120,71,.3);outline-offset:1px;
+  border-color:var(--form-olive);box-shadow:0 0 0 3px rgba(33,120,71,.09)
+}
+.wizard .check,.wizard .repeat,.wizard .reviewBox,.wizard .infoBox{
+  border-color:var(--form-edge);
+  box-shadow:0 3px 12px rgba(23,35,29,.035)
+}
+.wizard .check:has(input:checked){
+  border-color:#87b99a;background:#f3f9f4
+}
+.wizard .check input{accent-color:var(--form-olive)}
+.wizard .choice button{border-color:var(--form-edge)}
+.wizard .choice button.on{background:#eff7f0;border-color:var(--form-olive);color:var(--form-olive-deep)}
+.wizardNav button{border-color:var(--form-edge)}
+.wizardNav .next,.wizard .next{background:var(--form-ink);border-color:var(--form-ink);color:white}
+.wizard .progress i,.progress i{background:var(--form-olive)}
+.accountCard,.login{border-color:var(--form-edge);box-shadow:0 20px 56px rgba(23,35,29,.1)}
+.miniBrand span{color:var(--form-olive)}
+.accountPage{background:radial-gradient(circle at top left,rgba(33,120,71,.1),transparent 28%),#f7f9f8}
+.accountCard .submit,.login button:not(.google){border-color:var(--form-ink)}
+@media(prefers-reduced-motion:reduce){
+ .wizard .wfield input,.wizard .wfield textarea,.wizard .wfield select,.accountCard input,.login input{transition:none}
+}
