@@ -372,6 +372,12 @@ export async function companyRoutes(app: FastifyInstance) {
             [x.rows[0].company_id],
           );
           const vacancyIds = open.rows.map((r: any) => r.vacancy_id);
+          const obligations = await client.query(`select 1 from vacancies v where v.vacancy_id=any($1::uuid[]) and (
+            exists(select 1 from yappy_payment_orders o where o.vacancy_id=v.vacancy_id or o.contact_request_id in (select contact_request_id from service_contact_requests where vacancy_id=v.vacancy_id))
+            or exists(select 1 from service_contact_requests r where r.vacancy_id=v.vacancy_id and r.status in ('ACCEPTED_AWAITING_PAYMENT','PAID'))
+          ) limit 1`,[vacancyIds]);
+          if(obligations.rowCount){await client.query('rollback');return reply.code(409).send({error:'REQUEST_HAS_PAYMENT_OBLIGATION'});}
+
           if (vacancyIds.length) {
             await client.query(
               "delete from vacancy_candidates where vacancy_id=any($1::uuid[])",

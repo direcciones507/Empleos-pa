@@ -46,7 +46,7 @@ export async function companySelectionIntegration(app:FastifyInstance,f:any){
    providerCalls++;assert.equal(JSON.parse(init.body).total,'5.00');return new Response(JSON.stringify({body:{token:'fixture',documentName:'fixture',transactionId:'pr91-fixture'}}));
   };
   const order=await f.call(f.company,'POST',v.base+'/payments/yappy',{aliasYappy:'60000000'});assert.equal(order.amount,'5.00');
-  await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);await f.call(f.company,'POST',v.base+'/cancel',{confirm:true},409);await f.call(f.company,'DELETE',v.base,{confirm:true},409);
+  await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);await f.call(f.company,'POST',v.base+'/cancel',{confirm:true},409);await f.call(f.company,'DELETE',v.base,{confirm:true},409);await f.call(f.company,'POST','/v1/company/account/disable',{confirm:'DESACTIVAR'},409);assert.equal((await one('select status from users where user_id=$1',[f.company.id])).status,'ACTIVE');
   assert.equal((await f.call(f.company,'GET',v.base+'/matches')).count,2);await f.call(f.company,'GET',v.base+'/delivery',undefined,404);
   const ipn=async(status:string)=>app.inject({method:'GET',url:'/v1/payments/yappy/ipn?'+new URLSearchParams({orderId:order.orderId,status,domain:config.webUrl,hash:crypto.createHmac('sha256','pr91-signature').update(order.orderId+status+config.webUrl).digest('hex')})});
   assert.equal((await ipn('R')).statusCode,200);await f.call(f.company,'POST',v.base+'/matches/refresh',{},409);

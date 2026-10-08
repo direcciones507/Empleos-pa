@@ -9,12 +9,13 @@ import { normalizeCandidateStructuredFields, normalizeVacancyStructuredFields } 
 
 const userId = "11111111-1111-4111-8111-111111111111";
 type Call = { sql: string; params: any[] };
-async function harness(kind: "company" | "candidate", fail = "") {
+async function harness(kind: "company" | "candidate", fail = "", obligation = false) {
   const calls: Call[] = [];
   let releases = 0;
   const query = async (sql: string, params: any[] = []) => {
     calls.push({ sql, params });
     if (fail && sql.includes(fail)) throw Error("database failure");
+    if (sql.startsWith("select 1 from vacancies v")) return {rowCount:obligation?1:0,rows:obligation?[{exists:true}]:[]};
     if (sql.includes("from companies")) return { rowCount: 1, rows: [{ company_id: "company" }] };
     if (sql.startsWith("select vacancy_id from vacancies")) return { rowCount: 1, rows: [{ vacancy_id: "vacancy" }] };
     if (sql.startsWith("select") && sql.includes("from candidate_profiles")) return { rowCount: 0, rows: [] };
@@ -95,6 +96,15 @@ test("company disable retains cancellations, payments, both token revocations an
     assert.equal(h.calls.at(-1)!.sql, "commit");
     assert.equal(h.releases(), 1);
   } finally { await h.app.close(); }
+});
+test("company disable preserves pending external payment and delivery obligations", async () => {
+  const h=await harness("company","",true);
+  try{
+    const r=await h.app.inject({method:"POST",url:"/v1/company/account/disable",payload:{confirm:"DESACTIVAR"}});
+    assert.equal(r.statusCode,409);assert.equal(r.json().error,"REQUEST_HAS_PAYMENT_OBLIGATION");
+    assert.equal(r.headers["set-cookie"],undefined);assert.equal(h.calls.at(-1)!.sql,"rollback");
+    assert.ok(!h.calls.some(c=>/^(delete|update)/.test(c.sql)));assert.equal(h.releases(),1);
+  }finally{await h.app.close();}
 });
 test("failed token invalidation rolls back without clearing cookie or reporting success", async () => {
   const h = await harness("company", "update password_reset_tokens");
