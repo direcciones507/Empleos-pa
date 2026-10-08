@@ -8,6 +8,8 @@ const limits:Record<string,number>={full_name:200,identity_document_type:50,iden
 function text(v:any){return typeof v==="string"&&v.trim()?v.trim():null}
 export async function serviceProviderRoutes(app:FastifyInstance){
   app.post("/v1/service-provider/verification/start",{preHandler:requireRoles("CANDIDATO")},async(req,reply)=>{
+    const approved=await db.query("select verified_at,updated_at from service_provider_verifications where user_id=$1 and status='APPROVED' order by verified_at desc limit 1",[req.authUser!.user_id]);
+    if(approved.rowCount)return {status:"APPROVED",already_verified:true};
     if(!config.diditApiKey||!config.diditWorkflowId)return reply.code(503).send({error:"IDENTITY_VERIFICATION_NOT_CONFIGURED"});
     const p=await db.query("select full_name,identity_document_type,identity_document_number,contact_email from service_provider_profiles where user_id=$1",[req.authUser!.user_id]);
     if(!p.rowCount){const me=await db.query("select email from users where user_id=$1",[req.authUser!.user_id]);await db.query("insert into service_provider_profiles(user_id,full_name,contact_email,identity_document_type,identity_document_number) values($1,$2,$3,$4,$5) on conflict(user_id) do nothing",[req.authUser!.user_id,"Pendiente",me.rows[0]?.email??null,"DIDIT","PENDING"]);}
@@ -20,10 +22,12 @@ export async function serviceProviderRoutes(app:FastifyInstance){
     return {verification_url:url,status:"PENDING"};
   });
   app.get("/v1/service-provider/verification",{preHandler:requireRoles("CANDIDATO")},async(req)=>{
-    const q=await db.query("select status,verified_at,updated_at from service_provider_verifications where user_id=$1 order by created_at desc limit 1",[req.authUser!.user_id]);
+    const q=await db.query("select status,verified_at,updated_at from service_provider_verifications where user_id=$1 order by case when status='APPROVED' then 0 else 1 end,created_at desc limit 1",[req.authUser!.user_id]);
     return {verification:q.rows[0]??null};
   });
   app.post("/v1/service-provider/verification/refresh",{preHandler:requireRoles("CANDIDATO")},async(req,reply)=>{
+    const approved=await db.query("select status,verified_at,updated_at from service_provider_verifications where user_id=$1 and status='APPROVED' order by verified_at desc limit 1",[req.authUser!.user_id]);
+    if(approved.rowCount)return {verification:approved.rows[0]};
     if(!config.diditApiKey)return reply.code(503).send({error:"IDENTITY_VERIFICATION_NOT_CONFIGURED"});
     const q=await db.query("select verification_id,provider_session_id,status from service_provider_verifications where user_id=$1 order by created_at desc limit 1",[req.authUser!.user_id]);
     if(!q.rowCount)return reply.code(404).send({error:"VERIFICATION_NOT_FOUND"});
