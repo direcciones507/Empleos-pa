@@ -59,7 +59,7 @@ test("analysis still loading or failed is never described as missing historical 
   for(const state of ["loading","error"]){const html=harness(()=>Promise.resolve({}),ready([],state)).html();assert.ok(html.includes(state==="loading"?"Cargando análisis conservado…":"No se pudo cargar el análisis conservado."));assert.ok(!html.includes("no conserva un análisis descriptivo histórico"))}
 });
 
-test("delivered analysis keeps three horizontal columns on tablet and desktop and stacks on mobile",()=>{
+test("delivered analysis keeps three horizontal columns including horizontally scrollable mobile",()=>{
   const tree=harness(()=>Promise.resolve({}),ready()).tree();const css=nodes(tree,n=>n.type==="style")[0].props.children;
   assert.equal(tree.props.className,"portal matchingView");
   assert.match(css,/\.portal\.matchingView>section\{max-width:1600px;box-sizing:border-box\}/);
@@ -70,7 +70,7 @@ test("delivered analysis keeps three horizontal columns on tablet and desktop an
   const tabletRules = css.slice(css.indexOf("@media(max-width:900px)"), css.indexOf("@media(max-width:620px)"));
   assert.ok(tabletRules.includes(".candidateGrid{grid-template-columns:1fr 1fr}"));
   assert.ok(!tabletRules.includes(".deliveredGrid"));
-  assert.match(css,/@media\(max-width:620px\)\{\.candidateCompare,\.candidateGrid,\.deliveredGrid\{grid-template-columns:1fr\}/);
+  assert.match(css,/@media\(max-width:620px\).*?\.candidateGrid,\.deliveredGrid\{grid-template-columns:repeat\(3,minmax\(240px,1fr\)\);overflow-x:auto/);
 });
 
 test("service matching reuses horizontal cards with mobile stacking and keeps the contact actions",()=>{
