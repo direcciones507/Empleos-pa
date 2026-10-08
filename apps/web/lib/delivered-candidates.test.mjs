@@ -62,9 +62,9 @@ test("analysis still loading or failed is never described as missing historical 
 test("candidate analysis uses horizontal label-and-content rows at every screen width",()=>{
   const tree=harness(()=>Promise.resolve({}),ready()).tree();const css=nodes(tree,n=>n.type==="style")[0].props.children;
   assert.equal(tree.props.className,"portal matchingView");
-  assert.match(css,/\\.candidateGrid>div\\{display:grid;grid-template-columns:minmax\\(150px,22%\\) minmax\\(0,1fr\\)/);
-  assert.match(css,/\\.deliveredGrid>div\\{display:grid;grid-template-columns:minmax\\(150px,22%\\) minmax\\(0,1fr\\)/);
-  assert.match(css,/@media\\(max-width:620px\\).*?\\.candidateGrid>div,\\.deliveredGrid>div\\{grid-template-columns:minmax\\(105px,30%\\) minmax\\(0,1fr\\)/);
+  assert.match(css,/\.candidateGrid>div\{display:grid;grid-template-columns:minmax\(150px,22%\) minmax\(0,1fr\)/);
+  assert.match(css,/\.deliveredGrid>div\{display:grid;grid-template-columns:minmax\(150px,22%\) minmax\(0,1fr\)/);
+  assert.match(css,/@media\(max-width:620px\).*?\.candidateGrid>div,\.deliveredGrid>div\{grid-template-columns:minmax\(105px,30%\) minmax\(0,1fr\)/);
   assert.ok(!css.includes("overflow-x:auto"));
 });
 
