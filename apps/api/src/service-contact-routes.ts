@@ -3,6 +3,7 @@ import {db} from './db.js';
 import {requireRoles} from './rbac.js';
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import {requestedProfileLimit} from './company-selection-policy.js';
 import {normalizeSql as norm} from './candidate-match-query.js';
 // Keep identity approval; honor the profile's explicitly declared service areas.
 const area=norm('sp.service_areas');
@@ -15,10 +16,12 @@ export async function serviceContactRoutes(app:FastifyInstance){
   app.get('/v1/company/vacancies/:code/service-matches',{preHandler:requireRoles('EMPRESA')},async(req:any,reply)=>{
     const code=String(req.params.code??'');
     if(!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:'INVALID_VACANCY_CODE'});
-    const own=await db.query(`select v.vacancy_id,v.request_type,v.status from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2`,[code,req.authUser!.user_id]);
+    const own=await db.query(`select v.vacancy_id,v.request_type,v.status,v.confirmations,v.package_candidate_limit from vacancies v join companies c on c.company_id=v.company_id where v.vacancy_code=$1 and c.owner_user_id=$2`,[code,req.authUser!.user_id]);
     if(!own.rowCount)return reply.code(404).send({error:'VACANCY_NOT_FOUND'});
     if(own.rows[0].request_type!=='EVENTUAL'||!['APROBADA','EN_BUSQUEDA'].includes(own.rows[0].status))return reply.code(409).send({error:'SERVICE_NOT_READY'});
-    const q=await db.query(`select sp.user_id provider_id,sp.service_trade,sp.service_province,sp.service_district,sp.available_days,sp.available_hours from vacancies v cross join service_provider_profiles sp join users u on u.user_id=sp.user_id where v.vacancy_id=$1 and ${compatible} order by sp.updated_at desc,sp.user_id limit 100`,[own.rows[0].vacancy_id]);
+    const frozen=await db.query("select 1 from service_contact_requests where vacancy_id=$1 and status in ('PAID','ACCEPTED_AWAITING_PAYMENT') limit 1",[own.rows[0].vacancy_id]);
+    if(frozen.rowCount)return reply.code(409).send({error:'SERVICE_SELECTION_LOCKED'});
+    const q=await db.query(`select sp.user_id provider_id,sp.service_trade,sp.service_province,sp.service_district,sp.available_days,sp.available_hours from vacancies v cross join service_provider_profiles sp join users u on u.user_id=sp.user_id where v.vacancy_id=$1 and ${compatible} order by sp.updated_at desc,sp.user_id limit $2`,[own.rows[0].vacancy_id,requestedProfileLimit(own.rows[0])]);
     return {items:q.rows,pricing:{currency:'USD',unit_price:1.89,unit:'accepted_connection'}};
   });
   app.post('/v1/company/vacancies/:code/service-contact-requests',{preHandler:requireRoles('EMPRESA')},async(req:any,reply)=>{
@@ -26,10 +29,14 @@ export async function serviceContactRoutes(app:FastifyInstance){
     if(!uuid.test(provider)||!/^VAC-\d{6}$/.test(code))return reply.code(400).send({error:'INVALID_SERVICE_REQUEST'});
     const c=await db.connect();try{
       await c.query('begin');
-      const own=await c.query(`select v.vacancy_id,v.request_type,v.status from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_code=$1 and co.owner_user_id=$2 for update of v`,[code,req.authUser!.user_id]);
+      const own=await c.query(`select v.vacancy_id,v.request_type,v.status,v.confirmations,v.package_candidate_limit from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_code=$1 and co.owner_user_id=$2 for update of v`,[code,req.authUser!.user_id]);
       if(!own.rowCount){await c.query('rollback');return reply.code(404).send({error:'VACANCY_NOT_FOUND'});}
       const v=own.rows[0];
       if(v.request_type!=='EVENTUAL'||!['APROBADA','EN_BUSQUEDA'].includes(v.status)){await c.query('rollback');return reply.code(409).send({error:'SERVICE_NOT_READY'});}
+      const existing=await c.query('select contact_request_id,status,price,created_at,responded_at,paid_at from service_contact_requests where vacancy_id=$1 and provider_user_id=$2',[v.vacancy_id,provider]);
+      if(existing.rowCount){await c.query('commit');return {request:existing.rows[0]};}
+      const selected=await c.query("select count(*)::int total,bool_or(status='PAID') paid from service_contact_requests where vacancy_id=$1 and status<>'DECLINED'",[v.vacancy_id]);
+      if(selected.rows[0].paid||selected.rows[0].total>=requestedProfileLimit(v)){await c.query('rollback');return reply.code(409).send({error:'SERVICE_SELECTION_LOCKED_OR_FULL'});}
       const eligible=await c.query(`select sp.user_id from vacancies v cross join service_provider_profiles sp join users u on u.user_id=sp.user_id where v.vacancy_id=$1 and sp.user_id=$2 and ${compatible}`,[v.vacancy_id,provider]);
       if(!eligible.rowCount){await c.query('rollback');return reply.code(409).send({error:'PROVIDER_NOT_COMPATIBLE'});}
       const q=await c.query(`insert into service_contact_requests(vacancy_id,provider_user_id) values($1,$2) on conflict(vacancy_id,provider_user_id) do update set vacancy_id=excluded.vacancy_id returning contact_request_id,status,price,created_at,responded_at,paid_at`,[v.vacancy_id,provider]);
@@ -49,6 +56,8 @@ export async function serviceContactRoutes(app:FastifyInstance){
     if(!uuid.test(id)||!['ACCEPT','REJECT'].includes(action))return reply.code(400).send({error:'INVALID_SERVICE_RESPONSE'});
     const c=await db.connect();try{
       await c.query('begin');
+      const parent=await c.query('select vacancy_id from service_contact_requests where contact_request_id=$1 and provider_user_id=$2',[id,req.authUser!.user_id]);
+      if(parent.rowCount)await c.query('select vacancy_id from vacancies where vacancy_id=$1 for update',[parent.rows[0].vacancy_id]);
       const q=await c.query(`select r.* from service_contact_requests r join vacancies v on v.vacancy_id=r.vacancy_id join companies co on co.company_id=v.company_id join users u on u.user_id=co.owner_user_id where r.contact_request_id=$1 and r.provider_user_id=$2 and u.status='ACTIVE' and v.status in ('APROBADA','EN_BUSQUEDA') for update of r`,[id,req.authUser!.user_id]);
       if(!q.rowCount){await c.query('rollback');return reply.code(404).send({error:'CONTACT_REQUEST_NOT_FOUND'});}
       const next=action==='ACCEPT'?'ACCEPTED_AWAITING_PAYMENT':'DECLINED';

@@ -226,11 +226,14 @@ export default function Nueva() {
               aparece.
             </p>
             <F
-              n="Cantidad *"
+              n={v.request_type === "EVENTUAL" ? "Cantidad de servicios o trabajos requeridos *" : "Cantidad de personas a contratar *"}
               type="number"
               v={v.quantity}
               f={(x: string) => set("quantity", x)}
             />
+            <p className="fieldHint">Indica cuántas personas o servicios necesitas. Esto no determina cuántos perfiles comprarás.</p>
+            <label className="wfield">¿Cuántos perfiles quieres recibir? *<select value={v.requested_candidates ?? 1} onChange={(e) => set("requested_candidates", Number(e.target.value))}>{Array.from({length:15},(_,i)=>i+1).map(n => <option key={n} value={n}>{n}</option>)}</select></label>
+            <p className="fieldHint">Podrás revisar hasta esta cantidad de perfiles compatibles y pagar únicamente por los que selecciones.</p>
             <F
               n="Provincia del trabajo *"
               v={v.province}

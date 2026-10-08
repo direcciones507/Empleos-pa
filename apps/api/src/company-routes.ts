@@ -152,7 +152,7 @@ export async function companyRoutes(app: FastifyInstance) {
       const x = await company(req.authUser!.user_id);
       if (!x) return { items: [] };
       const q = await db.query(
-        "select vacancy_code,status,request_type,position,quantity,work_location,package,package_candidate_limit,package_price,confirmations ? 'candidate_purchase' as has_candidate_selection,created_at from vacancies where company_id=$1 order by created_at desc",
+        "select vacancy_code,status,request_type,position,quantity,work_location,package,package_candidate_limit,package_price,confirmations ? 'candidate_purchase' as has_candidate_selection,coalesce((confirmations->>'requested_candidates')::int,least(package_candidate_limit,15),15) as requested_candidates,created_at from vacancies where company_id=$1 order by created_at desc",
         [x.company_id],
       );
       return { items: q.rows };
@@ -182,7 +182,7 @@ export async function companyRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "VACANCY_PACKAGE_REQUIRED" });
       // quantity is the number of positions; requested_candidates is independently chosen.
       const requestedCandidates = b.requested_candidates === undefined ? (historicalLimits[packageKey] ?? 1) : Number(b.requested_candidates);
-      if (requestType === "VACANTE" && ((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 100))
+      if (((b.requested_candidates !== undefined && !["string", "number"].includes(typeof b.requested_candidates)) || !Number.isInteger(requestedCandidates) || requestedCandidates < 1 || requestedCandidates > 15))
         return reply.code(400).send({ error: "INVALID_REQUESTED_CANDIDATES", field: "requested_candidates" });
       const selectedPackage = { limit: null, price: 0 };
       for (const k of ["confirm_correct", "confirm_terms", "confirm_scope"])
@@ -310,6 +310,7 @@ export async function companyRoutes(app: FastifyInstance) {
             optionalText("profile_notes"),
             optionalText("additional_info"),
             JSON.stringify({
+              requested_candidates: requestedCandidates,
               correct: true,
               terms: true,
               scope: true,
@@ -371,6 +372,12 @@ export async function companyRoutes(app: FastifyInstance) {
             [x.rows[0].company_id],
           );
           const vacancyIds = open.rows.map((r: any) => r.vacancy_id);
+          const obligations = await client.query(`select 1 from vacancies v where v.vacancy_id=any($1::uuid[]) and (
+            exists(select 1 from yappy_payment_orders o where o.vacancy_id=v.vacancy_id or o.contact_request_id in (select contact_request_id from service_contact_requests where vacancy_id=v.vacancy_id))
+            or exists(select 1 from service_contact_requests r where r.vacancy_id=v.vacancy_id and r.status in ('ACCEPTED_AWAITING_PAYMENT','PAID'))
+          ) limit 1`,[vacancyIds]);
+          if(obligations.rowCount){await client.query('rollback');return reply.code(409).send({error:'REQUEST_HAS_PAYMENT_OBLIGATION'});}
+
           if (vacancyIds.length) {
             await client.query(
               "delete from vacancy_candidates where vacancy_id=any($1::uuid[])",

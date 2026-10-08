@@ -32,7 +32,7 @@ export async function historicalMatchingIntegration(app:FastifyInstance,f:any){
     const area=await makeCandidate('historical-other-area',{other_job_areas:'Auxiliar;  Maéstro  '});
     const negative=await makeCandidate('historical-negative',{});
     const legacyZone=await makeCandidate('historical-zone',{work_locations:'Santiago / Veraguas'});
-    const vacancy=async(fields:any={})=>(await call(f.company,'POST','/v1/company/vacancies',{position:'Maestro',quantity:1,work_location:'Santiago / Veraguas',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',schedule:'Diurno',skills:'Excel, Inglés avanzado',main_functions:'Enseñar',confirm_correct:true,confirm_terms:true,confirm_scope:true,...fields},201)).vacancy;
+    const vacancy=async(fields:any={})=>(await call(f.company,'POST','/v1/company/vacancies',{position:'Maestro',quantity:1,requested_candidates:15,work_location:'Santiago / Veraguas',province:'Veraguas',district:'Santiago',corregimiento:'Santiago',schedule:'Diurno',skills:'Excel, Inglés avanzado',main_functions:'Enseñar',confirm_correct:true,confirm_terms:true,confirm_scope:true,...fields},201)).vacancy;
     const v=await vacancy({structured_skills:[{name:'Inglés',priority:'PREFERRED'},{name:'Python'},{name:'SAP',priority:'OPTIONAL'}],structured_requirements:[{type:'SKILL',value:'Excel',priority:'PREFERRED'},{type:'SKILL',value:'Francés'},{type:'SKILL',value:'ERP',priority:'OPTIONAL'}]});
     const path=`/v1/company/vacancies/${v.vacancy_code}/matches`;
     const includes=(r:any,id:string)=>r.analyses.some((a:any)=>a.candidate_id===id);
