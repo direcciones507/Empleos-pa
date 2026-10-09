@@ -10,6 +10,7 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
   const [returnTo, setReturnTo] = useState("");
   const [profile, setProfile] = useState<PublicProfile>();
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [reactivation, setReactivation] = useState(false);
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -45,5 +46,5 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
   else if (returnTo) params.set("returnTo", returnTo);
   if (profile) params.set("role", profile);
   const suffix = params.size ? `?${params.toString()}` : "";
-  return <form className={compact ? "login compactLogin" : "login"} onSubmit={submit}><h2>Iniciar sesión</h2><p>Accede a tu cuenta de Empleos.pa.</p><label>Correo<input name="email" type="email" autoComplete="email" required placeholder="tu@correo.com"/></label><label>Contraseña<input name="password" type="password" autoComplete="current-password" required placeholder="••••••••"/></label>{error && <p className="formError" role="alert">{error}</p>}<button disabled={busy}>{busy ? "Procesando…" : reactivation?"Reactivar mi cuenta":"Entrar"}</button><a className="forgot" href="/recuperar">¿Olvidaste tu contraseña?</a><a className="google" href={`${API_URL}/v1/auth/google/start${suffix}`}><GoogleMark/><span>{reactivation?"Reactivar con Google":"Entrar con Google"}</span></a><small>¿No tienes cuenta? <a href={`/registro${suffix}`}>Crear cuenta</a></small></form>;
+  return <form className={compact ? "login compactLogin" : "login"} onSubmit={submit}><h2>Iniciar sesión</h2><p>Accede a tu cuenta de Empleos.pa.</p><label>Correo<input name="email" type="email" autoComplete="email" required placeholder="tu@correo.com"/></label><label>Contraseña<span style={{display:"flex",gap:8,alignItems:"center"}}><input style={{flex:1,minWidth:0}} name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required placeholder="••••••••"/><button type="button" aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} style={{width:48,flexShrink:0,background:"transparent",color:"inherit",border:"1px solid #cbd5e1",borderRadius:10,cursor:"pointer"}}>{showPassword ? "Ocultar" : "Ver"}</button></span></label>{error && <p className="formError" role="alert">{error}</p>}<button disabled={busy}>{busy ? "Procesando…" : reactivation?"Reactivar mi cuenta":"Entrar"}</button><a className="forgot" href="/recuperar">¿Olvidaste tu contraseña?</a><a className="google" href={`${API_URL}/v1/auth/google/start${suffix}`}><GoogleMark/><span>{reactivation?"Reactivar con Google":"Entrar con Google"}</span></a><small>¿No tienes cuenta? <a href={`/registro${suffix}`}>Crear cuenta</a></small></form>;
 }
