@@ -49,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", name: "Empleos.pa", url: SITE_URL, sameAs: ["https://www.facebook.com/share/1Diouu9mHr/", "https://www.instagram.com/empleo.pa/", "https://www.tiktok.com/@empleos.pa"] }).replace(/</g, "\\u003c") }} />
         {children}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
