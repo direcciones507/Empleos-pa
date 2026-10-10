@@ -601,7 +601,7 @@ export async function candidateRoutes(app: FastifyInstance) {
     async (req) => {
       await refreshExpiry(req.authUser!.user_id);
       const q = await db.query(
-        `select n.notification_id,n.type,n.title,n.message,n.read_at,n.created_at from candidate_notifications n join candidate_profiles cp on cp.candidate_id=n.candidate_id where cp.user_id=$1 and n.archived_at is null and n.deleted_at is null order by n.created_at desc limit 100`,
+        `select n.notification_id,n.type,n.title,n.message,n.read_at,n.created_at from candidate_notifications n join candidate_profiles cp on cp.candidate_id=n.candidate_id where cp.user_id=$1 and n.archived_at is null and n.deleted_at is null and (n.type <> 'PROFILE_DELIVERED' or exists (select 1 from vacancy_deliveries vd join vacancy_delivery_candidates dc on dc.delivery_id=vd.delivery_id and dc.candidate_id=n.candidate_id join vacancies v on v.vacancy_id=vd.vacancy_id where vd.vacancy_id=n.vacancy_id and vd.status='ENVIADA' and v.status='ENTREGADA' and exists (select 1 from vacancy_payments vp where vp.vacancy_id=v.vacancy_id and vp.status='APROBADO' and vp.amount>=v.package_price))) order by n.created_at desc limit 100`,
         [req.authUser!.user_id],
       );
       return { items: q.rows };
