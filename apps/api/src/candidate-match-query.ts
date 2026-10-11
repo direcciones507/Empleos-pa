@@ -2,6 +2,9 @@
 // Structured fields add evidence; priorities and availability remain descriptive.
 export const normalizeSql = (value: string) => `lower(regexp_replace(trim(translate(coalesce(${value},''),'ÁÉÍÓÚÜÑáéíóúüñ','AEIOUUNaeiouun')), '\\s+', ' ', 'g'))`;
 const n = normalizeSql;
+// Literal token/phrase boundaries prevent SAP matching WhatsApp and Java
+// matching JavaScript. No regex or LIKE pattern supplied by the user is used.
+const phrase = (haystack:string,needle:string) => `strpos(' '||regexp_replace(${n(haystack)},'[^a-z0-9+#]+',' ','g')||' ',' '||regexp_replace(${needle},'[^a-z0-9+#]+',' ','g')||' ')>0`;
 const names = (value: string) => `select ${n("coalesce(s->>'name',s->>'value')")} name from jsonb_array_elements(coalesce(${value},'[]'::jsonb)) s`;
 const occupation = `(
   (nullif(${n('v.position')},'') is not null and ${n('cp.primary_job_area')}=${n('v.position')})
@@ -21,7 +24,7 @@ const skills = `exists(
     union ${names('v.structured_skills')}
     union ${names("(select coalesce(jsonb_agg(r),'[]'::jsonb) from jsonb_array_elements(coalesce(v.structured_requirements,'[]'::jsonb)) r where r->>'type'='SKILL')")}
   ) requested where requested.name<>'' and requested.name not in ('proactivo','proactiva','responsable','trabajador','trabajadora','dinamico','dinamica','puntual','honesto','honesta','comprometido','comprometida','trabajo en equipo') and (
-    strpos(${n('cp.skills')},requested.name)>0
+    ${phrase('cp.skills','requested.name')}
     or exists(select 1 from (${names('cp.structured_skills')}) owned where owned.name=requested.name)
   )
 )`;

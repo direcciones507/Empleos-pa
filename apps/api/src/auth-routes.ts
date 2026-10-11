@@ -157,6 +157,7 @@ export async function authRoutes(app: FastifyInstance) {
     const email = normalizeEmail(rawEmail);
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return reply.code(400).send({ error: "INVALID_EMAIL" });
+    if (!config.emailWebhookUrl) return reply.code(503).send({error:"EMAIL_NOT_CONFIGURED"});
     if (email) {
       const q = await db.query(
         "select user_id,email from users where normalized_email=$1 and status='ACTIVE'",
@@ -170,7 +171,7 @@ export async function authRoutes(app: FastifyInstance) {
           "/restablecer?token=" +
           encodeURIComponent(token);
         try {
-          await sendEmail({
+          const delivery = await sendEmail({
             to: q.rows[0].email,
             subject: "Restablece tu contraseña de Empleos.pa",
             text:
@@ -178,8 +179,10 @@ export async function authRoutes(app: FastifyInstance) {
               resetUrl +
               "\n\nEl enlace vence en 30 minutos y solo puede usarse una vez. Si no solicitaste este cambio, puedes ignorar este mensaje.",
           });
+          if (!delivery.sent) return reply.code(503).send({error:"EMAIL_NOT_CONFIGURED"});
         } catch (error) {
-          app.log.error({ err: error }, "password reset email failed");
+          app.log.error("password reset email failed");
+          return reply.code(503).send({error:"EMAIL_DELIVERY_FAILED"});
         }
       }
     }

@@ -7,6 +7,7 @@ export async function sendEmail(mail:Mail){
   const response=await fetch(config.emailWebhookUrl,{
     method:"POST",
     headers:{"content-type":"application/json",...(config.emailWebhookSecret?{"authorization":"Bearer "+config.emailWebhookSecret}:{})},
+    signal:AbortSignal.timeout(10000),
     body:JSON.stringify({from:config.emailFrom,to:mail.to,subject:mail.subject,text:mail.text})
   });
   if(!response.ok)throw new Error("EMAIL_DELIVERY_FAILED");

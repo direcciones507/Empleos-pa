@@ -19,6 +19,9 @@ export function LoginForm({ compact = false }: { compact?: boolean } = {}) {
     setProfile(publicProfile(query.get("role")) ?? profileForReturnTo(destination));
     if (query.get("oauth") === "expired")
       setError("Ese acceso con Google venció o ya fue utilizado. Inicia sesión nuevamente.");
+    else if (query.get("oauth") === "password-login-required") {
+      setError("Esta cuenta usa contraseña. Inicia sesión con ella antes de vincular Google.");
+    }
     else if (query.get("oauth") === "reactivation-required") {
       setReactivation(true);
       setError("Esta cuenta está desactivada. Confirma abajo para reactivarla con Google.");

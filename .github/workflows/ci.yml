@@ -43,7 +43,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -54,7 +54,7 @@ jobs:
       - name: Contract tests
         run: node --test tests/*.test.mjs
 
-      - name: PostgreSQL integration
+      - name: PostgreSQL integration (six existing suites plus prelaunch regressions)
         working-directory: apps/api
         env:
           NODE_ENV: test

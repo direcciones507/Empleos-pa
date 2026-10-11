@@ -41,7 +41,7 @@ Empleos.pa hace la conexión y preselección. La empresa realiza entrevistas, so
 Contrato reproducible, independiente del proveedor:
 
 1. Crear PostgreSQL y configurar `DATABASE_URL`.
-2. Instalar dependencias con `pnpm install --no-frozen-lockfile`.
+2. Instalar dependencias con `pnpm install --frozen-lockfile`.
 3. Aplicar esquema con `pnpm --filter @empleos-pa/api migrate`.
 4. Compilar API con `pnpm --filter @empleos-pa/api build` e iniciar con `pnpm --filter @empleos-pa/api start`.
 5. Compilar Web con `pnpm --filter @empleos-pa/web build` e iniciar con `pnpm --filter @empleos-pa/web start`.
