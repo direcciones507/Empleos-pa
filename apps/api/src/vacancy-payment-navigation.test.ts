@@ -19,7 +19,7 @@ async function harness(status='PENDIENTE_PAGO'){
  const jsx=(type:any,props:any)=>({type,props});function YappyOperation(){}function ServiceContacts(){}
  const react={useState:(initial:any)=>{const i=cursor++;if(!(i in states))states[i]=initial;return [states[i],(v:any)=>{states[i]=typeof v==='function'?v(states[i]):v;}];},useEffect:(effect:Function)=>{if(first)effects.push(effect);}};
  const exports:any={};const source=readFileSync(new URL('../../web/app/empresa/vacantes/[code]/page.tsx',import.meta.url),'utf8');
- vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:(n:string)=>n==='react'?react:n==='react/jsx-runtime'?{jsx,jsxs:jsx}:n.endsWith('/lib/api')?{api}:n.endsWith('/YappyOperation')?{YappyOperation}:{ServiceContacts},window:{history:{length:1},location:{reload(){},href:''}}});
+ vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:(n:string)=>n==='react'?react:n==='react/jsx-runtime'?{jsx,jsxs:jsx}:n.endsWith('/lib/api')?{api}:n.endsWith('/lib/candidate-language')?{candidateLanguage:(text:string)=>text}:n.endsWith('/YappyOperation')?{YappyOperation}:{ServiceContacts},window:{history:{length:1},location:{reload(){},href:''}}});
  const render=()=>{cursor=0;const t=exports.default({params:{code:'VAC-000001'}});first=false;return t;};
  const flush=async()=>{await new Promise(r=>setImmediate(r));return render();};
  function nodes(n:any):any[]{if(!n||typeof n!=='object')return [];if(Array.isArray(n))return n.flatMap(nodes);return [n,...nodes(n.props?.children)];}
@@ -40,3 +40,4 @@ test('acceptance keeps selection when returning without payment',async()=>{
 test('reopening delivered vacancy never requests payment',async()=>{
  const h=await harness('ENTREGADA');assert.ok(h.text(h.initial).includes('Candidaturas entregadas'));assert.equal(h.nodes(h.initial).filter(n=>n.type===h.YappyOperation).length,0);assert.equal(h.calls.filter(x=>x.endsWith('/matches')).length,0);
 });
+
