@@ -5,7 +5,7 @@ import {requireRoles} from "./rbac.js";
 import {config} from "./config.js";
 import {requestedProfileLimit} from './company-selection-policy.js';
 import {candidateQuote,PROMOTION_VERSION} from "./candidate-pricing.js";
-import {sendPreparedCandidateDelivery} from "./paid-candidate-delivery.js";
+import {sendPreparedCandidateDelivery,assertPreparedCandidatesEligible} from "./paid-candidate-delivery.js";
 
 function orderId(){return ("EP"+Date.now().toString(36)+crypto.randomBytes(2).toString("hex")).slice(0,15);}
 function money(n:number){return n.toFixed(2);}
@@ -34,6 +34,11 @@ async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,c
    if(!v||JSON.stringify(v.confirmations?.candidate_purchase)!==JSON.stringify(expectedPurchase)||Number(v.package_price)!==amount||(v.status!=='PENDIENTE_PAGO'&&existing.rows[0]?.status!=='EXECUTED')){
     await c.query('rollback');return reply.code(409).send({error:'PAYMENT_SELECTION_CHANGED'});
    }
+  }
+  const priorExecution=purpose==='VACANCY'?await c.query("select status from yappy_payment_orders where operation_key=$1",[key]):null;
+  if(purpose==='VACANCY'&&expectedPurchase&&priorExecution?.rows[0]?.status!=='EXECUTED'){
+   try{await assertPreparedCandidatesEligible(c,{vacancy_id:vacancyId,package_candidate_limit:expectedPurchase.quantity});}
+   catch{await c.query('rollback');return reply.code(409).send({error:'CANDIDATE_SET_CHANGED'});}
   }
   if(purpose==='SERVICE_CONTACT'){
    const parent=await c.query('select vacancy_id from service_contact_requests where contact_request_id=$1',[contactRequestId]);
@@ -116,30 +121,42 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
    if(binding.rows[0]?.vacancy_id)await c.query('select vacancy_id from vacancies where vacancy_id=$1 for update',[binding.rows[0].vacancy_id]);
    const q=await c.query("select * from yappy_payment_orders where yappy_order_id=$1 for update",[orderId]);if(!q.rowCount){await c.query("rollback");return reply.code(404).send({success:false});}
    const order=q.rows[0];
-   // A valid late execution settles the original immutable selection, even
-   // after an earlier rejection/expiry. Refresh never replaces that snapshot.
-   if(order.status==="PENDING"||(next==="EXECUTED"&&order.status!=="EXECUTED")){
-    if(next==="EXECUTED"&&order.purpose==="SERVICE_CONTACT"){
-     const contact=await c.query("select r.*,co.owner_user_id from service_contact_requests r join vacancies v on v.vacancy_id=r.vacancy_id join companies co on co.company_id=v.company_id where r.contact_request_id=$1 for update of r,v",[order.contact_request_id]);
-     const r=contact.rows[0];
-     if(!r||r.status!=="ACCEPTED_AWAITING_PAYMENT"||r.owner_user_id!==order.user_id||Number(order.amount)!==1.89||Number(r.price)!==1.89){await c.query("rollback");return reply.code(409).send({success:false});}
-     await c.query("update service_contact_requests set status='PAID',paid_at=now(),paid_order_id=$2 where contact_request_id=$1 and status='ACCEPTED_AWAITING_PAYMENT'",[r.contact_request_id,orderId]);
-    }
-    if(next==="EXECUTED"&&order.purpose==="VACANCY"&&order.vacancy_id){
-     const vacancy=await c.query("select v.*,co.owner_user_id from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_id=$1 for update of v",[order.vacancy_id]);
-     const v=vacancy.rows[0];if(!v||v.request_type!=="VACANTE"||v.owner_user_id!==order.user_id||Number(v.package_price)!==Number(order.amount)){await c.query("rollback");return reply.code(409).send({success:false});}
-     if(v.status!=="PENDIENTE_PAGO"){await c.query("rollback");return reply.code(409).send({success:false});}
-     if(v.confirmations?.candidate_purchase?.version===PROMOTION_VERSION&&candidateQuote(v.confirmations.candidate_purchase.quantity).total!==Number(order.amount)){await c.query("rollback");return reply.code(409).send({success:false});}
-     if(!v.confirmations?.candidate_purchase)await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[order.vacancy_id]);
-     await c.query("insert into vacancy_payments(vacancy_id,status,amount,reference,submitted_at,reviewed_at) values($1,'APROBADO',$2,$3,now(),now()) on conflict do nothing",[order.vacancy_id,order.amount,"YAPPY:"+orderId]);
-    }
-    await c.query("update yappy_payment_orders set status=$1,provider_confirmation_number=coalesce($2,provider_confirmation_number),completed_at=case when $1='EXECUTED' then now() else completed_at end,updated_at=now() where yappy_order_id=$3",[next,String(req.query?.confirmationNumber??"")||null,orderId]);
-    if(next==="EXECUTED"&&order.purpose==="VACANCY"&&order.vacancy_id){
-     const v=await c.query("select * from vacancies where vacancy_id=$1",[order.vacancy_id]);
-     if(v.rows[0]?.confirmations?.candidate_purchase)await sendPreparedCandidateDelivery(c,v.rows[0]);
+   // Persist the authenticated provider fact before attempting local fulfillment.
+   // Commit the payment fact separately; fulfillment can never roll it back.
+   if(order.status==='PENDING'||next==='EXECUTED'){
+    await c.query("update yappy_payment_orders set status=$1,provider_confirmation_number=coalesce($2,provider_confirmation_number),completed_at=case when $1='EXECUTED' then coalesce(completed_at,now()) else completed_at end,updated_at=now() where yappy_order_id=$3",[next,String(req.query?.confirmationNumber??'')||null,orderId]);
+   }
+   await c.query('commit');
+   if(next==='EXECUTED'){
+    await c.query('begin');
+    if(binding.rows[0]?.vacancy_id)await c.query('select vacancy_id from vacancies where vacancy_id=$1 for update',[binding.rows[0].vacancy_id]);
+    await c.query('select yappy_order_id from yappy_payment_orders where yappy_order_id=$1 for update',[orderId]);
+    if(order.purpose==='VACANCY'&&order.vacancy_id)await c.query("insert into vacancy_payments(vacancy_id,status,amount,reference,submitted_at,reviewed_at) values($1,'APROBADO',$2,$3,now(),now()) on conflict do nothing",[order.vacancy_id,order.amount,'YAPPY:'+orderId]);
+    await c.query('savepoint fulfillment');
+    try{
+     if(order.purpose==='SERVICE_CONTACT'){
+      const contact=await c.query("select r.*,co.owner_user_id from service_contact_requests r join vacancies v on v.vacancy_id=r.vacancy_id join companies co on co.company_id=v.company_id where r.contact_request_id=$1 for update of r,v",[order.contact_request_id]);
+      const r=contact.rows[0];
+      if(!r||!['ACCEPTED_AWAITING_PAYMENT','PAID'].includes(r.status)||r.owner_user_id!==order.user_id||Number(order.amount)!==1.89||Number(r.price)!==1.89)throw Error('PAYMENT_BINDING_CHANGED');
+      await c.query("update service_contact_requests set status='PAID',paid_at=now(),paid_order_id=$2 where contact_request_id=$1 and status='ACCEPTED_AWAITING_PAYMENT'",[r.contact_request_id,orderId]);
+     }
+     if(order.purpose==='VACANCY'&&order.vacancy_id){
+      const vacancy=await c.query("select v.*,co.owner_user_id from vacancies v join companies co on co.company_id=v.company_id where v.vacancy_id=$1 for update of v",[order.vacancy_id]);
+      const v=vacancy.rows[0];
+      if(!v||v.request_type!=='VACANTE'||v.owner_user_id!==order.user_id||Number(v.package_price)!==Number(order.amount))throw Error('PAYMENT_BINDING_CHANGED');
+      if(v.confirmations?.candidate_purchase?.version===PROMOTION_VERSION&&candidateQuote(v.confirmations.candidate_purchase.quantity).total!==Number(order.amount))throw Error('PAYMENT_AMOUNT_CHANGED');
+      if(v.confirmations?.candidate_purchase)await sendPreparedCandidateDelivery(c,v);
+      else await c.query("update vacancies set status='APROBADA',updated_at=now() where vacancy_id=$1 and status='PENDIENTE_PAGO'",[order.vacancy_id]);
+     }
+     await c.query('release savepoint fulfillment');
+    }catch(error){
+     await c.query('rollback to savepoint fulfillment');
+     // Existing delivery notes expose the incident to the administrative panel.
+     await c.query("update vacancy_deliveries set notes=$2,updated_at=now() where vacancy_id=$1 and status='LISTA'",[order.vacancy_id,'PAGO CONFIRMADO — ENTREGA PENDIENTE DE REVISIÓN ADMINISTRATIVA']);
+     req.log.error({orderId},'Confirmed Yappy payment requires fulfillment review');
     }
    }
-   await c.query("commit");return {success:true};
+   if(next==='EXECUTED')await c.query("commit");return {success:true};
   }catch(e){await c.query("rollback").catch(()=>{});throw e;}finally{c.release();}
  });
 }

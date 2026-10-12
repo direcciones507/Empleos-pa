@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { db } from "./db.js";
-import { normalizeEmail, type Role } from "./auth.js";
+import { sessionUser, normalizeEmail, type Role } from "./auth.js";
 import { config } from "./config.js";
 import {
   destinationFor,
@@ -53,6 +53,7 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
         ? req.query.role
         : undefined;
     const state = random();
+    reply.setCookie("empleos_oauth_state",digest(state),{httpOnly:true,secure:config.nodeEnv==="production",sameSite:"lax",path:"/",maxAge:600});
     await db.query(
       "insert into oauth_states(state_hash,provider,requested_role,return_to,expires_at) values($1,'google',$2,$3,now()+interval '10 minutes')",
       [digest(state), role ?? null, safeReturn(req.query?.returnTo)],
@@ -80,6 +81,9 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
       state.length > 500
     )
       return reply.code(400).send({ error: "INVALID_OAUTH_CALLBACK" });
+    if(req.cookies?.empleos_oauth_state!==digest(state))return reply.code(400).send({error:"OAUTH_BROWSER_MISMATCH"});
+    reply.clearCookie("empleos_oauth_state",{path:"/"});
+    const linkingUser=await sessionUser(req.cookies?.[COOKIE]);
     const client = await db.connect();
     try {
       await client.query("begin");
@@ -136,12 +140,19 @@ export async function googleOAuthRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: "GOOGLE_EMAIL_NOT_VERIFIED" });
       }
       let u = await client.query(
-        "select user_id,email,role,status,google_subject,disabled_reason from users where google_subject=$1 or normalized_email=$2 order by (google_subject=$1) desc limit 1",
+        "select user_id,email,role,status,google_subject,disabled_reason,password_hash from users where google_subject=$1 or normalized_email=$2 order by (google_subject=$1) desc limit 1 for update",
         [profile.sub, email],
       );
       const requestedProfile = publicProfile(st.rows[0].requested_role);
       if (u.rowCount) {
         const x = u.rows[0];
+        // An unverified password email is not proof of account ownership.
+        // Preserve existing Google logins; bind a password account only after
+        // its owner has authenticated that same account in this browser.
+        if(!x.google_subject && x.password_hash && linkingUser?.user_id!==x.user_id){
+          await client.query("rollback");
+          return reply.redirect(s.webUrl+"/login?oauth=password-login-required");
+        }
         if (x.status !== "ACTIVE") {
           if (x.status === "DISABLED" && x.disabled_reason === "USER_REQUEST") {
             const requestedReactivation = st.rows[0].return_to === "/reactivate";

@@ -6,6 +6,15 @@ export async function hasApprovedVacancyPayment(c: any, v: any) {
     ${yappyOnly ? "and exists(select 1 from yappy_payment_orders yo where yo.vacancy_id=vacancy_payments.vacancy_id and yo.status='EXECUTED' and yo.amount=vacancy_payments.amount and vacancy_payments.reference='YAPPY:'||yo.yappy_order_id)" : ''} limit 1`, [v.vacancy_id, v.package_price]);
   return Number(v.package_price)>0 && Boolean(paid.rowCount);
 }
+// Locks both consent-bearing profile and account until payment reservation/delivery commits.
+export async function assertPreparedCandidatesEligible(c: any, v: any) {
+  const q=await c.query(`select cp.candidate_id,cp.status,cp.valid_until>=current_date as valid,u.status as account_status
+    from vacancy_delivery_candidates dc join vacancy_deliveries d on d.delivery_id=dc.delivery_id
+    join candidate_profiles cp on cp.candidate_id=dc.candidate_id join users u on u.user_id=cp.user_id
+    where d.vacancy_id=$1 and d.status='LISTA' order by cp.candidate_id for update of cp,u`,[v.vacancy_id]);
+  if(q.rowCount!==Number(v.package_candidate_limit)||q.rows.some((r:any)=>r.status!=='ACTIVO'||!r.valid||r.account_status!=='ACTIVE'))
+    throw new Error('CANDIDATE_SET_CHANGED');
+}
 export async function sendPreparedCandidateDelivery(c: any, v: any) {
   if (!await hasApprovedVacancyPayment(c,v)) throw new Error('PAYMENT_REQUIRED');
   const existing = await c.query("select delivery_id,status from vacancy_deliveries where vacancy_id=$1 order by created_at desc limit 1 for update",[v.vacancy_id]);
@@ -15,11 +24,12 @@ export async function sendPreparedCandidateDelivery(c: any, v: any) {
   if (d.status!=='LISTA') throw new Error('DELIVERY_NOT_READY');
   const count=await c.query('select count(*)::int total from vacancy_delivery_candidates where delivery_id=$1',[d.delivery_id]);
   if (count.rows[0].total!==v.package_candidate_limit) throw new Error('DELIVERY_SNAPSHOT_MISMATCH');
+  await assertPreparedCandidatesEligible(c,v);
+  await c.query("update vacancy_candidates set contact_authorized=true where vacancy_id=$1 and candidate_id in (select candidate_id from vacancy_delivery_candidates where delivery_id=$2)",[v.vacancy_id,d.delivery_id]);
+  await c.query("update vacancy_deliveries set status='ENVIADA',sent_at=now(),updated_at=now() where delivery_id=$1",[d.delivery_id]);
+  await c.query("update vacancies set status='ENTREGADA',updated_at=now() where vacancy_id=$1",[v.vacancy_id]);
   await c.query(`insert into candidate_notifications(candidate_id,vacancy_id,type,title,message)
     select candidate_id,$2,'PROFILE_DELIVERED','Tu perfil estuvo en una búsqueda',$3 from vacancy_delivery_candidates where delivery_id=$1
     on conflict(candidate_id,vacancy_id,type) do nothing`,[d.delivery_id,v.vacancy_id,`Tu perfil estuvo incluido en una búsqueda para ${v.position} en ${v.work_location}. Una empresa podría contactarte.`]);
-  await c.query("update vacancy_candidates set contact_authorized=true where vacancy_id=$1",[v.vacancy_id]);
-  await c.query("update vacancy_deliveries set status='ENVIADA',sent_at=now(),updated_at=now() where delivery_id=$1",[d.delivery_id]);
-  await c.query("update vacancies set status='ENTREGADA',updated_at=now() where vacancy_id=$1",[v.vacancy_id]);
   return {delivery_id:d.delivery_id,reused:false};
 }
