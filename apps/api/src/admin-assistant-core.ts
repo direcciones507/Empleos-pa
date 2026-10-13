@@ -73,7 +73,13 @@ export function assertAnswerUsesKnownNumbers(answer: string, snapshot: AdminAssi
     else if (value && typeof value === "object") Object.values(value).forEach(collect);
   };
   collect(snapshot);
-  const mentioned = answer.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
+  // Dates and clock times are labels, not administrative counts.
+  // Ignore temporal labels while preserving numeric metric validation.
+  const withoutTemporalLabels = answer
+    .replace(/\b\d{4}-\d{1,2}-\d{1,2}(?:T\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?)?\b/g, " ")
+    .replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b/g, " ")
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g, " ");
+  const mentioned = withoutTemporalLabels.match(/-?\d+(?:[.,]\d+)?/g) ?? [];
   for (const raw of mentioned) {
     const value = Number(raw.replace(",", "."));
     if (Number.isFinite(value) && !known.has(value)) throw new Error("DEEPSEEK_FACT_CONFLICT");

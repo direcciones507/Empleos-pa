@@ -66,6 +66,11 @@ test("cifras ajenas al snapshot son rechazadas", () => {
   assert.doesNotThrow(() => assertAnswerUsesKnownNumbers("Hoy hubo 2 candidatos.", snapshot));
   assert.throws(() => assertAnswerUsesKnownNumbers("Hoy hubo 999 candidatos.", snapshot), /DEEPSEEK_FACT_CONFLICT/);
 });
+test("fechas y horas de referencia no se confunden con cifras administrativas", () => {
+  assert.doesNotThrow(() => assertAnswerUsesKnownNumbers("Reporte del 12/10/2026 a las 18:30: hubo 2 candidatos.", snapshot));
+  assert.doesNotThrow(() => assertAnswerUsesKnownNumbers("Reporte 2026-10-12: 2 candidatos.", snapshot));
+  assert.throws(() => assertAnswerUsesKnownNumbers("Reporte 2026-10-12: hubo 999 candidatos.", snapshot), /DEEPSEEK_FACT_CONFLICT/);
+});
 test("auditoría guarda categoría pero no pregunta ni respuesta", () => {
   assert.match(routes, /ADMIN_ASSISTANT_QUERY/);
   assert.match(routes, /metadata: \{ category, provider: result\.provider, model: result\.model \}/);
