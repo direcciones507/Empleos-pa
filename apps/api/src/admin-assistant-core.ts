@@ -73,7 +73,9 @@ export function assertAnswerUsesKnownNumbers(answer: string, snapshot: AdminAssi
     else if (value && typeof value === "object") Object.values(value).forEach(collect);
   };
   collect(snapshot);
-  // Dates and clock times are labels, not administrative counts. They must not trigger\n  // a false fact conflict when the model describes the snapshot period.\n  const withoutTemporalLabels = answer
+  // Dates and clock times are labels, not administrative counts.
+  // Ignore temporal labels while preserving numeric metric validation.
+  const withoutTemporalLabels = answer
     .replace(/\b\d{4}-\d{1,2}-\d{1,2}(?:T\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?)?\b/g, " ")
     .replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b/g, " ")
     .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g, " ");
