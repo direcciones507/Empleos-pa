@@ -619,7 +619,7 @@ export async function candidateRoutes(app: FastifyInstance) {
       )
         return reply.code(400).send({ error: "INVALID_NOTIFICATION_ID" });
       const q = await db.query(
-        `update candidate_notifications n set read_at=coalesce(n.read_at,now()) from candidate_profiles cp where n.notification_id=$1 and n.candidate_id=cp.candidate_id and cp.user_id=$2 returning n.notification_id,n.read_at`,
+        `update candidate_notifications n set read_at=coalesce(n.read_at,now()),archived_at=coalesce(n.archived_at,now()) from candidate_profiles cp where n.notification_id=$1 and n.candidate_id=cp.candidate_id and cp.user_id=$2 and n.deleted_at is null returning n.notification_id,n.read_at`,
         [notificationId, req.authUser!.user_id],
       );
       return q.rowCount
