@@ -16,7 +16,8 @@ export default function Curriculum(){
  useEffect(()=>{if(!paymentOpen||!yappyEnabled)return;mountYappy();const id=setInterval(()=>{if(!yappyButton.current)mountYappy();},300);return()=>clearInterval(id);},[paymentOpen,yappyEnabled]);
  async function startYappy(){setPaymentBusy(true);setError("");try{const r=await api("/v1/candidate/cv/yappy/start",{method:"POST",body:JSON.stringify({template:executive,aliasYappy:yappyAlias})});setPurchaseId(r.purchaseId);setPaymentStatus("PENDING");}catch{setError("No se pudo iniciar el cobro de Yappy. Revisa el número y la configuración de pagos.");}finally{setPaymentBusy(false);}}
  async function checkYappy(){if(!purchaseId)return;setPaymentBusy(true);setError("");try{const r=await api("/v1/candidate/cv/yappy/"+encodeURIComponent(purchaseId));setPaymentStatus(r.purchase.status);setExecutiveRemaining(Math.max(0,3-r.purchase.generations));}catch{setError("No se pudo consultar el estado del pago.");}finally{setPaymentBusy(false);}}
- function newPurchase(){setPaymentOpen(false);setPurchaseId("");setPaymentStatus("");setExecutiveRemaining(null);setYappyMessage("");setExpiresAt(0);setSecondsLeft(300);yappyButton.current=null;if(yappyHost.current)yappyHost.current.replaceChildren();setError("");}\n async function generate(executivePurchase=false){
+ function newPurchase(){setPaymentOpen(false);setPurchaseId("");setPaymentStatus("");setExecutiveRemaining(null);setYappyMessage("");setExpiresAt(0);setSecondsLeft(300);yappyButton.current=null;if(yappyHost.current)yappyHost.current.replaceChildren();setError("");}
+ async function generate(executivePurchase=false){
   if(!profile)return;
   setBusy(true);setError("");
   try{
