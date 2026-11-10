@@ -81,9 +81,9 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
  app.post("/v1/candidate/cv/yappy/start",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{
   if(!config.yappyPaymentsEnabled||config.requestPaymentMode!=="MANUAL")return reply.code(409).send({error:"PAYMENTS_DISABLED"});
   if(!config.yappyMerchantId||!config.yappySecretKey)return reply.code(503).send({error:"YAPPY_NOT_CONFIGURED"});
-  const template=String(req.body?.template??""),alias=String(req.body?.aliasYappy??"").replace(/\\D/g,"");
+  const template=String(req.body?.template??""),alias=String(req.body?.aliasYappy??"").replace(/\D/g,"");
   if(!["ejecutivo-clasico","ejecutivo-moderno","ejecutivo-minimalista"].includes(template))return reply.code(400).send({error:"INVALID_TEMPLATE"});
-  if(!/^6\\d{7}$/.test(alias))return reply.code(400).send({error:"YAPPY_ALIAS_INVALID"});
+  if(!/^6\d{7}$/.test(alias))return reply.code(400).send({error:"YAPPY_ALIAS_INVALID"});
   const profile=await db.query("select candidate_id from candidate_profiles where user_id=$1 and status='ACTIVO'",[req.authUser!.user_id]);
   if(!profile.rowCount)return reply.code(409).send({error:"PROFILE_NOT_ACTIVE"});
   const id=orderId();
