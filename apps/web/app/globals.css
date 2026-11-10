@@ -142,3 +142,22 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  .home .homeBenefits,.home .requestTypes,.home footer{width:100%;max-width:100%;min-width:0}
  .home section[aria-label="Currículum en PDF"]{margin:20px 18px!important;max-width:calc(100% - 36px)!important}
 }
+
+/* Homepage mobile menu and compact CV announcement */
+.mobileHomeMenu{display:none}
+@media(max-width:820px){
+ .homeNav{position:relative;z-index:5}
+ .homeNav>div{display:none!important}
+ .mobileHomeMenu{display:block;flex:0 0 auto}
+ .mobileHomeMenu summary{display:grid;place-items:center;width:48px;height:48px;border:1px solid #217847;border-radius:12px;color:#217847;cursor:pointer;list-style:none;font-size:1.7rem}
+ .mobileHomeMenu summary::-webkit-details-marker{display:none}
+ .mobileHomeMenuLinks{position:absolute;top:100%;right:12px;left:12px;display:grid;gap:2px;background:white;padding:10px;border:1px solid #bddcc7;border-radius:14px;box-shadow:0 14px 35px #17231d25;z-index:10}
+ .mobileHomeMenuLinks a{padding:13px 15px;min-height:44px;text-decoration:none;color:#17231d;font-weight:750;border-radius:8px}
+ .mobileHomeMenuLinks a:focus-visible,.mobileHomeMenuLinks a:hover{background:#e6f8ef}
+ .home .launchBanner{gap:5px;padding:11px 16px}
+ .home .launchBanner strong,.home .launchBanner span{line-height:1.25}
+ .home .launchBanner a{margin-top:5px}
+ /* Source image has an embedded fake navigation strip at its top.
+    Show only the lower photographic area, anchored at the bottom. */
+ .home .homeHeroBanner{height:50vw;min-height:0;background-size:100% auto;background-position:center bottom}
+}
