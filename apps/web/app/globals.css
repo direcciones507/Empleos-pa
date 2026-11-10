@@ -388,3 +388,12 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvPdfPreviewPages{flex:1;min-height:0;overflow:auto;padding:12px;background:#e9edf2;overscroll-behavior:contain}
 .cvPdfPreviewPages>p{text-align:center;color:#526171}
 @media(max-width:640px){.cvPdfPreviewPages{padding:8px 4px}}
+
+/* Align Rocky AI decision buttons with the desktop CV selection grid. */
+@media(min-width:1024px){.cvAiReview .portalActions.cvAiDecisionActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:740px;width:100%;margin:24px auto 8px}.cvAiReview .cvAiDecisionActions>.portalAction{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-width:0;min-height:52px;margin:0}}
+/* Preview close control: distinct, polished action on desktop and mobile. */
+.cvPdfPreviewHeader button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;border:1px solid #cbd5e1;border-radius:12px;background:#f1f5f9;color:#20344b;font-family:inherit;font-size:14px;font-weight:700;line-height:1.2;padding:10px 16px;box-shadow:0 2px 5px #11233b14;transition:background .18s,border-color .18s,transform .18s,box-shadow .18s}
+.cvPdfPreviewHeader button span{font-size:18px;line-height:1}
+.cvPdfPreviewHeader button:hover{background:#fce9da;border-color:#e28a47;box-shadow:0 3px 10px #11233b1c;transform:translateY(-1px)}
+.cvPdfPreviewHeader button:focus-visible{outline:3px solid #e28a47;outline-offset:2px}
+@media(max-width:640px){.cvPdfPreviewHeader button{min-height:40px;padding:9px 12px;border-radius:10px;font-size:13px}}
