@@ -13,6 +13,27 @@ export async function vacancyArchiveRoutes(app:FastifyInstance) {
     const q=await db.query("select v.vacancy_code,v.position,v.status,v.closed_at,v.archived_at,c.name company_name from vacancies v join companies c on c.company_id=v.company_id where v.archived_at is not null order by v.archived_at desc limit 100");
     return {items:q.rows};
   });
+  app.post("/v1/admin/vacancies/:code/close",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{
+    const code=String(req.params.code??"");
+    if(!codePattern.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
+    const client=await db.connect();
+    try{
+      await client.query("begin");
+      const q=await client.query("update vacancies set status='CERRADA',closed_at=coalesce(closed_at,now()),updated_at=now() where vacancy_code=$1 and status in ('APROBADA','EN_BUSQUEDA','ENTREGADA') and archived_at is null returning vacancy_id,vacancy_code,status,closed_at",[code]);
+      if(!q.rowCount){await client.query("rollback");return reply.code(409).send({error:"VACANCY_NOT_CLOSABLE"});}
+      await writeAdminAudit({adminUserId:req.authUser!.user_id,action:"VACANCY_CLOSED",entityType:"VACANCY",entityId:code},client);
+      await client.query("commit");return {vacancy:q.rows[0]};
+    }catch(e){await client.query("rollback").catch(()=>{});throw e;}finally{client.release();}
+  });
+  app.post("/v1/admin/vacancies/archive-due",{preHandler:requireRoles("ADMIN")},async(req:any)=>{
+    const client=await db.connect();
+    try{
+      await client.query("begin");
+      const q=await client.query("update vacancies set archived_at=now(),updated_at=now() where archived_at is null and closed_at<=now()-interval '30 days' and status in ('CERRADA','CANCELADA') returning vacancy_code");
+      await writeAdminAudit({adminUserId:req.authUser!.user_id,action:"VACANCIES_ARCHIVED_DUE",entityType:"VACANCY_BATCH",entityId:"30_DAYS",metadata:{count:q.rowCount}},client);
+      await client.query("commit");return {archived_count:q.rowCount,codes:q.rows.map((v:any)=>v.vacancy_code)};
+    }catch(e){await client.query("rollback").catch(()=>{});throw e;}finally{client.release();}
+  });
   app.post("/v1/admin/vacancies/:code/archive",{preHandler:requireRoles("ADMIN")},async(req:any,reply)=>{
     const code=String(req.params.code??"");
     if(!codePattern.test(code))return reply.code(400).send({error:"INVALID_VACANCY_CODE"});
