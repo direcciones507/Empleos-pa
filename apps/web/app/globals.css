@@ -397,3 +397,14 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvPdfPreviewHeader button:hover{background:#fce9da;border-color:#e28a47;box-shadow:0 3px 10px #11233b1c;transform:translateY(-1px)}
 .cvPdfPreviewHeader button:focus-visible{outline:3px solid #e28a47;outline-offset:2px}
 @media(max-width:640px){.cvPdfPreviewHeader button{min-height:40px;padding:9px 12px;border-radius:10px;font-size:13px}}
+
+/* Progressive CV wizard: show one stage at a time without changing payment logic. */
+.cvStageEntryActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:760px;margin:30px auto!important}
+.cvStageEntryActions>.portalAction{display:flex;align-items:center;justify-content:center;min-height:64px;text-align:center;width:100%;margin:0}
+.cvStagePanel{animation:cvStageReveal .22s ease-out}
+@keyframes cvStageReveal{from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cvStageBack{background:transparent;border:0;color:#285575;font:600 14px/1.5 inherit;cursor:pointer;padding:9px 4px;text-decoration:underline;text-underline-offset:3px}
+.cvStagePdfHeader{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:18px}
+.cvStagePdfHeader h2{margin:0}
+.cvStageApprovedNote{background:#f2f7f4;border:1px solid #d6e5db;border-radius:12px;padding:12px 16px}
+@media(max-width:640px){.cvStageEntryActions{grid-template-columns:1fr;gap:14px;margin:24px auto!important}.cvStageEntryActions>.portalAction{min-height:60px}}
