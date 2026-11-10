@@ -213,3 +213,12 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  .homeNav>div{display:flex;align-items:center;gap:clamp(8px,1.3vw,18px)}
 }
 @media(max-width:820px){.homeNav .navRegister{display:none}}
+
+/* Clearer brand accents and CV action alignment */
+.home>.launchBanner:first-child>strong{color:#ff9b32}
+.home>.launchBanner:first-child>a{color:#ff9b32;border-color:#ff9b32;background:rgba(255,255,255,.07)}
+.home>.launchBanner:first-child>a:hover{background:#ff9b32;color:#173a2a}
+.homeNav .navRegister{background:#217847;color:#fff}
+.homeNav .navRegister:hover{background:#176038;color:#fff}
+.cvDownloadActions{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.cvDownloadActions>.portalAction{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;box-sizing:border-box;min-height:52px;margin-top:0;font-size:1rem;line-height:1.35;font-weight:800;padding:13px 18px}
