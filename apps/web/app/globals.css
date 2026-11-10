@@ -186,3 +186,20 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  .portal:has(.dangerZone) .portalActions .portalAction{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:13px 16px;text-align:center;font-size:1rem;line-height:1.35;font-weight:800;box-sizing:border-box}
  .portal:has(.dangerZone) .portalActions .portalAction b{flex:0 0 auto}
 }
+
+/* Desktop/tablet authentication cards: fit within typical viewport heights. */
+@media(min-width:821px){
+ .accountPage{min-height:100dvh;padding:clamp(10px,2vh,20px) 24px;align-items:center}
+ .accountPage .accountCard{width:min(520px,100%);padding:clamp(18px,2.7vh,30px);gap:clamp(8px,1.25vh,12px);border-radius:20px}
+ .accountPage .accountCard h1{font-size:clamp(1.85rem,3.7vh,2.25rem);margin:0;line-height:1.12}
+ .accountPage .accountCard form{gap:clamp(7px,1.2vh,12px)}
+ .accountPage .accountCard label{gap:5px}
+ .accountPage .accountCard input{padding:10px 12px}
+ .accountPage .rolePicker button,.accountPage .accountCard .submit,.accountPage .accountCard .google{min-height:42px}
+ .accountPage .accountCard .miniBrand{line-height:1.1}
+ .accountPage .loginPage{width:min(480px,100%);gap:10px}
+ .accountPage .login{padding:clamp(18px,2.7vh,30px);gap:10px;border-radius:20px}
+ .accountPage .login h2{font-size:clamp(1.8rem,3.7vh,2.2rem)}
+ .accountPage .login input{padding:10px 12px}
+ .accountPage .login button,.accountPage .login .google{min-height:42px}
+}
