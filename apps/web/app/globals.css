@@ -161,3 +161,21 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
     Show only the lower photographic area, anchored at the bottom. */
  .home .homeHeroBanner{height:50vw;min-height:0;background-size:100% auto;background-position:center bottom}
 }
+
+/* Mobile-only fixes: centered registration card and remove artwork's baked-in header */
+@media(max-width:820px){
+ .accountPage{display:flex;align-items:flex-start;justify-content:center;width:100%;min-width:0;padding:20px 16px 36px}
+ .accountPage .accountCard{width:100%;max-width:480px;min-width:0;margin:0 auto;padding:clamp(20px,5vw,30px);border-radius:20px;gap:14px}
+ .accountPage .accountCard h1{font-size:clamp(1.9rem,8vw,2.5rem);line-height:1.12}
+ .accountPage .accountCard form,.accountPage .accountCard label,.accountPage .accountCard input{min-width:0}
+ .accountPage .accountCard input{width:100%;max-width:100%}
+ .accountPage .rolePicker{grid-template-columns:1fr 1fr}
+ .accountPage .rolePicker button{min-width:0}
+ .home .homeHeroBanner{height:clamp(220px,52vw,350px);background-size:165% auto;background-position:center bottom}
+}
+@media(max-width:600px){
+ .accountPage{padding:16px 14px 28px}
+ .accountPage .accountCard{max-width:440px;padding:20px 18px;gap:12px}
+ .accountPage .rolePicker{grid-template-columns:1fr}
+ .home .homeHeroBanner{height:clamp(210px,56vw,300px);background-size:190% auto;background-position:center bottom}
+}
