@@ -355,3 +355,11 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvAiReview .cvAiSelect{display:block;width:100%;min-height:50px;margin-top:8px;padding:12px 44px 12px 15px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#24364b;font-family:inherit;font-size:15px;font-weight:500;line-height:1.4;letter-spacing:normal;box-shadow:0 2px 7px #172b4d0b;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233a526c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 .cvAiReview .cvAiSelect:focus{outline:2px solid #d57a35;outline-offset:2px;border-color:#d57a35}
 .cvAiReview .cvAiSelect option{color:#24364b;background:#fff;font:inherit}
+
+/* Rocky IA review: readable editorial typography and mobile-only button alignment */
+.cvAiReview textarea{font-family:inherit!important;font-size:16px!important;line-height:1.55!important;letter-spacing:normal!important;color:#24364b;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;max-width:100%;resize:vertical;background:#fff}
+.cvAiReview textarea:focus{outline:2px solid #d57a35;outline-offset:1px;border-color:#d57a35}
+.cvAiReview label{font-family:inherit;line-height:1.5}
+.cvAiReview h3{line-height:1.25;margin:20px 0 12px}
+.cvAiReview .cvAiReviewButton{text-align:center}
+@media(max-width:640px){.cvAiReview .cvAiReviewButton{display:block;width:max-content;max-width:100%;margin:18px auto 22px;text-align:center;justify-content:center}.cvAiReview textarea{width:100%!important}.cvAiReview h3{font-size:1.35rem}.cvAiReview label{display:block}.cvAiReview .portalActions{gap:12px}}
