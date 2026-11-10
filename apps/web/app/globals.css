@@ -338,3 +338,7 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvModalClose:active{background:#ff982b!important;color:#17231d!important;transform:scale(.98)}
 .cvModalClose:focus-visible{outline:3px solid #ff982b;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.cvModalClose{transition:none;transform:none!important}}
+
+.cvYappyFloatingClose{position:fixed;z-index:2147483647;top:max(14px,env(safe-area-inset-top));right:16px;background:#fff;color:#13233b;border:2px solid #e0a451;border-radius:12px;padding:12px 17px;font-size:15px;font-weight:750;box-shadow:0 5px 22px #0005;cursor:pointer;transition:background .18s,color .18s,transform .18s}
+.cvYappyFloatingClose:hover{background:#ff982b;color:#17231d;transform:translateY(-2px)}
+.cvYappyFloatingClose:active{transform:scale(.98)}
