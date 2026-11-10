@@ -179,3 +179,10 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  .accountPage .rolePicker{grid-template-columns:1fr}
  .home .homeHeroBanner{height:clamp(210px,56vw,300px);background-size:190% auto;background-position:center bottom}
 }
+
+/* Candidate dashboard: consistent centered action typography on mobile */
+@media(max-width:820px){
+ .portal:has(.dangerZone) .portalActions{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+ .portal:has(.dangerZone) .portalActions .portalAction{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:13px 16px;text-align:center;font-size:1rem;line-height:1.35;font-weight:800;box-sizing:border-box}
+ .portal:has(.dangerZone) .portalActions .portalAction b{flex:0 0 auto}
+}
