@@ -313,3 +313,14 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  :is(.portal,.wizard,.accountCard,.paymentForm) :is(form button,form input[type="submit"],.portalAction,.submit,.rolePicker button),
  :is(.portal,.wizard,.accountCard) :is(form a,.portalActions a){transition:none;transform:none!important}
 }
+
+/* Clear interactive affordances across internal forms and clickable cards */
+:is(.portal,.wizard,.accountPage,.paymentForm) :is(a,button,summary,[role="button"],[role="link"],input[type="checkbox"],input[type="radio"],input[type="submit"],input[type="button"],select,label:has(input[type="checkbox"]),label:has(input[type="radio"])):not(:disabled):not([aria-disabled="true"]){cursor:pointer}
+:is(.portal,.wizard,.accountPage,.paymentForm) :is(input[type="text"],input[type="email"],input[type="password"],input[type="tel"],input[type="number"],input[type="search"],input[type="url"],input[type="date"],textarea){cursor:text}
+:is(.portal,.wizard,.accountPage,.paymentForm) :is(button,summary,[role="button"],a,select):disabled,
+:is(.portal,.wizard,.accountPage,.paymentForm) :is(button,summary,[role="button"],a,select)[aria-disabled="true"]{cursor:not-allowed}
+:is(.portal,.wizard,.accountPage,.paymentForm) :is(input,textarea,select):focus-visible{outline:2px solid #217847;outline-offset:2px;box-shadow:0 0 0 4px #2178471c}
+@media(hover:hover) and (pointer:fine){
+ :is(.portal,.wizard,.accountPage,.paymentForm) :is(summary,[role="button"],[role="link"],label:has(input[type="checkbox"]),label:has(input[type="radio"])):not([aria-disabled="true"]):hover{filter:brightness(.97);box-shadow:0 3px 12px #21784720}
+ :is(.portal,.wizard,.accountPage,.paymentForm) :is(input[type="checkbox"],input[type="radio"]):hover{accent-color:#ff982b}
+}
