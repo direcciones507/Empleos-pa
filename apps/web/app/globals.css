@@ -324,3 +324,10 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  :is(.portal,.wizard,.accountPage,.paymentForm) :is(summary,[role="button"],[role="link"],label:has(input[type="checkbox"]),label:has(input[type="radio"])):not([aria-disabled="true"]):hover{filter:brightness(.97);box-shadow:0 3px 12px #21784720}
  :is(.portal,.wizard,.accountPage,.paymentForm) :is(input[type="checkbox"],input[type="radio"]):hover{accent-color:#ff982b}
 }
+
+/* Candidate published modal: clear hover and touch feedback */
+.wizard .cvPromptAction{display:inline-flex;align-items:center;justify-content:center;min-height:46px;font-weight:750;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+@media(hover:hover) and (pointer:fine){.wizard .cvPromptAction:hover{background:#ff982b!important;color:#17231d!important;border-color:#ff982b!important;box-shadow:0 5px 15px #bd6b1e40;transform:translateY(-2px)}}
+.wizard .cvPromptAction:active{background:#ff982b!important;color:#17231d!important;transform:scale(.98)}
+.wizard .cvPromptAction:focus-visible{outline:3px solid #ff982b;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.wizard .cvPromptAction{transition:none;transform:none!important}}
