@@ -5,6 +5,10 @@ import {writeAdminAudit} from "./admin-audit.js";
 
 const codePattern=/^VAC-\d{6}$/;
 export async function vacancyArchiveRoutes(app:FastifyInstance) {
+  app.get("/v1/admin/candidates/incomplete-summary",{preHandler:requireRoles("ADMIN")},async()=>{
+    const q=await db.query("select count(*)::int total, count(*) filter (where updated_at < now()-interval '24 hours')::int inactive_over_24h, count(*) filter (where updated_at < now()-interval '7 days')::int inactive_over_7d from candidate_profiles where status='BORRADOR'");
+    return {summary:q.rows[0],emails_sent:0,mode:"READ_ONLY"};
+  });
   app.get("/v1/admin/vacancies/archived",{preHandler:requireRoles("ADMIN")},async()=>{
     const q=await db.query("select v.vacancy_code,v.position,v.status,v.closed_at,v.archived_at,c.name company_name from vacancies v join companies c on c.company_id=v.company_id where v.archived_at is not null order by v.archived_at desc limit 100");
     return {items:q.rows};
