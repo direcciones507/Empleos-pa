@@ -252,3 +252,24 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 @media(prefers-reduced-motion:reduce){
  .home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a,.mobileHomeMenuLinks a){transition:none!important;transform:none!important}
 }
+
+/* Unified interactive feedback for all homepage CTAs and login actions */
+.home :is(.homeChoices a,.requestTypeGrid a,.launchBanner a,.homeNav .navLogin,.homeNav .navRegister),
+.accountPage .login :is(button[type="submit"],button:not([type]),a.google){
+ cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.home .homeChoices a:hover,.home .requestTypeGrid a:hover,
+.home .launchBanner:not(:first-child) a:hover{
+ background:#ff982b!important;color:#182a20!important;border-color:#ff982b!important;box-shadow:0 5px 16px #bd6b1e45!important;transform:translateY(-2px);
+}
+.home .homeNav .navLogin:hover{background:#d9f6e5!important;color:#145b36!important;border-color:#1e824b!important;box-shadow:0 4px 13px #1e824b33}
+.home .homeNav .navRegister:hover{background:#ff982b!important;color:#17231d!important;box-shadow:0 5px 14px #bd6b1e45}
+.accountPage .login button:not([type]):not(:disabled):hover,
+.accountPage .login button[type="submit"]:not(:disabled):hover{background:#ff982b!important;color:#17231d!important;box-shadow:0 5px 15px #bd6b1e45;transform:translateY(-2px)}
+.accountPage .login a.google:hover{background:#e0f6e9!important;color:#174b32!important;border-color:#217847!important;box-shadow:0 5px 15px #21784724;transform:translateY(-2px)}
+.home :is(.homeChoices a,.requestTypeGrid a,.launchBanner a,.homeNav .navLogin,.homeNav .navRegister):active,
+.accountPage .login :is(button[type="submit"],button:not([type]),a.google):active{background:#ff982b!important;color:#17231d!important;transform:scale(.985);box-shadow:inset 0 2px 5px #17231d26}
+@media(prefers-reduced-motion:reduce){
+ .home :is(.homeChoices a,.requestTypeGrid a,.launchBanner a,.homeNav .navLogin,.homeNav .navRegister),
+ .accountPage .login :is(button[type="submit"],button:not([type]),a.google){transition:none;transform:none!important}
+}
