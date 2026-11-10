@@ -408,3 +408,8 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvStagePdfHeader h2{margin:0}
 .cvStageApprovedNote{background:#f2f7f4;border:1px solid #d6e5db;border-radius:12px;padding:12px 16px}
 @media(max-width:640px){.cvStageEntryActions{grid-template-columns:1fr;gap:14px;margin:24px auto!important}.cvStageEntryActions>.portalAction{min-height:60px}}
+
+/* Approved CV notice: single return action at the far right. */
+.cvStageApprovedNote{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap}
+.cvStageApprovedNote>.cvStageBack{margin-left:auto;white-space:nowrap;text-align:right}
+@media(max-width:640px){.cvStageApprovedNote>.cvStageBack{margin-left:auto}}
