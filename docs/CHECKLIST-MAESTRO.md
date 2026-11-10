@@ -134,3 +134,16 @@ Criterio: porcentaje de construcción funcional del MVP, no porcentaje de prueba
 - Pendiente principal tras reconciliación técnica: política de retención/eliminación y textos legales finales (requieren decisión/revisión), más validaciones físicas y de producción: credenciales/secretos reales, DeepSeek, correo, scheduler, rendimiento, dominio, despliegue y pruebas integrales.
 - Desde el corte anterior también quedaron implementados CI mínimo, exportación XLSX administrativa, auditoría administrativa, endurecimiento de concurrencia en pagos/preselección/entregas/ciclo de candidatos, desactivación segura de cuentas, limitación básica de solicitudes repetidas en autenticación, guardado automático completo del borrador y la infraestructura de análisis descriptivo con DeepSeek.
 - Reconciliación técnica: no quedan puntos funcionales del MVP identificados como omitidos fuera de los bloqueos legales/decisión y de la validación/configuración física de Fase 10. Las pruebas físicas completas son el siguiente frente antes del cierre final.
+
+## Fase 11 — Recuperación, archivo y nuevas funciones (10-nov-2026)
+Regla de implementación: conservar la portada, el diseño, los formularios y los flujos actuales. Trabajar en rama separada, probar antes de publicar y no activar cobros ni comunicaciones masivas sin validación.
+- [ ] Probar físicamente autoguardado y restauración de borradores del candidato (perfil, estudios y experiencia).
+- [ ] Identificar candidatos con perfil incompleto sin incluir cuentas desactivadas, retiradas o sin consentimiento aplicable.
+- [ ] Implementar recordatorios de perfil incompleto con control de frecuencia, consentimiento, baja, auditoría e idempotencia; comprobar entrega real de correo antes de activarlos.
+- [ ] Permitir cierre y archivo manual de vacantes completadas o canceladas.
+- [ ] Archivar automáticamente vacantes cerradas 30 días después de su cierre; mantenerlas fuera de las listas activas y conservar historial comercial.
+- [ ] Permitir ADMIN archivar perfiles retirados o inactivos y gestionar solicitudes de eliminación conforme a retención legal; no borrar pagos ni entregas históricas por cascada.
+- [ ] Añadir vistas de archivados y restauración controlada, sin modificar el diseño visual existente.
+- [ ] Incorporar generador PDF de currículum con corrección IA, plantillas y política de 2 intentos gratuitos; Yappy y cobros posteriores sujetos a prueba y aprobación.
+- [ ] Preparar carrusel informativo no invasivo, administrable desde ADMIN, con rotación de 7 segundos y adaptación móvil.
+- [ ] Verificar acceso ADMIN, privacidad/noindex de paneles, pruebas de regresión y despliegue controlado.
