@@ -373,3 +373,14 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
  .portalActions.cvDesktopExecutiveActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:850px;margin-left:auto;margin-right:auto}
  .portalActions.cvDesktopCategoryActions>.portalAction,.portalActions.cvDesktopTemplateActions>.portalAction,.portalActions.cvDesktopExecutiveActions>.portalAction{width:100%;min-width:0;min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0}
 }
+
+/* Full-document PDF preview: rendered from the same jsPDF as the download. */
+.cvPdfPreviewTrigger{display:flex;justify-content:center;margin:16px auto 4px}
+.cvPdfPreviewTrigger .portalAction{cursor:pointer}
+.cvPdfPreviewOverlay{position:fixed;inset:0;z-index:1500;background:rgba(9,22,38,.88);padding:12px;display:flex;justify-content:center;align-items:center}
+.cvPdfPreviewDialog{display:flex;flex-direction:column;width:min(100%,900px);height:min(96dvh,1100px);min-height:0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 80px #0005}
+.cvPdfPreviewHeader{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;color:#24364b}
+.cvPdfPreviewHeader button{border:1px solid #d2dbe4;border-radius:8px;background:#fff;color:#24364b;padding:10px 14px;cursor:pointer;font:inherit}
+.cvPdfPreviewDialog iframe{flex:1;width:100%;min-height:0;border:0;background:#e9edf2}
+.cvPdfPreviewDialog>p{margin:0;padding:8px 12px;text-align:center;font-size:12px;color:#526171}
+@media(max-width:640px){.cvPdfPreviewOverlay{padding:4px}.cvPdfPreviewDialog{height:98dvh;border-radius:9px}.cvPdfPreviewHeader{padding:8px 10px;font-size:13px}.cvPdfPreviewHeader button{padding:8px}}
