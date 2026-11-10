@@ -63,7 +63,7 @@ and n.deleted_at is null and cp.status='BORRADOR' and u.status='ACTIVE'
 and cp.updated_at<now()-interval '24 hours'
 and n.created_at<now()-interval '24 hours'`);
 await client.query("update candidate_notifications n set archived_at=coalesce(n.archived_at,now()) from candidate_profiles cp where n.candidate_id=cp.candidate_id and n.type='PROFILE_INCOMPLETE' and cp.status<>'BORRADOR' and n.archived_at is null");await client.query(`insert into candidate_notifications(candidate_id,type,title,message)
-select cp.candidate_id,'PROFILE_INCOMPLETE','Completa tu perfil','Tu perfil de Empleos.pa está pendiente. Entra a Mi perfil para completar tus datos y continuar con tu búsqueda de empleo.'
+select cp.candidate_id,'PROFILE_INCOMPLETE','Tu candidatura está pendiente','Tu perfil quedó en borrador. Complétalo y publícalo para acceder a oportunidades de empleo.'
 from candidate_profiles cp join users u on u.user_id=cp.user_id
 where cp.status='BORRADOR' and u.status='ACTIVE' 
 and cp.updated_at<now()-interval '24 hours'
