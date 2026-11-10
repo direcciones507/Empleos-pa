@@ -25,7 +25,7 @@ export default function Curriculum(){
  async function buildPdf(){
    const {jsPDF}=await import("jspdf");
    const pdf=new jsPDF({unit:"mm",format:"a4"});
-   const style=executivePurchase?executive:template;
+   const style=category==="ejecutivo"?executive:template;
    const modern=style==="moderno"||style==="ejecutivo-moderno",minimal=style==="ejecutivo-minimalista",corporate=style==="ejecutivo-clasico";
    const navy="#183d61",ink="#24364b",accent=modern?"#126d94":minimal?"#343c43":navy;
    const name=str(cvProfile?.full_name)||"Currículum";
