@@ -98,6 +98,7 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
    return response;
   }catch(e){await db.query("update candidate_cv_purchases set status='REJECTED',updated_at=now() where order_id=$1 and status='CREATED'",[id]);req.log.error({orderId:id},'Candidate CV Yappy initiation failed');return reply.code(502).send({error:"YAPPY_PROVIDER_ERROR"});}
  });
+ app.get("/v1/candidate/cv/yappy/latest",{preHandler:requireRoles("CANDIDATO")},async(req:any)=>{const q=await db.query("select purchase_id,template,status,generations,created_at from candidate_cv_purchases where user_id=$1 and status in ('EXECUTED','PENDING') order by case when status='EXECUTED' and generations<3 then 0 when status='PENDING' then 1 else 2 end,created_at desc limit 1",[req.authUser!.user_id]);return {purchase:q.rows[0]??null};});
  app.get("/v1/candidate/cv/yappy/:purchaseId",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{
   const q=await db.query("select purchase_id,template,status,generations,amount,created_at from candidate_cv_purchases where purchase_id=$1 and user_id=$2",[req.params.purchaseId,req.authUser!.user_id]);
   return q.rowCount?{purchase:q.rows[0]}:reply.code(404).send({error:"PURCHASE_NOT_FOUND"});
