@@ -331,3 +331,10 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .wizard .cvPromptAction:active{background:#ff982b!important;color:#17231d!important;transform:scale(.98)}
 .wizard .cvPromptAction:focus-visible{outline:3px solid #ff982b;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.wizard .cvPromptAction{transition:none;transform:none!important}}
+
+/* Executive CV modal close control */
+.cvModalClose{transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;cursor:pointer}
+@media(hover:hover) and (pointer:fine){.cvModalClose:hover{background:#ff982b!important;color:#17231d!important;border-color:#ff982b!important;box-shadow:0 5px 15px #bd6b1e40;transform:translateY(-2px)}}
+.cvModalClose:active{background:#ff982b!important;color:#17231d!important;transform:scale(.98)}
+.cvModalClose:focus-visible{outline:3px solid #ff982b;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.cvModalClose{transition:none;transform:none!important}}
