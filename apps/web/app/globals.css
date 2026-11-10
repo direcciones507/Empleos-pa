@@ -227,3 +227,28 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .home>.launchBanner:first-child>a{background:#ff941f!important;color:#17231d!important;border:2px solid #ff941f!important;box-shadow:0 2px 0 #b75d00;font-weight:900}
 .home>.launchBanner:first-child>strong{color:#ffab4c!important}
 .home>.launchBanner:first-child>a:hover,.home>.launchBanner:first-child>a:focus-visible{background:#ffad50!important;border-color:#ffad50!important}
+
+/* Homepage interactive buttons: subtle, accessible feedback without layout shifts */
+.home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a,.mobileHomeMenuLinks a){
+ transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+ -webkit-tap-highlight-color:rgba(255,151,37,.18);
+}
+@media(hover:hover) and (pointer:fine){
+ .home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a):hover{
+  transform:translateY(-2px);box-shadow:0 5px 14px rgba(18,60,39,.16);
+ }
+ .home .homeNav .navLogin:hover{background:#e2f6e9;color:#145e38;border-color:#217847}
+ .home .homeNav .navRegister:hover{background:#f79428;color:#17231d}
+ .home .homeChoices a:hover,.home .requestTypeGrid a:hover{background:#f79428;color:#17231d;border-color:#f79428}
+ .home .launchBanner:not(:first-child) a:hover{background:#f79428;color:#17231d;border-color:#f79428}
+ .home .mobileHomeMenuLinks a:hover{background:#e2f6e9;color:#145e38}
+}
+.home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a,.mobileHomeMenuLinks a):active{
+ transform:translateY(1px);filter:brightness(.95);
+}
+.home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a,.mobileHomeMenuLinks a):focus-visible{
+ outline:3px solid #f79428;outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+ .home :is(.launchBanner a,.homeNav a:not(.homeBrand),.homeChoices a,.requestTypeGrid a,.mobileHomeMenuLinks a){transition:none!important;transform:none!important}
+}
