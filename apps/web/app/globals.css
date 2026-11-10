@@ -113,3 +113,12 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 @media(prefers-reduced-motion:reduce){
  .wizard .wfield input,.wizard .wfield textarea,.wizard .wfield select,.accountCard input,.login input{transition:none}
 }
+
+/* Interactive affordances: CV choices and primary portal actions. */
+.portal button:not(:disabled),.portal a.portalAction,.portal .portalActions button:not(:disabled){cursor:pointer;transition:background-color .16s ease,color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.portal .portalActions button:not(:disabled):hover,.portal .portalActions a.portalAction:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(16,48,75,.17);filter:brightness(.96)}
+.portal .portalActions button[aria-pressed="true"]{border-color:#176b85;background:#e5f4f7;color:#123e56;box-shadow:inset 0 0 0 1px #176b85}
+.portal .portalActions button[aria-pressed="true"]:hover{background:#d2ebf2}
+.portal button:disabled{cursor:not-allowed;opacity:.55}
+.portal button:focus-visible,.portal a.portalAction:focus-visible{outline:3px solid #1a809d;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.portal button,.portal a.portalAction{transition:none!important}.portal .portalActions button:hover,.portal .portalActions a.portalAction:hover{transform:none}}
