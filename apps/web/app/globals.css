@@ -363,3 +363,13 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvAiReview h3{line-height:1.25;margin:20px 0 12px}
 .cvAiReview .cvAiReviewButton{text-align:center}
 @media(max-width:640px){.cvAiReview .cvAiReviewButton{display:block;width:max-content;max-width:100%;margin:18px auto 22px;text-align:center;justify-content:center}.cvAiReview textarea{width:100%!important}.cvAiReview h3{font-size:1.35rem}.cvAiReview label{display:block}.cvAiReview .portalActions{gap:12px}}
+
+/* CV desktop action alignment. Mobile/tablet layouts remain unchanged. */
+@media(min-width:1024px){
+ .cvAiReview .cvAiReviewButton{display:block;width:max-content;max-width:100%;margin:22px auto 24px!important}
+ .cvAiReview .cvAiApprovedStatus{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:12px 0}
+ .cvAiReview .cvAiApprovedStatus .portalAction{margin-left:auto;flex-shrink:0}
+ .portalActions.cvDesktopCategoryActions,.portalActions.cvDesktopTemplateActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%;max-width:740px;margin-left:auto;margin-right:auto}
+ .portalActions.cvDesktopExecutiveActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:850px;margin-left:auto;margin-right:auto}
+ .portalActions.cvDesktopCategoryActions>.portalAction,.portalActions.cvDesktopTemplateActions>.portalAction,.portalActions.cvDesktopExecutiveActions>.portalAction{width:100%;min-width:0;min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0}
+}
