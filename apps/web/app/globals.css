@@ -384,3 +384,7 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .cvPdfPreviewDialog iframe{flex:1;width:100%;min-height:0;border:0;background:#e9edf2}
 .cvPdfPreviewDialog>p{margin:0;padding:8px 12px;text-align:center;font-size:12px;color:#526171}
 @media(max-width:640px){.cvPdfPreviewOverlay{padding:4px}.cvPdfPreviewDialog{height:98dvh;border-radius:9px}.cvPdfPreviewHeader{padding:8px 10px;font-size:13px}.cvPdfPreviewHeader button{padding:8px}}
+
+.cvPdfPreviewPages{flex:1;min-height:0;overflow:auto;padding:12px;background:#e9edf2;overscroll-behavior:contain}
+.cvPdfPreviewPages>p{text-align:center;color:#526171}
+@media(max-width:640px){.cvPdfPreviewPages{padding:8px 4px}}
