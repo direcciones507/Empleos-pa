@@ -421,3 +421,5 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 @media(max-width:640px){.cvStageApprovedNote{padding:11px 12px!important;gap:5px 10px}.cvStageApprovedNote>.cvStageBack{margin-left:auto}}
 
 .cvNameWarning{padding:11px 14px;border:1px solid #e4dfce;border-left:3px solid #9b8051;background:#fbfaf5;border-radius:9px;color:#4d483d;font-size:14px;line-height:1.55;margin:12px 0 18px}
+
+.cvIdentityNotice{display:flex;align-items:flex-start;gap:12px;background:#f2f8f6;border:1px solid #cddfd8;border-left:4px solid #26735e;border-radius:12px;padding:15px 18px;margin:18px 0 12px;color:#203d34;line-height:1.5}.cvIdentityNotice p{margin:5px 0 0;font-size:14px}.cvIdentityNoticeIcon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:#d6ece2;color:#21654e;font-weight:800}@media(max-width:640px){.cvIdentityNotice{padding:13px 12px;gap:10px}.cvIdentityNotice p{font-size:13px}}
