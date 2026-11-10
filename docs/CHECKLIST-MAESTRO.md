@@ -147,3 +147,27 @@ Regla de implementación: conservar la portada, el diseño, los formularios y lo
 - [ ] Incorporar generador PDF de currículum con corrección IA, plantillas y política de 2 intentos gratuitos; Yappy y cobros posteriores sujetos a prueba y aprobación.
 - [ ] Preparar carrusel informativo no invasivo, administrable desde ADMIN, con rotación de 7 segundos y adaptación móvil.
 - [ ] Verificar acceso ADMIN, privacidad/noindex de paneles, pruebas de regresión y despliegue controlado.
+
+
+## Corte visual y funcional del generador de currículum — 10-nov-2026
+
+**Confirmado en código y/o pruebas reportadas por el propietario:**
+- [x] Generador de currículum PDF sin fotografías, a partir del perfil del candidato.
+- [x] Dos generaciones gratuitas, con contador visible de disponibles.
+- [x] Plantillas gratuitas Clásico y Moderno; opciones ejecutivas Clásico, Moderno y Minimalista.
+- [x] Flujo de revisión de redacción con Rocky IA antes del PDF; aprobación de correcciones y regreso al texto original.
+- [x] Aviso previo para verificar nombres, apellidos y cédula en el formulario; Rocky IA no debe modificarlos.
+- [x] Separación visual por etapas para evitar una página excesivamente larga; adaptación a móvil.
+- [x] Ajustes de estilos de plantillas ejecutivas sin foto y aviso de correcciones aprobadas.
+- [x] Integración del widget oficial de Yappy y flujo de pago funcional según prueba del propietario.
+- [x] Correcciones de navegación, encabezados pequeños verdes con DM Sans y posición móvil de Cerrar sesión, guardadas en GitHub.
+- [x] Corrección implementada para marcar avisos como leídos al entrar a Oportunidades.
+
+**Pendiente de verificación o cierre, sin marcar como terminado:**
+- [ ] Confirmar en móvil y escritorio que el widget Yappy no deje ver textos del diálogo inferior como marca de agua; no modificar el cobro si ya funciona.
+- [ ] Comprobar en producción que el despliegue más reciente con DM Sans y alineación móvil terminó correctamente.
+- [ ] Verificar físicamente que el contador de avisos se actualiza después de leerlos.
+- [ ] Confirmar visualmente las plantillas ejecutivas en la vista previa y en el PDF descargado.
+- [ ] Completar las tareas independientes de Fase 11: recordatorios, archivado, carrusel y comprobación ADMIN/SEO.
+
+**Nota:** Los puntos abiertos del MVP original, legales y de validación integral no se dan por concluidos solo por terminar esta ronda de mejoras visuales.
