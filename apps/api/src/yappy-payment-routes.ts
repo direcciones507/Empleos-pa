@@ -77,6 +77,41 @@ async function createProviderOrder(req:any,reply:any,{amount,purpose,vacancyId,c
 }
 
 export async function yappyPaymentRoutes(app:FastifyInstance){
+ app.get("/v1/candidate/cv/yappy/config",{preHandler:requireRoles("CANDIDATO")},async()=>({enabled:config.yappyPaymentsEnabled&&config.requestPaymentMode==="MANUAL"&&Boolean(config.yappyMerchantId&&config.yappySecretKey)}));
+ app.post("/v1/candidate/cv/yappy/start",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{
+  if(!config.yappyPaymentsEnabled||config.requestPaymentMode!=="MANUAL")return reply.code(409).send({error:"PAYMENTS_DISABLED"});
+  if(!config.yappyMerchantId||!config.yappySecretKey)return reply.code(503).send({error:"YAPPY_NOT_CONFIGURED"});
+  const template=String(req.body?.template??""),alias=String(req.body?.aliasYappy??"").replace(/\\D/g,"");
+  if(!["ejecutivo-clasico","ejecutivo-moderno","ejecutivo-minimalista"].includes(template))return reply.code(400).send({error:"INVALID_TEMPLATE"});
+  if(!/^6\\d{7}$/.test(alias))return reply.code(400).send({error:"YAPPY_ALIAS_INVALID"});
+  const profile=await db.query("select candidate_id from candidate_profiles where user_id=$1 and status='ACTIVO'",[req.authUser!.user_id]);
+  if(!profile.rowCount)return reply.code(409).send({error:"PROFILE_NOT_ACTIVE"});
+  const id=orderId();
+  const reserved=await db.query("insert into candidate_cv_purchases(candidate_id,user_id,template,order_id,status) values($1,$2,$3,$4,'CREATED') returning purchase_id",[profile.rows[0].candidate_id,req.authUser!.user_id,template,id]);
+  try{
+   const auth=await yappyPost("/payments/validate/merchant",{merchantId:config.yappyMerchantId,urlDomain:config.webUrl});
+   const token=String(auth.body?.token??""),epoch=Number(auth.body?.epochTime??Date.now());if(!token)throw Error("YAPPY_AUTH_INVALID");
+   const created=await yappyPost("/payments/payment-wc",{merchantId:config.yappyMerchantId,orderId:id,domain:config.webUrl,paymentDate:epoch,aliasYappy:alias,ipnUrl:publicBase(req)+"/v1/payments/yappy/ipn",discount:"0.00",taxes:"0.00",subtotal:"0.50",total:"0.50"},token);
+   const body=created.body??{};if(!body.token||!body.documentName||!body.transactionId)throw Error("YAPPY_ORDER_INVALID");
+   const response={orderId:id,purchaseId:reserved.rows[0].purchase_id,transactionId:String(body.transactionId),token:String(body.token),documentName:String(body.documentName),amount:"0.50"};
+   await db.query("update candidate_cv_purchases set status='PENDING',provider_response=$2::jsonb,updated_at=now() where order_id=$1",[id,JSON.stringify(response)]);
+   return response;
+  }catch(e){await db.query("update candidate_cv_purchases set status='REJECTED',updated_at=now() where order_id=$1 and status='CREATED'",[id]);req.log.error({orderId:id},'Candidate CV Yappy initiation failed');return reply.code(502).send({error:"YAPPY_PROVIDER_ERROR"});}
+ });
+ app.get("/v1/candidate/cv/yappy/:purchaseId",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{
+  const q=await db.query("select purchase_id,template,status,generations,amount,created_at from candidate_cv_purchases where purchase_id=$1 and user_id=$2",[req.params.purchaseId,req.authUser!.user_id]);
+  return q.rowCount?{purchase:q.rows[0]}:reply.code(404).send({error:"PURCHASE_NOT_FOUND"});
+ });
+ app.post("/v1/candidate/cv/yappy/:purchaseId/generate",{preHandler:requireRoles("CANDIDATO")},async(req:any,reply)=>{
+  const client=await db.connect();try{await client.query("begin");
+   const q=await client.query("select * from candidate_cv_purchases where purchase_id=$1 and user_id=$2 for update",[req.params.purchaseId,req.authUser!.user_id]);
+   const purchase=q.rows[0];if(!purchase){await client.query("rollback");return reply.code(404).send({error:"PURCHASE_NOT_FOUND"});}
+   if(purchase.status!=="EXECUTED"){await client.query("rollback");return reply.code(409).send({error:"PAYMENT_NOT_CONFIRMED"});}
+   if(purchase.generations>=3){await client.query("rollback");return reply.code(409).send({error:"EXECUTIVE_CORRECTIONS_EXHAUSTED"});}
+   await client.query("update candidate_cv_purchases set generations=generations+1,updated_at=now() where purchase_id=$1",[purchase.purchase_id]);await client.query("commit");
+   return {ok:true,template:purchase.template,remaining:2-purchase.generations};
+  }catch(e){await client.query("rollback").catch(()=>{});throw e;}finally{client.release();}
+ });
  app.get("/v1/company/payments/yappy/config",{preHandler:requireRoles("EMPRESA")},async()=>({enabled:config.yappyPaymentsEnabled&&config.requestPaymentMode==="MANUAL"&&Boolean(config.yappyMerchantId&&config.yappySecretKey)}));
  app.post("/v1/company/payments/yappy/test",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>createProviderOrder(req,reply,{amount:0.01,purpose:"TEST"}));
  app.post("/v1/company/vacancies/:code/payments/yappy",{preHandler:requireRoles("EMPRESA")},async(req:any,reply)=>{
@@ -117,6 +152,12 @@ export async function yappyPaymentRoutes(app:FastifyInstance){
   const a=Buffer.from(expected),b=Buffer.from(hash.toLowerCase());if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return reply.code(401).send({success:false});
   const map:any={E:"EXECUTED",R:"REJECTED",C:"CANCELLED",X:"EXPIRED"};const next=map[status];if(!next)return reply.code(400).send({success:false});
   const c=await db.connect();try{await c.query("begin");
+   const cv=await c.query("select purchase_id,status from candidate_cv_purchases where order_id=$1 for update",[orderId]);
+   if(cv.rowCount){
+    const current=cv.rows[0].status;
+    if(current==="PENDING"||current==="CREATED"||next==="EXECUTED")await c.query("update candidate_cv_purchases set status=$2,updated_at=now() where purchase_id=$1",[cv.rows[0].purchase_id,next]);
+    await c.query("commit");return {success:true};
+   }
    const binding=await c.query("select coalesce(o.vacancy_id,r.vacancy_id) vacancy_id from yappy_payment_orders o left join service_contact_requests r on r.contact_request_id=o.contact_request_id where o.yappy_order_id=$1",[orderId]);
    if(binding.rows[0]?.vacancy_id)await c.query('select vacancy_id from vacancies where vacancy_id=$1 for update',[binding.rows[0].vacancy_id]);
    const q=await c.query("select * from yappy_payment_orders where yappy_order_id=$1 for update",[orderId]);if(!q.rowCount){await c.query("rollback");return reply.code(404).send({success:false});}
