@@ -14,21 +14,37 @@ export default function Curriculum(){
   try{
    const {jsPDF}=await import("jspdf");
    const pdf=new jsPDF({unit:"mm",format:"a4"});
-   const dark=executivePurchase?(executive==="ejecutivo-minimalista"?"#222b35":executive==="ejecutivo-moderno"?"#126d94":"#183d61"):template==="moderno"?"#194f77":"#25354a";
-   pdf.setTextColor(dark);pdf.setFont("helvetica","bold");pdf.setFontSize(20);
-   pdf.text(str(profile.full_name)||"Currículum",18,24);
-   pdf.setFontSize(10);pdf.setFont("helvetica","normal");
+   const style=executivePurchase?executive:template;
+   const modern=style==="moderno"||style==="ejecutivo-moderno",minimal=style==="ejecutivo-minimalista",corporate=style==="ejecutivo-clasico";
+   const navy="#183d61",ink="#24364b",accent=modern?"#126d94":minimal?"#343c43":navy;
+   const name=str(profile.full_name)||"Currículum";
    const contact=[str(profile.contact_email),str(profile.mobile_whatsapp),[str(profile.province),str(profile.district)].filter(Boolean).join(", ")].filter(Boolean).join("  |  ");
-   pdf.text(pdf.splitTextToSize(contact,174),18,33);
-   let y=49;
-   const section=(title:string,value:string)=>{if(!value)return;const lines=pdf.splitTextToSize(value,172);const h=lines.length*5+13;if(y+h>276){pdf.addPage();y=22;}pdf.setFont("helvetica","bold");pdf.setFontSize(12);pdf.setTextColor(dark);pdf.text(title,18,y);y+=7;pdf.setFont("helvetica","normal");pdf.setFontSize(10);pdf.setTextColor("#263445");pdf.text(lines,18,y);y+=lines.length*5+9;};
-   section("Perfil profesional",str(profile.work_profile));
-   section("Área laboral",str(profile.primary_job_area));
-   section("Habilidades",str(profile.skills));
-   section("Idiomas",str(profile.languages));
-   const entries=(value:unknown)=>Array.isArray(value)?value.map((v:any)=>typeof v==="string"?v:Object.values(v??{}).filter(x=>typeof x==="string"&&x.trim()).join(" · ")).filter(Boolean).join("\n"):"";
-   section("Estudios",entries(profile.education));
-   section("Experiencia",entries(profile.experience));
+   const entries=(value:unknown)=>Array.isArray(value)?value.map((v:any)=>typeof v==="string"?v:Object.values(v??{}).filter(x=>typeof x==="string"&&x.trim()).join(" · ")).filter(Boolean).join("\\n"):"";
+   const sections=[["Perfil profesional",str(profile.work_profile)],["Experiencia",entries(profile.experience)],["Formación",entries(profile.education)],["Habilidades",str(profile.skills)],["Idiomas",str(profile.languages)],["Área laboral",str(profile.primary_job_area)]].filter((x)=>Boolean(x[1]));
+   let y=modern?54:corporate?61:minimal?63:48;
+   const left=modern?82:minimal?30:20,right=modern?108:minimal?150:170;
+   const heading=(title:string)=>{pdf.setFont("helvetica","bold");pdf.setFontSize(minimal?10:11);pdf.setTextColor(accent);pdf.text(title.toUpperCase(),left,y);y+=7;};
+   const section=(title:string,value:string)=>{const lines=pdf.splitTextToSize(value,right);const h=lines.length*5+19;if(y+h>276){pdf.addPage();y=25;if(modern){pdf.setFillColor(18,63,93);pdf.rect(0,0,66,297,"F");}}heading(title);pdf.setFont("helvetica","normal");pdf.setFontSize(10);pdf.setTextColor(ink);pdf.text(lines,left,y);y+=lines.length*5+13;};
+   if(modern){
+    pdf.setFillColor(18,63,93);pdf.rect(0,0,66,297,"F");
+    pdf.setTextColor("#ffffff");pdf.setFont("helvetica","bold");pdf.setFontSize(17);pdf.text(pdf.splitTextToSize(name,54),8,24);
+    pdf.setFont("helvetica","normal");pdf.setFontSize(9);pdf.text(pdf.splitTextToSize(contact,51),8,45);
+    pdf.setDrawColor(18,109,148);pdf.setLineWidth(1.2);pdf.line(82,39,190,39);
+   }else if(corporate){
+    pdf.setFillColor(24,61,97);pdf.rect(0,0,210,15,"F");
+    pdf.setTextColor(navy);pdf.setFont("times","bold");pdf.setFontSize(24);pdf.text(name,105,34,{align:"center"});
+    pdf.setFont("helvetica","normal");pdf.setFontSize(9);pdf.text(pdf.splitTextToSize(contact,170),105,44,{align:"center"});
+    pdf.setDrawColor(185,156,102);pdf.line(20,53,190,53);
+   }else if(minimal){
+    pdf.setTextColor("#20272d");pdf.setFont("helvetica","normal");pdf.setFontSize(25);pdf.text(name,30,34);
+    pdf.setFontSize(9);pdf.setTextColor("#65717c");pdf.text(pdf.splitTextToSize(contact,150),30,45);
+    pdf.setDrawColor(218,223,226);pdf.line(30,53,180,53);
+   }else{
+    pdf.setTextColor(ink);pdf.setFont("helvetica","bold");pdf.setFontSize(21);pdf.text(name,20,25);
+    pdf.setFont("helvetica","normal");pdf.setFontSize(9);pdf.text(pdf.splitTextToSize(contact,170),20,35);
+    pdf.setDrawColor(190,204,216);pdf.line(20,41,190,41);
+   }
+   sections.forEach(([title,value])=>section(title,value));
    if(executivePurchase){const redeemed=await api("/v1/candidate/cv/yappy/"+encodeURIComponent(purchaseId)+"/generate",{method:"POST"});setExecutiveRemaining(redeemed.remaining);}else{const result=await api("/v1/candidate/cv/free-generate",{method:"POST",body:JSON.stringify({template})});setRemaining(result.free_remaining);}pdf.save("curriculum-empleos-pa.pdf");
   }catch(e:any){setError(e?.body?.error==="FREE_LIMIT_REACHED"?"Ya utilizaste tus dos generaciones gratuitas.":e?.body?.error==="PROFILE_NOT_ACTIVE"?"Publica primero tu perfil para generar el PDF.":"No se pudo generar el PDF. Inténtalo nuevamente.");}finally{setBusy(false);}
  }
@@ -36,9 +52,11 @@ export default function Curriculum(){
  <p className="eyebrowDark">GENERA TU CURRÍCULUM GRATIS</p><h1>Elige el currículum que mejor se adapte a ti</h1><p>Escoge una plantilla y revisa su presentación. Utilizaremos los datos que completaste en tu perfil, sin fotografías.</p>
  <div className="portalActions" role="group" aria-label="Tipo de currículum"><button type="button" className="portalAction" aria-pressed={category==="gratis"} onClick={()=>setCategory("gratis")}>Currículum gratis</button><button type="button" className="portalAction secondaryPortal" aria-pressed={category==="ejecutivo"} onClick={()=>setCategory("ejecutivo")}>Currículum ejecutivo · US$0.50</button></div>
  {category==="gratis"?<><p>Dos generaciones gratuitas, para que puedas revisar y corregir tu información. Disponibles: <strong>{remaining===null?"Consultando…":remaining}</strong></p><div className="portalActions"><button type="button" className="portalAction secondaryPortal" aria-pressed={template==="clasico"} onClick={()=>setTemplate("clasico")}>Clásico {template==="clasico"?"✓":""}</button><button type="button" className="portalAction secondaryPortal" aria-pressed={template==="moderno"} onClick={()=>setTemplate("moderno")}>Moderno {template==="moderno"?"✓":""}</button></div></>:<><p>Plantillas ejecutivas: <strong>US$0.50</strong>, con una descarga inicial y dos correcciones. Selecciona tu diseño antes de continuar.</p><div className="portalActions"><button type="button" className="portalAction secondaryPortal" aria-pressed={executive==="ejecutivo-clasico"} disabled={Boolean(purchaseId)} onClick={()=>setExecutive("ejecutivo-clasico")}>Ejecutivo clásico {executive==="ejecutivo-clasico"?"✓":""}</button><button type="button" className="portalAction secondaryPortal" aria-pressed={executive==="ejecutivo-moderno"} disabled={Boolean(purchaseId)} onClick={()=>setExecutive("ejecutivo-moderno")}>Ejecutivo moderno {executive==="ejecutivo-moderno"?"✓":""}</button><button type="button" className="portalAction secondaryPortal" aria-pressed={executive==="ejecutivo-minimalista"} disabled={Boolean(purchaseId)} onClick={()=>setExecutive("ejecutivo-minimalista")}>Ejecutivo minimalista {executive==="ejecutivo-minimalista"?"✓":""}</button></div></>}
- <div aria-label="Vista previa de la plantilla seleccionada" style={{maxWidth:540,margin:"24px auto",background:"#fff",border:"1px solid #d8e1eb",borderRadius:category==="ejecutivo"&&executive==="ejecutivo-moderno"?18:6,boxShadow:"0 8px 30px #11233b16",overflow:"hidden"}}>
- <div style={{height:category==="ejecutivo"&&executive==="ejecutivo-moderno"?14:5,background:category==="gratis"?(template==="moderno"?"#23658a":"#25354a"):executive==="ejecutivo-minimalista"?"#263445":executive==="ejecutivo-moderno"?"#23658a":"#183d61"}}/>
- <div style={{padding:"28px 30px",color:"#24364b"}}><p style={{margin:"0 0 6px",fontSize:26,fontWeight:700,textAlign:category==="ejecutivo"&&executive==="ejecutivo-clasico"?"center":"left"}}>{profile?str(profile.full_name)||"Tu nombre completo":"Tu nombre completo"}</p><p style={{fontSize:12,margin:"0 0 20px"}}>{profile?[str(profile.contact_email),str(profile.mobile_whatsapp),str(profile.province)].filter(Boolean).join(" · "):"Correo · Teléfono · Provincia"}</p><div style={{borderTop:"1px solid #d6e0e9",paddingTop:16}}><strong style={{fontSize:13,color:"#174d81"}}>PERFIL PROFESIONAL</strong><p style={{fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{profile?str(profile.work_profile)||"Completa tu perfil profesional para visualizarlo aquí.":"Tu resumen profesional aparecerá aquí."}</p><strong style={{fontSize:13,color:"#174d81"}}>EXPERIENCIA Y FORMACIÓN</strong><p style={{fontSize:13,lineHeight:1.6}}>Tus estudios y experiencia registrados aparecerán organizados aquí.</p><strong style={{fontSize:13,color:"#174d81"}}>HABILIDADES</strong><p style={{fontSize:13,lineHeight:1.6}}>{profile?str(profile.skills)||"Completa tus habilidades para visualizarlas.":"Tus habilidades aparecerán aquí."}</p></div></div></div>
+ <div aria-label="Vista previa de la plantilla seleccionada" style={{maxWidth:600,margin:"24px auto",background:"#fff",border:"1px solid #d8e1eb",boxShadow:"0 8px 30px #11233b16",overflow:"hidden",minHeight:380}}>
+ {(()=>{const style=category==="gratis"?template:executive;const modern=style==="moderno"||style==="ejecutivo-moderno",minimal=style==="ejecutivo-minimalista",corporate=style==="ejecutivo-clasico";const contact=profile?[str(profile.contact_email),str(profile.mobile_whatsapp),str(profile.province)].filter(Boolean).join(" · "):"Correo · Teléfono · Provincia";const entries=(value:unknown)=>Array.isArray(value)?value.map((v:any)=>typeof v==="string"?v:Object.values(v??{}).filter(x=>typeof x==="string"&&x.trim()).join(" · ")).filter(Boolean).join(" | "):"";const data=[["PERFIL PROFESIONAL",profile?str(profile.work_profile):""],["EXPERIENCIA",profile?entries(profile.experience):""],["FORMACIÓN",profile?entries(profile.education):""],["HABILIDADES",profile?str(profile.skills):""],["IDIOMAS",profile?str(profile.languages):""]].filter((x)=>Boolean(x[1]));return <div style={{display:modern?"grid":"block",gridTemplateColumns:modern?"35% 65%":undefined,minHeight:380,fontFamily:corporate?"Georgia,serif":"inherit",color:"#24364b"}}>
+ {modern?<aside style={{background:"#123f5d",color:"#fff",padding:"30px 18px",overflowWrap:"anywhere"}}><strong style={{fontSize:21,lineHeight:1.2,display:"block"}}>{profile?str(profile.full_name)||"Tu nombre completo":"Tu nombre completo"}</strong><p style={{fontSize:11,lineHeight:1.7,marginTop:20}}>{contact}</p><div style={{height:2,background:"#54b4d4",marginTop:28}}/></aside>:<div style={{borderTop:corporate?"12px solid #183d61":minimal?"0":"5px solid #24364b",padding:minimal?"42px 38px 8px":"30px 30px 12px",textAlign:corporate?"center":"left",borderBottom:corporate?"1px solid #b99c66":"1px solid #e1e7ec"}}><strong style={{display:"block",fontSize:minimal?30:corporate?30:25,fontWeight:minimal?400:700,letterSpacing:minimal?1:0}}>{profile?str(profile.full_name)||"Tu nombre completo":"Tu nombre completo"}</strong><p style={{fontSize:11,color:"#687786"}}>{contact}</p></div>}
+ <div style={{padding:modern?"28px 22px":minimal?"26px 38px 38px":"24px 30px 30px"}}>{data.length?data.map(([title,value])=><section key={title} style={{marginBottom:minimal?27:19}}><strong style={{fontSize:minimal?11:12,color:modern?"#126d94":corporate?"#183d61":"#344455",letterSpacing:minimal?2:0}}>{title}</strong><p style={{fontSize:13,lineHeight:1.65,whiteSpace:"pre-wrap",margin:"8px 0 0"}}>{value}</p></section>):<p style={{fontSize:13,lineHeight:1.7}}>Completa tu perfil para ver aquí tu experiencia, estudios y habilidades.</p>}</div></div>})()}
+ </div>
  {error&&<p className="saveMsg" role="alert">{error}</p>}
  <div className="portalActions">{category==="gratis"?<button className="portalAction" disabled={!profile||busy||remaining===null||remaining<=0} onClick={()=>generate(false)}>{busy?"Generando…":"Descargar PDF gratuito"}</button>:<button type="button" className="portalAction" onClick={()=>setPaymentOpen(true)}>{paymentStatus==="EXECUTED"?"Descargar PDF ejecutivo":"Continuar con PDF ejecutivo · US$0.50"}</button>}<a className="portalAction secondaryPortal" href="/candidato/perfil">Corregir mis datos</a><a className="portalAction secondaryPortal" href="/candidato">Volver a mi perfil</a></div>
  </section>
