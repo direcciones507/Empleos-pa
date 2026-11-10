@@ -122,3 +122,23 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .portal button:disabled{cursor:not-allowed;opacity:.55}
 .portal button:focus-visible,.portal a.portalAction:focus-visible{outline:3px solid #1a809d;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.portal button,.portal a.portalAction{transition:none!important}.portal .portalActions button:hover,.portal .portalActions a.portalAction:hover{transform:none}}
+
+/* Mobile home alignment: keep every section within the viewport. */
+@media(max-width:600px){
+ .home{width:100%;max-width:100%;min-width:0;overflow-x:clip}
+ .home .launchBanner{width:100%;padding:14px 16px;gap:9px;text-align:center;flex-direction:column;align-items:center}
+ .home .launchBanner strong,.home .launchBanner span{max-width:100%;overflow-wrap:break-word}
+ .home .homeNav{width:100%;min-width:0;height:auto;min-height:70px;padding:12px 18px;gap:12px;align-items:center}
+ .home .homeBrand{min-width:0;flex:1 1 auto;font-size:clamp(1.55rem,7vw,2.2rem);letter-spacing:-.055em;white-space:nowrap}
+ .home .homeNav>div{min-width:0;flex:0 0 auto;gap:8px}
+ .home .homeNav .navLogin{padding:10px 14px;white-space:nowrap;font-size:.88rem}
+ .home .homeHero{width:100%;max-width:100%;padding-bottom:34px}
+ .home .homeHeroBanner{width:100%;max-width:100%;background-size:cover;background-position:center 72%}
+ .home .heroMessage{width:100%;max-width:100%;padding:24px 20px 0;text-align:center}
+ .home .heroMessage h1{font-size:clamp(2.25rem,10vw,3.35rem);line-height:1.08;overflow-wrap:break-word}
+ .home .heroMessage p{max-width:100%;overflow-wrap:break-word}
+ .home .homeHero .homeChoices{width:100%;max-width:100%;margin:24px auto 0;padding:0 18px}
+ .home .homeChoices article{min-width:0;width:100%;padding:22px}
+ .home .homeBenefits,.home .requestTypes,.home footer{width:100%;max-width:100%;min-width:0}
+ .home section[aria-label="Currículum en PDF"]{margin:20px 18px!important;max-width:calc(100% - 36px)!important}
+}
