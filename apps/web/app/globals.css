@@ -423,3 +423,63 @@ footer nav a{font-family:inherit;font-size:.95rem;font-weight:650;letter-spacing
 .eyebrowDark,.heroMessage .eyebrowDark{font-family:"DM Sans",Inter,ui-sans-serif,system-ui,sans-serif;font-weight:700;letter-spacing:.025em;text-transform:none}
 /* Keep candidate logout aligned toward the right edge on phones. */
 @media(max-width:520px){.portal header .headerActions{display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px}.portal header .headerActions .accountLogout{margin-left:auto;flex-shrink:0}}
+
+
+/* Portada: acciones principales visibles y táctiles, sin alterar rutas ni flujos. */
+.home .launchBanner a,
+.home .homeNav .navRegister,
+.home .mobileHomeMenuLinks a[href*="registro"],
+.home .homeChoices article > a,
+.home .requestTypeGrid article > a {
+  position: relative;
+  cursor: pointer;
+  transform-origin: center;
+  animation: empleos-home-cta 1.7s ease-in-out infinite;
+  transition: transform .15s ease-out, filter .15s ease-out, box-shadow .15s ease-out;
+  box-shadow: 0 5px 14px rgba(17, 62, 43, .2);
+}
+.home .requestTypeGrid article > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 17px;
+  border-radius: 12px;
+  background: #217847;
+  color: #fff;
+  text-decoration: none;
+}
+@keyframes empleos-home-cta {
+  0%, 100% { transform: translateY(0) scale(1); filter: brightness(1); }
+  50% { transform: translateY(-3px) scale(1.025); filter: brightness(1.07); }
+}
+@media (hover:hover) and (pointer:fine) {
+  .home .launchBanner a:hover,
+  .home .homeNav .navRegister:hover,
+  .home .mobileHomeMenuLinks a[href*="registro"]:hover,
+  .home .homeChoices article > a:hover,
+  .home .requestTypeGrid article > a:hover {
+    animation-play-state: paused;
+    transform: translateY(-5px) scale(1.055);
+    filter: brightness(1.1);
+    box-shadow: 0 11px 24px rgba(17, 62, 43, .3);
+  }
+}
+.home .launchBanner a:active,
+.home .homeNav .navRegister:active,
+.home .mobileHomeMenuLinks a[href*="registro"]:active,
+.home .homeChoices article > a:active,
+.home .requestTypeGrid article > a:active {
+  animation-play-state: paused;
+  transform: scale(.96);
+}
+@media (prefers-reduced-motion:reduce) {
+  .home .launchBanner a,
+  .home .homeNav .navRegister,
+  .home .mobileHomeMenuLinks a[href*="registro"],
+  .home .homeChoices article > a,
+  .home .requestTypeGrid article > a {
+    animation: none;
+    transition: none;
+  }
+}
