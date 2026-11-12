@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-// Revela su contenido al entrar en pantalla. Sin JS o con reduced-motion,
-// el contenido queda visible: solo se "arma" (oculta) cuando la animación va a correr.
+// Revelado al hacer scroll. Clases usadas en home-motion.css:
+//   .hm-reveal            contenedor (siempre visible por defecto)
+//   .hm-armed             se añade solo si el JS cargó y no hay prefers-reduced-motion
+//   .hm-in                se añade al entrar en pantalla
+// Sin JS o con reduced-motion el contenido nunca se oculta.
 export default function HomeReveal({
   children,
   className = "",
@@ -16,8 +19,8 @@ export default function HomeReveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || !("IntersectionObserver" in window)) return;
+    if (!("IntersectionObserver" in window)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     el.classList.add("hm-armed");
     const io = new IntersectionObserver(
