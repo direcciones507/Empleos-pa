@@ -140,13 +140,13 @@ export default function Home() {
                 <span>Requisitos</span>
                 <span>Ubicación</span>
               </div>
+              <div className="hm-tag-compat">Ejemplo de compatibilidad</div>
             </div>
             <div className="hm-ring-wrap">
               <div className="hm-ring" />
               <div className="hm-ring-fill" />
               <div className="hm-check">✓</div>
             </div>
-            <div className="hm-tag-compat">Ejemplo de compatibilidad</div>
           </div>
         </div>
       </section>
