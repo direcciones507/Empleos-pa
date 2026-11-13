@@ -359,6 +359,11 @@
   animation-delay: calc(0.15s + var(--i) * 0.09s);
 }
 
+.hm-root .hm-h1 .hm-word:not(:last-child),
+.hm-root .hm-h1 > .hm-word {
+  margin-inline-end: 0.2em;
+}
+
 .hm-root .hm-h1 .hm-mark {
   position: relative;
   display: inline-block;
@@ -399,7 +404,7 @@
   position: relative;
   width: 100%;
   max-width: 480px;
-  height: 340px;
+  height: 430px;
   justify-self: center;
 }
 
@@ -543,10 +548,12 @@
 
 .hm-root .hm-tag-compat {
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: normal;
   padding: 7px 14px;
   border-radius: 999px;
   background: rgba(214, 242, 92, 0.14);
